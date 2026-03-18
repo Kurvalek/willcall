@@ -32,7 +32,7 @@ app.use(session({
 
 // Page routes registered first so they always work
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'landing.html'));
+  res.sendFile(path.join(__dirname, 'app.html'));
 });
 app.get('/dev', (req, res) => {
   const base = `http://${req.get('host') || 'localhost:3000'}`;
@@ -78,12 +78,7 @@ app.get('/api/supabase-config', (req, res) => {
 });
 
 app.get('/app', (req, res) => {
-  res.sendFile(path.join(__dirname, 'app.html'), (err) => {
-    if (err) {
-      console.error('sendFile /app error:', err.message);
-      res.status(500).send('Error loading page.');
-    }
-  });
+  res.redirect('/');
 });
 
 const anthropic = new Anthropic({
