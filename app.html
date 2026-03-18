@@ -3027,8 +3027,19 @@
       }
       var params = new URLSearchParams(window.location.search);
       if (params.get('error')) {
-        var msg = params.get('error') === 'auth_failed' ? 'Spotify login failed.' : params.get('error') === 'state_mismatch' ? 'Session mismatch. Please try again.' : 'Something went wrong.';
-        alert(msg);
+        var reason = params.get('reason') || '';
+        var detail = params.get('detail') || '';
+        var msg = 'Spotify login failed.';
+        if (reason === 'cookie_missing') msg = 'Spotify login failed: browser cookies may be blocked. Enable cookies and try again.';
+        else if (reason === 'state_mismatch') msg = 'Spotify login failed: session mismatch. Please try again.';
+        else if (reason === 'token_exchange') msg = 'Spotify login failed: ' + (detail || 'could not exchange token.');
+        else if (reason === 'spotify_denied') msg = 'Spotify login was denied or cancelled.';
+        var warning = document.getElementById('localhostWarning');
+        if (warning) {
+          warning.style.display = 'block';
+          warning.innerHTML = '<strong>Error:</strong> ' + msg;
+        }
+        console.error('Spotify OAuth error:', msg, '| reason:', reason, '| detail:', detail);
         window.history.replaceState({}, document.title, window.location.pathname);
       }
       if (params.get('authenticated') === 'true') {

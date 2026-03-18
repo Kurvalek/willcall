@@ -642,20 +642,25 @@ app.get('/oauth/spotify/callback', async (req, res) => {
   const savedState = req.cookies?.spotify_state;
   const savedRedirectUri = req.cookies?.spotify_redirect_uri;
 
+  console.log('[spotify-callback] cookies received:', Object.keys(req.cookies || {}));
+  console.log('[spotify-callback] state match:', state === savedState, '| savedState:', !!savedState);
+
   res.clearCookie('spotify_state');
   res.clearCookie('spotify_redirect_uri');
 
   if (error) {
     console.error('Spotify OAuth error from provider:', error);
-    return redirect('/app?error=auth_failed');
+    return redirect('/app?error=auth_failed&reason=spotify_denied');
   }
   if (!savedState || state !== savedState) {
-    console.error('Spotify state mismatch. Expected:', savedState, 'Got:', state);
-    return redirect('/app?error=state_mismatch');
+    const reason = !savedState ? 'cookie_missing' : 'state_mismatch';
+    console.error('[spotify-callback]', reason, '| savedState:', savedState, '| got:', state);
+    return redirect('/app?error=auth_failed&reason=' + reason);
   }
   try {
     const creds = getSpotifyCredentials(req);
     if (savedRedirectUri) creds.redirectUri = savedRedirectUri;
+    console.log('[spotify-callback] exchanging code with redirectUri:', creds.redirectUri);
     const spotifyApi = new SpotifyWebApi(creds);
     const data = await spotifyApi.authorizationCodeGrant(code);
     res.cookie('spotify_tokens', JSON.stringify({
@@ -663,11 +668,12 @@ app.get('/oauth/spotify/callback', async (req, res) => {
       refresh_token: data.body.refresh_token,
       expires_at: Date.now() + data.body.expires_in * 1000
     }), { ...COOKIE_OPTS, maxAge: 30 * 24 * 60 * 60 * 1000 });
-    console.log('Spotify connected successfully');
+    console.log('[spotify-callback] success, redirecting to /app');
     redirect('/app?authenticated=true');
   } catch (err) {
-    console.error('Spotify token exchange error:', err.response?.body || err.message);
-    redirect('/app?error=auth_failed');
+    const detail = err.response?.body?.error_description || err.response?.body?.error || err.message;
+    console.error('[spotify-callback] token exchange failed:', detail);
+    redirect('/app?error=auth_failed&reason=token_exchange&detail=' + encodeURIComponent(detail || 'unknown'));
   }
 });
 
