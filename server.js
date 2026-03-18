@@ -594,21 +594,37 @@ app.get('/oauth/callback', async (req, res) => {
 // --- Spotify OAuth & Concert Discovery ---
 const spotifyCredentials = {
   clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.SPOTIFY_REDIRECT_URI || 'http://127.0.0.1:3000/oauth/spotify/callback'
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET
 };
 
+function getBaseUrl(req) {
+  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  const host = req.headers['x-forwarded-host'] || req.get('host');
+  return `${proto}://${host}`;
+}
+
+function getSpotifyCredentials(req) {
+  const redirectUri = process.env.SPOTIFY_REDIRECT_URI || (getBaseUrl(req) + '/oauth/spotify/callback');
+  return {
+    clientId: process.env.SPOTIFY_CLIENT_ID,
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
+    redirectUri
+  };
+}
+
 app.get('/oauth/spotify', (req, res) => {
-  if (!spotifyCredentials.clientId || !spotifyCredentials.clientSecret) {
+  const creds = getSpotifyCredentials(req);
+  if (!creds.clientId || !creds.clientSecret) {
     return res.status(500).send('Spotify app not configured. Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env');
   }
   const scopes = ['user-top-read', 'user-read-recently-played'];
   const state = Math.random().toString(36).slice(2);
   req.session.spotifyState = state;
+  req.session.spotifyRedirectUri = creds.redirectUri;
   const authUrl = `https://accounts.spotify.com/authorize?${new URLSearchParams({
     response_type: 'code',
-    client_id: spotifyCredentials.clientId,
-    redirect_uri: spotifyCredentials.redirectUri,
+    client_id: creds.clientId,
+    redirect_uri: creds.redirectUri,
     scope: scopes.join(' '),
     state
   })}`;
@@ -617,9 +633,7 @@ app.get('/oauth/spotify', (req, res) => {
 
 app.get('/oauth/spotify/callback', async (req, res) => {
   const { code, state, error } = req.query;
-  const baseUrl = process.env.SPOTIFY_REDIRECT_URI
-    ? process.env.SPOTIFY_REDIRECT_URI.replace(/\/oauth\/spotify\/callback\/?$/, '')
-    : 'http://127.0.0.1:3000';
+  const baseUrl = getBaseUrl(req);
   const redirect = (path) => res.redirect(`${baseUrl}${path}`);
 
   if (error) {
@@ -627,11 +641,15 @@ app.get('/oauth/spotify/callback', async (req, res) => {
     return redirect('/app?error=auth_failed');
   }
   if (!req.session || state !== req.session.spotifyState) {
-    console.error('Spotify state mismatch or no session. Use the same browser and open the app at ' + baseUrl);
+    console.error('Spotify state mismatch or no session.');
     return redirect('/app?error=state_mismatch');
   }
   try {
-    const spotifyApi = new SpotifyWebApi(spotifyCredentials);
+    const creds = getSpotifyCredentials(req);
+    if (req.session.spotifyRedirectUri) {
+      creds.redirectUri = req.session.spotifyRedirectUri;
+    }
+    const spotifyApi = new SpotifyWebApi(creds);
     const data = await spotifyApi.authorizationCodeGrant(code);
     req.session.spotifyTokens = {
       access_token: data.body.access_token,
