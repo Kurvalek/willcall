@@ -1,7 +1,0 @@
-{
-  "name": "willcall-landing",
-  "private": true,
-  "dependencies": {
-    "@supabase/supabase-js": "^2"
-  }
-}

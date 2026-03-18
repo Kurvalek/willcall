@@ -1,5 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/api/waitlist", "destination": "/api/waitlist" }
-  ]
-}
