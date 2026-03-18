@@ -12,10 +12,12 @@ const path = require('path');
 const axios = require('axios');
 const { google } = require('googleapis');
 const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const SpotifyWebApi = require('spotify-web-api-node');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
+app.use(cookieParser());
 app.use(express.json());
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -612,6 +614,8 @@ function getSpotifyCredentials(req) {
   };
 }
 
+const COOKIE_OPTS = { httpOnly: true, sameSite: 'lax', secure: true, maxAge: 10 * 60 * 1000 };
+
 app.get('/oauth/spotify', (req, res) => {
   const creds = getSpotifyCredentials(req);
   if (!creds.clientId || !creds.clientSecret) {
@@ -619,8 +623,8 @@ app.get('/oauth/spotify', (req, res) => {
   }
   const scopes = ['user-top-read', 'user-read-recently-played'];
   const state = Math.random().toString(36).slice(2);
-  req.session.spotifyState = state;
-  req.session.spotifyRedirectUri = creds.redirectUri;
+  res.cookie('spotify_state', state, COOKIE_OPTS);
+  res.cookie('spotify_redirect_uri', creds.redirectUri, COOKIE_OPTS);
   const authUrl = `https://accounts.spotify.com/authorize?${new URLSearchParams({
     response_type: 'code',
     client_id: creds.clientId,
@@ -635,27 +639,30 @@ app.get('/oauth/spotify/callback', async (req, res) => {
   const { code, state, error } = req.query;
   const baseUrl = getBaseUrl(req);
   const redirect = (path) => res.redirect(`${baseUrl}${path}`);
+  const savedState = req.cookies?.spotify_state;
+  const savedRedirectUri = req.cookies?.spotify_redirect_uri;
+
+  res.clearCookie('spotify_state');
+  res.clearCookie('spotify_redirect_uri');
 
   if (error) {
     console.error('Spotify OAuth error from provider:', error);
     return redirect('/app?error=auth_failed');
   }
-  if (!req.session || state !== req.session.spotifyState) {
-    console.error('Spotify state mismatch or no session.');
+  if (!savedState || state !== savedState) {
+    console.error('Spotify state mismatch. Expected:', savedState, 'Got:', state);
     return redirect('/app?error=state_mismatch');
   }
   try {
     const creds = getSpotifyCredentials(req);
-    if (req.session.spotifyRedirectUri) {
-      creds.redirectUri = req.session.spotifyRedirectUri;
-    }
+    if (savedRedirectUri) creds.redirectUri = savedRedirectUri;
     const spotifyApi = new SpotifyWebApi(creds);
     const data = await spotifyApi.authorizationCodeGrant(code);
-    req.session.spotifyTokens = {
+    res.cookie('spotify_tokens', JSON.stringify({
       access_token: data.body.access_token,
       refresh_token: data.body.refresh_token,
       expires_at: Date.now() + data.body.expires_in * 1000
-    };
+    }), { ...COOKIE_OPTS, maxAge: 30 * 24 * 60 * 60 * 1000 });
     console.log('Spotify connected successfully');
     redirect('/app?authenticated=true');
   } catch (err) {
@@ -665,19 +672,22 @@ app.get('/oauth/spotify/callback', async (req, res) => {
 });
 
 app.post('/api/spotify/disconnect', (req, res) => {
-  req.session.spotifyTokens = null;
-  req.session.spotifyState = null;
+  res.clearCookie('spotify_tokens');
+  if (req.session) {
+    req.session.spotifyTokens = null;
+    req.session.spotifyState = null;
+  }
   res.json({ ok: true });
 });
 
 app.get('/api/spotify/status', async (req, res) => {
-  const tokens = await ensureSpotifyAccessToken(req);
+  const tokens = await ensureSpotifyAccessToken(req, res);
   res.json({ connected: !!tokens });
 });
 
 app.get('/api/spotify/top-artists', async (req, res) => {
   try {
-    const tokens = await ensureSpotifyAccessToken(req);
+    const tokens = await ensureSpotifyAccessToken(req, res);
     if (!tokens) return res.status(401).json({ error: 'Spotify not connected.' });
     const artists = await getSpotifyTopArtistsWithIds(tokens.access_token, 50);
     res.json({ artists });
@@ -839,8 +849,11 @@ async function searchSetlistWithCache(artistName, cityName, year = 0) {
 }
 
 // Refresh Spotify access token if we have a refresh_token
-async function ensureSpotifyAccessToken(req) {
-  let tokens = req.session.spotifyTokens;
+async function ensureSpotifyAccessToken(req, res) {
+  let tokens = req.session?.spotifyTokens || null;
+  if (!tokens && req.cookies?.spotify_tokens) {
+    try { tokens = JSON.parse(req.cookies.spotify_tokens); } catch (_) {}
+  }
   if (!tokens) return null;
   if (tokens.expires_at && Date.now() >= tokens.expires_at - 60000) {
     if (!tokens.refresh_token) return null;
@@ -852,7 +865,8 @@ async function ensureSpotifyAccessToken(req) {
         access_token: data.body.access_token,
         expires_at: Date.now() + data.body.expires_in * 1000
       };
-      req.session.spotifyTokens = tokens;
+      if (req.session) req.session.spotifyTokens = tokens;
+      if (res) res.cookie('spotify_tokens', JSON.stringify(tokens), { httpOnly: true, sameSite: 'lax', secure: true, maxAge: 30 * 24 * 60 * 60 * 1000 });
     } catch (_) {
       return null;
     }
@@ -863,7 +877,7 @@ async function ensureSpotifyAccessToken(req) {
 // Concerts you may have attended: filter artists by album year range, then search Setlist.fm only for those
 app.post('/api/spotify/concerts-suggestions', async (req, res) => {
   try {
-    const tokens = await ensureSpotifyAccessToken(req);
+    const tokens = await ensureSpotifyAccessToken(req, res);
     if (!tokens) {
       return res.status(401).json({ error: 'Spotify not connected or session expired. Please connect Spotify again.' });
     }
@@ -1235,7 +1249,7 @@ Return ONLY the JSON object, no other text or explanation.`
 // Batch artist image lookup via Spotify search
 app.post('/api/spotify/artist-images', async (req, res) => {
   try {
-    const tokens = await ensureSpotifyAccessToken(req);
+    const tokens = await ensureSpotifyAccessToken(req, res);
     if (!tokens) {
       console.log('[artist-images] No Spotify tokens — returning 401');
       return res.status(401).json({ error: 'Spotify not connected.' });
