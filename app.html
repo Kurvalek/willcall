@@ -1658,7 +1658,7 @@
       <div class="onb-body">
         <div class="onb-step-content" id="onbOtpArea">
           <p class="onb-subtitle" style="margin-top:60px;max-width:291px" id="onbOtpMessage">Enter the code we sent to your email.</p>
-          <input type="tel" id="onbOtpInput" class="onb-otp-input" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+          <input type="tel" id="onbOtpInput" class="onb-otp-input" maxlength="8" inputmode="numeric" autocomplete="one-time-code">
           <p id="onbOtpError" class="onb-error"></p>
           <p class="onb-countdown" id="onbCountdown">You can request a new code in <span id="onbCountdownSec">60</span> seconds<br>or <a id="onbChangeEmail">change your email.</a></p>
         </div>
@@ -2341,14 +2341,14 @@
       var otpInput = document.getElementById('onbOtpInput');
 
       otpInput.addEventListener('input', function() {
-        var val = otpInput.value.replace(/\D/g, '').slice(0, 6);
+        var val = otpInput.value.replace(/\D/g, '').slice(0, 8);
         otpInput.value = val;
-        if (val.length === 6) verifyOtp(val);
+        if (val.length === 8) verifyOtp(val);
       });
 
       otpInput.addEventListener('paste', function(e) {
         e.preventDefault();
-        var pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+        var pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 8);
         otpInput.value = pasted;
         otpInput.dispatchEvent(new Event('input'));
       });
