@@ -2251,7 +2251,9 @@
             return false;
           }
           if (cfg.url && cfg.anonKey) {
-            supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey);
+            supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey, {
+              auth: { flowType: 'implicit' }
+            });
             return true;
           }
           _supabaseInitError = 'Invalid auth config from server.';
