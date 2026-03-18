@@ -78,7 +78,7 @@ app.get('/api/supabase-config', (req, res) => {
 });
 
 app.get('/app', (req, res) => {
-  res.redirect('/');
+  res.sendFile(path.join(__dirname, 'app.html'));
 });
 
 const anthropic = new Anthropic({

@@ -2240,15 +2240,25 @@
         if (el) { el.textContent = msg || ''; el.classList.toggle('show', !!msg); }
       }
 
+      var _supabaseInitError = '';
       async function initSupabase() {
         try {
           var res = await fetch(window.location.origin + '/api/supabase-config');
           var cfg = await res.json();
+          if (cfg.error) {
+            _supabaseInitError = 'Server auth not configured. Admin must add SUPABASE_URL and SUPABASE_KEY.';
+            console.error('Supabase config error:', cfg.error);
+            return false;
+          }
           if (cfg.url && cfg.anonKey) {
             supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey);
             return true;
           }
-        } catch (e) { console.warn('Supabase init failed:', e); }
+          _supabaseInitError = 'Invalid auth config from server.';
+        } catch (e) {
+          _supabaseInitError = 'Could not reach the server. Try refreshing.';
+          console.warn('Supabase init failed:', e);
+        }
         return false;
       }
 
@@ -2304,7 +2314,7 @@
 
         try {
           var sb = window._getSupabase();
-          if (!sb) { showFieldError('onbEmailError', 'Auth not ready. Try again.'); return; }
+          if (!sb) { showFieldError('onbEmailError', _supabaseInitError || 'Auth not ready. Try refreshing.'); return; }
           var { error } = await sb.auth.signInWithOtp({ email: email });
           if (error) { showFieldError('onbEmailError', error.message); return; }
         } catch (e) { showFieldError('onbEmailError', e.message || 'Failed to send code'); return; }
@@ -2345,7 +2355,7 @@
         showFieldError('onbOtpError', '');
         try {
           var sb = window._getSupabase();
-          if (!sb) { showFieldError('onbOtpError', 'Auth not ready. Try again.'); return; }
+          if (!sb) { showFieldError('onbOtpError', _supabaseInitError || 'Auth not ready. Try refreshing.'); return; }
           var { error } = await sb.auth.verifyOtp({ email: onbData.email, token: code, type: 'email' });
           if (error) { showFieldError('onbOtpError', error.message); resetOtpInput(); return; }
           goToStep(4);
@@ -3017,7 +3027,7 @@
       }
       var params = new URLSearchParams(window.location.search);
       if (params.get('error')) {
-        var msg = params.get('error') === 'auth_failed' ? 'Spotify login failed.' : params.get('error') === 'state_mismatch' ? 'Session mismatch. Open at http://127.0.0.1:3000/app and try again.' : 'Something went wrong.';
+        var msg = params.get('error') === 'auth_failed' ? 'Spotify login failed.' : params.get('error') === 'state_mismatch' ? 'Session mismatch. Please try again.' : 'Something went wrong.';
         alert(msg);
         window.history.replaceState({}, document.title, window.location.pathname);
       }
@@ -3419,14 +3429,14 @@
         var res = await fetch(url);
         var ct = (res.headers.get('content-type') || '').toLowerCase();
         if (!ct.includes('application/json') && !ct.includes('json')) {
-          el.innerHTML = '<div class="empty-state">Server returned HTML instead of JSON. Try opening <a href="http://127.0.0.1:3000/api/health" target="_blank">http://127.0.0.1:3000/api/health</a> — you should see {\"ok\":true}. If you see a 404 page instead, restart the server: stop it (Ctrl+C), then run <code>node server.js</code> again in the project folder.</div>';
+          el.innerHTML = '<div class="empty-state">Server returned HTML instead of JSON. Try opening <a href="/api/health" target="_blank">/api/health</a> — you should see {\"ok\":true}. If you see a 404 page, restart the server with <code>node server.js</code>.</div>';
           return;
         }
         var data;
         try {
           data = await res.json();
         } catch (parseErr) {
-          el.innerHTML = '<div class="empty-state">Invalid response. Open <a href="http://127.0.0.1:3000/app">http://127.0.0.1:3000/app</a> and ensure TICKETMASTER_API_KEY is in .env</div>';
+          el.innerHTML = '<div class="empty-state">Invalid response. Ensure TICKETMASTER_API_KEY is set in your environment variables.</div>';
           return;
         }
         if (data && data.error) {
@@ -3479,7 +3489,7 @@
       } catch (err) {
         var msg = err.message || 'Unknown error';
         if (msg === 'Failed to fetch' || msg.indexOf('fetch') !== -1) {
-          el.innerHTML = '<div class="empty-state">Could not connect to the server. Open <strong><a href="http://127.0.0.1:3000/app">http://127.0.0.1:3000/app</a></strong> in your browser (Chrome, Safari, etc.) — not in a preview panel. First run <code>node server.js</code> in the project folder.</div>';
+          el.innerHTML = '<div class="empty-state">Could not connect to the server. If running locally, open <strong>http://127.0.0.1:3000</strong> in your browser and run <code>node server.js</code> first.</div>';
         } else {
           el.innerHTML = '<div class="empty-state">Failed to load shows: ' + msg + '</div>';
         }

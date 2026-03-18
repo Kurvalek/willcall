@@ -1,8 +1,10 @@
-# Supabase Auth Setup for FANATIK
+# Supabase Auth Setup for willcall
 
-The app uses Supabase for authentication (magic link email + Google OAuth).
+The app uses Supabase for authentication (magic link / OTP email).
 
 ## 1. Environment variables
+
+### Local development
 
 Ensure your `.env` has:
 ```
@@ -12,30 +14,41 @@ SUPABASE_KEY=your-anon-public-key
 
 Use the **anon** (public) key from Supabase Dashboard → Settings → API, not the service_role key.
 
+### Vercel (production)
+
+In your Vercel project dashboard → **Settings** → **Environment Variables**, add these at minimum:
+
+| Variable | Value | Required for |
+|----------|-------|-------------|
+| `SUPABASE_URL` | `https://your-project.supabase.co` | Auth / sign-in |
+| `SUPABASE_KEY` | Your Supabase anon key | Auth / sign-in |
+| `TICKETMASTER_API_KEY` | Your Ticketmaster key | Upcoming shows tab |
+| `SETLISTFM_API_KEY` | Your Setlist.fm key | Concert search |
+| `ANTHROPIC_API_KEY` | Your Anthropic key | Concert search |
+| `SPOTIFY_CLIENT_ID` | Your Spotify app client ID | Spotify features |
+| `SPOTIFY_CLIENT_SECRET` | Your Spotify app secret | Spotify features |
+| `SPOTIFY_REDIRECT_URI` | `https://your-vercel-url.vercel.app/oauth/spotify/callback` | Spotify OAuth |
+
+After adding env vars, **redeploy** the project (Vercel → Deployments → Redeploy).
+
 ## 2. Redirect URLs
 
 In Supabase Dashboard → **Authentication** → **URL Configuration** → **Redirect URLs**, add:
 
-- `http://127.0.0.1:3000/app`
-- `http://localhost:3000/app`
+- `http://127.0.0.1:3000/app` (local dev)
+- `http://localhost:3000/app` (local dev)
+- `https://your-vercel-url.vercel.app/app` (production)
+- `https://your-vercel-url.vercel.app/` (production)
 
-For production, add your production URL (e.g. `https://yourdomain.com/app`).
-
-## 3. Email (Magic Link)
+## 3. Email (Magic Link / OTP)
 
 - **Authentication** → **Providers** → **Email**: Enable "Confirm email" if you want users to verify.
-- Magic links work by default; no extra config needed.
+- Magic links and OTP codes work by default; no extra config needed.
 
-## 4. Google OAuth
-
-1. **Authentication** → **Providers** → **Google**: Enable.
-2. Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
-   - Application type: Web application
-   - Authorized redirect URI: `https://your-project.supabase.co/auth/v1/callback`
-3. Copy Client ID and Client Secret into Supabase Google provider settings.
-
-## 5. Site URL
+## 4. Site URL
 
 In **Authentication** → **URL Configuration** → **Site URL**, set:
 - Development: `http://127.0.0.1:3000`
-- Or your production URL
+- Production: `https://your-vercel-url.vercel.app`
+
+When deploying to production, update the Site URL to your Vercel URL so magic link emails redirect to the right place.
