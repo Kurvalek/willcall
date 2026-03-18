@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify → Concerts You May Have Seen</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1db954 0%, #191414 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { font-size: 28px; margin-bottom: 10px; color: #2d3748; }
+        .subtitle { color: #718096; margin-bottom: 30px; font-size: 14px; }
+        .connect-section {
+            text-align: center;
+            padding: 60px 20px;
+            background: #f7fafc;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        .connect-icon { font-size: 60px; margin-bottom: 20px; }
+        .connect-title { font-size: 20px; font-weight: 600; color: #2d3748; margin-bottom: 10px; }
+        .connect-description { color: #718096; margin-bottom: 30px; line-height: 1.6; }
+        button {
+            padding: 15px 40px;
+            background: #1db954;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(29, 185, 84, 0.4);
+        }
+        button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .form-section { display: none; margin-bottom: 30px; }
+        .form-section.show { display: block; }
+        label { display: block; font-weight: 600; color: #4a5568; margin-bottom: 8px; font-size: 14px; }
+        input[type="text"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #1db954;
+        }
+        .row { display: flex; gap: 16px; }
+        .row > * { flex: 1; }
+        .hint { font-size: 12px; color: #718096; margin-top: -8px; margin-bottom: 16px; }
+        .loading { text-align: center; padding: 40px; display: none; }
+        .loading.show { display: block; }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1db954;
+            border-radius: 50%;
+            width: 50px; height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { color: #718096; font-size: 16px; }
+        .results { display: none; }
+        .results.show { display: block; }
+        .results-header {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .results-title { font-size: 20px; font-weight: 600; color: #2d3748; margin-bottom: 10px; }
+        .results-count { color: #718096; font-size: 14px; }
+        .concert-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: box-shadow 0.2s;
+        }
+        .concert-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .artist-group {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .artist-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: #f7fafc;
+            cursor: pointer;
+            transition: background 0.2s;
+            user-select: none;
+        }
+        .artist-group-header:hover { background: #edf2f7; }
+        .artist-group-header .name { font-size: 18px; font-weight: 600; color: #2d3748; }
+        .artist-group-header .count { font-size: 14px; color: #718096; margin-left: 10px; }
+        .artist-group-header .chevron {
+            font-size: 14px;
+            color: #718096;
+            transition: transform 0.2s;
+        }
+        .artist-group-header.open .chevron { transform: rotate(180deg); }
+        .artist-group-shows {
+            display: none;
+            padding: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .artist-group-shows.open { display: block; }
+        .concert-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 10px;
+            transition: box-shadow 0.2s;
+        }
+        .concert-card:last-child { margin-bottom: 0; }
+        .concert-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .concert-artist { font-size: 18px; font-weight: 600; color: #2d3748; margin-bottom: 8px; }
+        .concert-date { color: #1db954; font-weight: 500; font-size: 14px; margin-bottom: 6px; }
+        .concert-venue { color: #4a5568; font-size: 14px; }
+        .concert-location { color: #718096; font-size: 13px; margin-top: 4px; }
+        .concert-source { margin-top: 10px; padding: 8px 12px; background: #edf2f7; border-radius: 6px; font-size: 12px; color: #4a5568; }
+        .error { background: #fed7d7; color: #c53030; padding: 15px; border-radius: 10px; margin-top: 20px; }
+        .localhost-warning { background: #fef3c7; color: #92400e; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+        .localhost-warning a { color: #1db954; font-weight: 600; }
+        .disconnect { margin-top: 20px; }
+        .disconnect button { background: #718096; font-size: 14px; padding: 10px 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 Concerts You May Have Seen</h1>
+        <p class="subtitle">Connect Spotify → add cities (and optional date range) → we’ll suggest concerts based on your listening.</p>
+        <div id="localhostWarning" class="localhost-warning" style="display: none;">
+            <strong>Use this URL so login works:</strong> <a href="http://127.0.0.1:3000/spotify-concerts" id="correctUrl">http://127.0.0.1:3000/spotify-concerts</a>
+        </div>
+
+        <div id="connectSection" class="connect-section">
+            <div class="connect-icon">🎧</div>
+            <div class="connect-title">Connect Spotify</div>
+            <div class="connect-description">
+                We use your top and recently played artists to find Setlist.fm concerts in the cities you’ve been to. No listening history is stored.
+            </div>
+            <button onclick="connectSpotify()">Connect Spotify</button>
+        </div>
+
+        <div id="formSection" class="form-section">
+            <h2 style="margin-bottom: 20px; font-size: 20px; color: #2d3748;">Where have you been to concerts?</h2>
+            <label for="cities">Cities (comma-separated)</label>
+            <textarea id="cities" rows="3" placeholder="e.g. New York, Brooklyn, Miami, Los Angeles"></textarea>
+            <p class="hint">Add every city you’ve seen shows in for better matches.</p>
+            <div class="row">
+                <div>
+                    <label for="yearStart">Year range start (optional)</label>
+                    <input type="number" id="yearStart" placeholder="e.g. 2015" min="1990" max="2030">
+                </div>
+                <div>
+                    <label for="yearEnd">Year range end (optional)</label>
+                    <input type="number" id="yearEnd" placeholder="e.g. 2024" min="1990" max="2030">
+                </div>
+            </div>
+            <p class="hint">Leave blank to search all years.</p>
+            <label for="artistLimit">Number of artists to search</label>
+            <select id="artistLimit">
+                <option value="10">10 artists (fast)</option>
+                <option value="20" selected>20 artists</option>
+                <option value="30">30 artists</option>
+                <option value="40">40 artists</option>
+                <option value="50">50 artists (best coverage)</option>
+            </select>
+            <p class="hint">More artists = broader search but longer wait.</p>
+            <button id="findBtn" onclick="findConcerts()">Find concerts I may have attended</button>
+            <p style="margin-top: 20px;"><a href="/app" style="color: #1db954; font-weight: 600; text-decoration: none;">Open FANATIK →</a></p>
+            <div class="disconnect">
+                <button type="button" onclick="disconnectSpotify()">Disconnect Spotify</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Checking your artists and Setlist.fm…</div>
+        </div>
+
+        <div id="results" class="results"></div>
+    </div>
+
+    <script>
+        function toggleArtist(groupId, showsId) {
+            const header = document.querySelector('#' + groupId + ' .artist-group-header');
+            const shows = document.getElementById(showsId);
+            if (header && shows) {
+                header.classList.toggle('open');
+                shows.classList.toggle('open');
+            }
+        }
+
+        function connectSpotify() {
+            window.location.href = '/oauth/spotify';
+        }
+
+        function disconnectSpotify() {
+            fetch('/api/spotify/disconnect', { method: 'POST' })
+                .then(() => {
+                    document.getElementById('connectSection').style.display = 'block';
+                    document.getElementById('formSection').classList.remove('show');
+                    document.getElementById('results').classList.remove('show');
+                })
+                .catch(e => alert('Could not disconnect: ' + e.message));
+        }
+
+        // If opened via localhost, session cookie may not match after Spotify redirects to 127.0.0.1
+        if (window.location.hostname === 'localhost') {
+            document.getElementById('localhostWarning').style.display = 'block';
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('authenticated') === 'true') {
+            document.getElementById('connectSection').style.display = 'none';
+            document.getElementById('formSection').classList.add('show');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        if (urlParams.get('error')) {
+            const err = urlParams.get('error');
+            let msg = 'Something went wrong.';
+            if (err === 'auth_failed') msg = 'Spotify login failed. Use the green link above to open this page at 127.0.0.1, then try Connect Spotify again.';
+            if (err === 'state_mismatch') msg = 'Session mismatch. Open this page at http://127.0.0.1:3000/spotify-concerts (not localhost), then try Connect Spotify again.';
+            document.getElementById('results').innerHTML = '<div class="error">' + msg + '</div>';
+            document.getElementById('results').classList.add('show');
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        async function findConcerts() {
+            const citiesInput = document.getElementById('cities').value.trim();
+            const cities = citiesInput ? citiesInput.split(',').map(s => s.trim()).filter(Boolean) : [];
+            if (cities.length === 0) {
+                alert('Please enter at least one city.');
+                return;
+            }
+            const yearStart = document.getElementById('yearStart').value.trim() || null;
+            const yearEnd = document.getElementById('yearEnd').value.trim() || null;
+            const artistLimit = parseInt(document.getElementById('artistLimit').value, 10) || 20;
+            const findBtn = document.getElementById('findBtn');
+            const loading = document.getElementById('loading');
+            const resultsDiv = document.getElementById('results');
+            findBtn.disabled = true;
+            loading.classList.add('show');
+            resultsDiv.classList.remove('show');
+            try {
+                const res = await fetch('/api/spotify/concerts-suggestions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit })
+                });
+                const data = await res.json();
+                loading.classList.remove('show');
+                findBtn.disabled = false;
+                if (!res.ok) {
+                    resultsDiv.innerHTML = '<div class="error">' + (data.error || res.statusText) + '</div>';
+                    if (res.status === 401) {
+                        document.getElementById('connectSection').style.display = 'block';
+                        document.getElementById('formSection').classList.remove('show');
+                    }
+                } else {
+                    let html = '<div class="results-header">';
+                    html += '<div class="results-title">Concerts you may have attended</div>';
+                    html += '<div class="results-count">' + (data.concerts?.length || 0) + ' show(s) based on your Spotify artists in ' + cities.join(', ') + (data.artistsUsed?.length ? ' · Using ' + data.artistsUsed.length + ' artists' : '') + '</div>';
+                    html += '<p style="margin-top: 12px;"><a href="/app" style="color: #1db954; font-weight: 600; text-decoration: none;">Open FANATIK →</a></p>';
+                    html += '</div>';
+                    if (data.message) html += '<p class="hint" style="margin-bottom:16px">' + data.message + '</p>';
+                    if (data.concerts && data.concerts.length > 0) {
+                        const byArtist = {};
+                        data.concerts.forEach(c => {
+                            const artist = c.artist?.name || c._sourceArtist || 'Unknown';
+                            if (!byArtist[artist]) byArtist[artist] = [];
+                            byArtist[artist].push(c);
+                        });
+                        Object.keys(byArtist).sort().forEach((artist, idx) => {
+                            const shows = byArtist[artist];
+                            const groupId = 'artist-group-' + idx;
+                            const showsId = 'artist-shows-' + idx;
+                            const isFirst = idx === 0;
+                            html += '<div class="artist-group" id="' + groupId + '">';
+                            html += '<div class="artist-group-header' + (isFirst ? ' open' : '') + '" onclick="toggleArtist(\'' + groupId + '\', \'' + showsId + '\')" id="' + showsId + '-trigger">';
+                            html += '<span><span class="name">' + artist + '</span><span class="count">(' + shows.length + ' show' + (shows.length !== 1 ? 's' : '') + ')</span></span>';
+                            html += '<span class="chevron">▼</span>';
+                            html += '</div>';
+                            html += '<div class="artist-group-shows' + (isFirst ? ' open' : '') + '" id="' + showsId + '">';
+                            shows.forEach(c => {
+                                const date = c.eventDate || 'Date unknown';
+                                const venue = c.venue?.name || '—';
+                                const city = c.venue?.city?.name || '';
+                                const country = c.venue?.city?.country?.name || '';
+                                const location = [city, country].filter(Boolean).join(', ');
+                                html += '<div class="concert-card">';
+                                html += '<div class="concert-date">' + date + '</div>';
+                                html += '<div class="concert-venue">' + venue + '</div>';
+                                html += '<div class="concert-location">' + location + '</div>';
+                                if (c._sourceArtist && c._sourceArtist !== artist) html += '<div class="concert-source">Based on your listening to ' + c._sourceArtist + '</div>';
+                                html += '</div>';
+                            });
+                            html += '</div></div>';
+                        });
+                    } else {
+                        html += '<p class="hint">No Setlist.fm concerts found for your top artists in these cities and years. Try more cities or a wider year range.</p>';
+                    }
+                    resultsDiv.innerHTML = html;
+                }
+                resultsDiv.classList.add('show');
+            } catch (e) {
+                loading.classList.remove('show');
+                findBtn.disabled = false;
+                resultsDiv.innerHTML = '<div class="error">Error: ' + e.message + '</div>';
+                resultsDiv.classList.add('show');
+            }
+        }
+    </script>
+</body>
+</html>

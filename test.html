@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concert Search Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .nav-button {
+            padding: 10px 20px;
+            background: transparent;
+            color: #718096;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-button:hover {
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        .nav-button.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+        
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .full-width-button {
+            width: 100%;
+        }
+
+        .small-button {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .secondary-button {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .secondary-button:hover {
+            background: #cbd5e0;
+            box-shadow: none;
+        }
+        
+        .examples {
+            margin-top: 20px;
+            padding: 15px;
+            background: #edf2f7;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        
+        .examples h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+        
+        .examples p {
+            color: #718096;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .examples p:hover {
+            color: #667eea;
+        }
+        
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .parsed-section {
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .parsed-section h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+        
+        .parsed-item {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .parsed-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .parsed-value {
+            color: #2d3748;
+            font-size: 14px;
+        }
+        
+        .concerts-section h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        
+        .concert-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .concert-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .concert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+        
+        .concert-artist {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            flex: 1;
+        }
+        
+        .concert-date {
+            color: #667eea;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .concert-venue {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .concert-location {
+            color: #a0aec0;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        
+        .click-hint {
+            color: #a0aec0;
+            font-size: 12px;
+            font-style: italic;
+        }
+
+        .concert-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .concert-actions button {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .save-button {
+            background: #48bb78;
+        }
+
+        .save-button:hover {
+            background: #38a169;
+        }
+
+        .save-button.saved {
+            background: #e2e8f0;
+            color: #718096;
+        }
+
+        .remove-button {
+            background: #f56565;
+        }
+
+        .remove-button:hover {
+            background: #e53e3e;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+        
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .result-count {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .saved-count {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.2s;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #a0aec0;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+        }
+        
+        .close-modal:hover {
+            color: #2d3748;
+        }
+        
+        .modal-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .modal-artist {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .modal-date {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .modal-venue {
+            font-size: 16px;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+        
+        .modal-location {
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .setlist-section {
+            margin-top: 30px;
+        }
+        
+        .setlist-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+        
+        .setlist-set {
+            margin-bottom: 25px;
+        }
+        
+        .set-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        
+        .song-list {
+            list-style: none;
+        }
+        
+        .song-item {
+            padding: 10px 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .song-number {
+            font-weight: 600;
+            color: #a0aec0;
+            margin-right: 15px;
+            min-width: 25px;
+        }
+        
+        .song-name {
+            color: #2d3748;
+            flex: 1;
+        }
+        
+        .song-info {
+            color: #718096;
+            font-size: 13px;
+            font-style: italic;
+            margin-left: 10px;
+        }
+        
+        .no-setlist {
+            text-align: center;
+            padding: 30px;
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .view-toggle {
+            display: none;
+        }
+
+        .view-toggle.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <button class="nav-button active" onclick="showView('search')">
+                Search Concerts
+            </button>
+            <button class="nav-button" onclick="showView('saved')" id="savedNavButton">
+                My Concerts <span class="saved-count" id="savedCount">0</span>
+            </button>
+        </div>
+
+        <!-- Search View -->
+        <div id="searchView" class="view-toggle show">
+            <h1>🎸 Concert Search POC</h1>
+            <p class="subtitle">Natural language search powered by Claude AI + Setlist.fm</p>
+            
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="queryInput" 
+                    placeholder="e.g., I saw Jimmy Eat World in Clifton Park, NY in the early 2000s"
+                />
+            </div>
+            
+            <button onclick="search()" id="searchBtn" class="full-width-button">Search Concerts</button>
+            
+            <div class="examples">
+                <h3>Try these examples:</h3>
+                <p onclick="setQuery(this.textContent)">I saw Blink 182 at Jones Beach last summer</p>
+                <p onclick="setQuery(this.textContent)">Taylor Swift at MetLife Stadium in 2023</p>
+                <p onclick="setQuery(this.textContent)">The Strokes somewhere in Brooklyn like 10 years ago</p>
+            </div>
+            
+            <div id="results" class="results"></div>
+        </div>
+
+        <!-- Saved Concerts View -->
+        <div id="savedView" class="view-toggle">
+            <h1>🎵 My Concerts</h1>
+            <p class="subtitle">Your saved concert history</p>
+            
+            <div id="savedConcerts"></div>
+        </div>
+    </div>
+
+    <!-- Modal for concert details -->
+    <div id="concertModal" class="modal" onclick="closeModalOnBackdrop(event)">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">&times;</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentConcerts = [];
+        let savedConcerts = [];
+
+        // Load saved concerts from localStorage
+        function loadSavedConcerts() {
+            const saved = localStorage.getItem('savedConcerts');
+            savedConcerts = saved ? JSON.parse(saved) : [];
+            updateSavedCount();
+        }
+
+        // Save concerts to localStorage
+        function saveConcertsToStorage() {
+            localStorage.setItem('savedConcerts', JSON.stringify(savedConcerts));
+            updateSavedCount();
+        }
+
+        // Update the saved count badge
+        function updateSavedCount() {
+            const countEl = document.getElementById('savedCount');
+            countEl.textContent = savedConcerts.length;
+        }
+
+        // Check if concert is already saved
+        function isConcertSaved(concert) {
+            return savedConcerts.some(saved => 
+                saved.artist?.name === concert.artist?.name &&
+                saved.eventDate === concert.eventDate &&
+                saved.venue?.name === concert.venue?.name
+            );
+        }
+
+        // Save a concert
+        function saveConcert(index, event) {
+            event.stopPropagation(); // Prevent opening modal
+            
+            const concert = currentConcerts[index];
+            
+            if (isConcertSaved(concert)) {
+                alert('This concert is already in your collection!');
+                return;
+            }
+            
+            savedConcerts.push(concert);
+            saveConcertsToStorage();
+            
+            // Update the button
+            const button = event.target;
+            button.textContent = '✓ Saved';
+            button.classList.add('saved');
+            button.disabled = true;
+            
+            // Show confirmation
+            showToast('Concert saved!');
+        }
+
+        // Remove a concert from saved
+        function removeConcert(index, event) {
+            if (event) event.stopPropagation();
+            
+            if (confirm('Remove this concert from your collection?')) {
+                savedConcerts.splice(index, 1);
+                saveConcertsToStorage();
+                displaySavedConcerts();
+                showToast('Concert removed');
+            }
+        }
+
+        // Simple toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #48bb78; color: white; padding: 15px 20px; border-radius: 10px; font-weight: 600; z-index: 10000; animation: slideUp 0.3s;';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        // Show different views
+        function showView(view) {
+            const searchView = document.getElementById('searchView');
+            const savedView = document.getElementById('savedView');
+            const navButtons = document.querySelectorAll('.nav-button');
+            
+            navButtons.forEach(btn => btn.classList.remove('active'));
+            
+            if (view === 'search') {
+                searchView.classList.add('show');
+                savedView.classList.remove('show');
+                navButtons[0].classList.add('active');
+            } else {
+                searchView.classList.remove('show');
+                savedView.classList.add('show');
+                navButtons[1].classList.add('active');
+                displaySavedConcerts();
+            }
+        }
+
+        // Display saved concerts
+        function displaySavedConcerts() {
+            const container = document.getElementById('savedConcerts');
+            
+            if (savedConcerts.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🎫</div>
+                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">No concerts saved yet</div>
+                        <div style="color: #718096; margin-bottom: 20px;">
+                            Search for concerts and save them to build your concert history!
+                        </div>
+                        <button onclick="showView('search')">Search for Concerts</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="concerts-section">
+                    <h2>Your Concert History</h2>
+                    <div class="result-count">${savedConcerts.length} concert(s) saved</div>
+            `;
+            
+            savedConcerts.forEach((concert, index) => {
+                const date = concert.eventDate || 'Date unknown';
+                const artist = concert.artist?.name || 'Unknown artist';
+                const venue = concert.venue?.name || 'Unknown venue';
+                const city = concert.venue?.city?.name || '';
+                const country = concert.venue?.city?.country?.name || '';
+                
+                html += `
+                    <div class="concert-card" onclick="showSavedConcertDetails(${index})">
+                        <div class="concert-header">
+                            <div class="concert-artist">${artist}</div>
+                            <div class="concert-date">${date}</div>
+                        </div>
+                        <div class="concert-venue">${venue}</div>
+                        <div class="concert-location">${city}${city && country ? ', ' : ''}${country}</div>
+                        <div class="concert-actions">
+                            <button class="remove-button" onclick="removeConcert(${index}, event)">Remove</button>
+                            <button class="small-button" onclick="showSavedConcertDetails(${index}); event.stopPropagation();">View Details</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        function setQuery(text) {
+            document.getElementById('queryInput').value = text;
+        }
+        
+        async function search() {
+            const query = document.getElementById('queryInput').value.trim();
+            const resultsDiv = document.getElementById('results');
+            const searchBtn = document.getElementById('searchBtn');
+            
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+            
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+            resultsDiv.classList.remove('show');
+            
+            try {
+                const response = await fetch('/parse-concert-query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    resultsDiv.innerHTML = `<div class="error">${data.error}</div>`;
+                } else {
+                    // Store concerts for modal access
+                    currentConcerts = data.results;
+                    
+                    // Display parsed data
+                    let html = `
+                        <div class="parsed-section">
+                            <h2>What we understood from your query:</h2>
+                            <div class="parsed-item">
+                                <div class="parsed-label">Artist</div>
+                                <div class="parsed-value">${data.parsed.artist || 'Not specified'}</div>
+                            </div>
+                            <div class="parsed-item">
+                                <div class="parsed-label">Location</div>
+                                <div class="parsed-value">${data.parsed.location || 'Not specified'}</div>
+                            </div>
+                            <div class="parsed-item">
+                                <div class="parsed-label">Date Range</div>
+                                <div class="parsed-value">
+                                    ${data.parsed.dateRange?.start && data.parsed.dateRange?.end 
+                                        ? `${data.parsed.dateRange.start} - ${data.parsed.dateRange.end}` 
+                                        : data.parsed.year 
+                                        ? data.parsed.year 
+                                        : 'Not specified'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Display concert results
+                    html += '<div class="concerts-section">';
+                    html += '<h2>Found Concerts</h2>';
+                    html += `<div class="result-count">Found ${data.total} result(s) - Click to see details</div>`;
+                    
+                    if (data.results && data.results.length > 0) {
+                        data.results.forEach((concert, index) => {
+                            const date = concert.eventDate || 'Date unknown';
+                            const artist = concert.artist?.name || 'Unknown artist';
+                            const venue = concert.venue?.name || 'Unknown venue';
+                            const city = concert.venue?.city?.name || '';
+                            const country = concert.venue?.city?.country?.name || '';
+                            const isAlreadySaved = isConcertSaved(concert);
+                            
+                            html += `
+                                <div class="concert-card" onclick="showConcertDetails(${index})">
+                                    <div class="concert-header">
+                                        <div class="concert-artist">${artist}</div>
+                                        <div class="concert-date">${date}</div>
+                                    </div>
+                                    <div class="concert-venue">${venue}</div>
+                                    <div class="concert-location">${city}${city && country ? ', ' : ''}${country}</div>
+                                    <div class="concert-actions">
+                                        <button class="save-button ${isAlreadySaved ? 'saved' : ''}" 
+                                                onclick="saveConcert(${index}, event)" 
+                                                ${isAlreadySaved ? 'disabled' : ''}>
+                                            ${isAlreadySaved ? '✓ Saved' : 'Save to My Concerts'}
+                                        </button>
+                                        <button class="small-button secondary-button" onclick="showConcertDetails(${index}); event.stopPropagation();">
+                                            View Setlist
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html += `
+                            <div class="no-results">
+                                <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
+                                <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">No concerts found</div>
+                                <div style="color: #718096;">
+                                    We couldn't find any concerts matching "${data.parsed.artist || 'your search'}"
+                                    ${data.parsed.location ? ` in ${data.parsed.location}` : ''}
+                                    ${data.parsed.dateRange?.start ? ` from ${data.parsed.dateRange.start}-${data.parsed.dateRange.end}` : ''}
+                                </div>
+                                <div style="margin-top: 15px; font-size: 14px; color: #a0aec0;">
+                                    Try adjusting your search or checking the artist name spelling.
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    html += '</div>';
+                    resultsDiv.innerHTML = html;
+                }
+                
+                resultsDiv.classList.add('show');
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                resultsDiv.classList.add('show');
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search Concerts';
+            }
+        }
+        
+        function showConcertDetails(index) {
+            const concert = currentConcerts[index];
+            displayConcertModal(concert);
+        }
+
+        function showSavedConcertDetails(index) {
+            const concert = savedConcerts[index];
+            displayConcertModal(concert);
+        }
+
+        function displayConcertModal(concert) {
+            const modal = document.getElementById('concertModal');
+            const modalBody = document.getElementById('modalBody');
+            
+            const date = concert.eventDate || 'Date unknown';
+            const artist = concert.artist?.name || 'Unknown artist';
+            const venue = concert.venue?.name || 'Unknown venue';
+            const city = concert.venue?.city?.name || '';
+            const state = concert.venue?.city?.state || '';
+            const country = concert.venue?.city?.country?.name || '';
+            
+            let location = city;
+            if (state) location += `, ${state}`;
+            if (country) location += `, ${country}`;
+            
+            let html = `
+                <div class="modal-header">
+                    <div class="modal-artist">${artist}</div>
+                    <div class="modal-date">${date}</div>
+                    <div class="modal-venue">${venue}</div>
+                    <div class="modal-location">${location}</div>
+                </div>
+            `;
+            
+            // Display setlist
+            if (concert.sets && concert.sets.set && concert.sets.set.length > 0) {
+                html += '<div class="setlist-section">';
+                html += '<div class="setlist-title">Setlist</div>';
+                
+                concert.sets.set.forEach((set, setIndex) => {
+                    html += '<div class="setlist-set">';
+                    
+                    // Set name (Main Set, Encore, etc.)
+                    if (set.name) {
+                        html += `<div class="set-name">${set.name}</div>`;
+                    } else if (setIndex === 0) {
+                        html += '<div class="set-name">Main Set</div>';
+                    } else {
+                        html += `<div class="set-name">Encore ${setIndex}</div>`;
+                    }
+                    
+                    if (set.song && set.song.length > 0) {
+                        html += '<ul class="song-list">';
+                        set.song.forEach((song, songIndex) => {
+                            let songInfo = '';
+                            if (song.cover) {
+                                songInfo = `(${song.cover.name} cover)`;
+                            } else if (song.info) {
+                                songInfo = `(${song.info})`;
+                            }
+                            
+                            html += `
+                                <li class="song-item">
+                                    <span class="song-number">${songIndex + 1}.</span>
+                                    <span class="song-name">${song.name}</span>
+                                    ${songInfo ? `<span class="song-info">${songInfo}</span>` : ''}
+                                </li>
+                            `;
+                        });
+                        html += '</ul>';
+                    }
+                    
+                    html += '</div>';
+                });
+                
+                html += '</div>';
+            } else {
+                html += '<div class="no-setlist">No setlist available for this show</div>';
+            }
+            
+            modalBody.innerHTML = html;
+            modal.classList.add('show');
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('concertModal');
+            modal.classList.remove('show');
+        }
+        
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'concertModal') {
+                closeModal();
+            }
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('queryInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                search();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Load saved concerts on page load
+        loadSavedConcerts();
+    </script>
+</body>
+</html>

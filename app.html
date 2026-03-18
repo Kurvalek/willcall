@@ -1,0 +1,4176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#F8F8F4">
+  <title>willcall — Track your shows</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #F8F8F4;
+      --text: #000;
+      --text-muted: #000;
+      --gradient-start: #000;
+      --gradient-end: #000;
+      --bar-unfilled: #D8D8D8;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --tab-height: 56px;
+      --card-radius: 12px;
+    }
+    html { background: #1a1a1a; min-height: 100vh; min-height: 100dvh; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      max-width: 430px;
+      margin: 0 auto;
+      position: relative;
+      padding-top: var(--safe-top);
+      padding-bottom: calc(var(--tab-height) + 40px + var(--safe-bottom));
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 20px 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .status-bar .time { flex: 1; }
+    .status-bar .dynamic-island {
+      width: 100px;
+      height: 28px;
+      background: #000;
+      border-radius: 14px;
+      flex-shrink: 0;
+    }
+    .status-bar .icons { flex: 1; display: flex; justify-content: flex-end; gap: 4px; font-size: 12px; }
+
+    .tab-content { display: none; padding: 16px 20px 24px; min-height: calc(100vh - 100px); position: relative; z-index: 1; }
+    .tab-content.active { display: block; }
+    .profile-color-wash {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      height: 100%;
+      pointer-events: none;
+      background: var(--bg);
+      z-index: -1;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 24px 16px;
+      color: var(--text-muted);
+      font-size: 14px;
+      border: 1px dashed var(--bar-unfilled);
+      border-radius: var(--card-radius);
+      background: rgba(255,255,255,0.5);
+    }
+    .empty-state a {
+      color: var(--gradient-end);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .empty-state a:hover { text-decoration: underline; }
+
+    .concert-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border-radius: var(--card-radius);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.05),
+        0 1px 4px rgba(0, 0, 0, 0.03),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+      transition: box-shadow 0.2s;
+    }
+    .concert-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04), inset 0 0.5px 0 rgba(255,255,255,0.4); }
+    .concert-artist { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .concert-date { font-size: 13px; color: var(--gradient-end); font-weight: 500; margin-bottom: 2px; }
+    .concert-venue { font-size: 14px; color: var(--text-muted); }
+    .concert-location { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .horizontal-scroll {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .horizontal-scroll::-webkit-scrollbar { display: none; }
+    .badge-chip {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 20px;
+    }
+    .artist-chip {
+      flex-shrink: 0;
+      width: 80px;
+      text-align: center;
+    }
+    .artist-chip .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      margin: 0 auto 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 24px;
+    }
+    .artist-chip .name { font-size: 12px; font-weight: 500; color: var(--text); }
+    .venue-chip {
+      flex-shrink: 0;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--card-radius);
+      font-size: 13px; font-weight: 600;
+    }
+
+    .load-more {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 16px;
+      background: transparent;
+      border: 1px solid var(--bar-unfilled);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .load-more:hover { background: #f0f0f0; color: var(--text); }
+
+    .search-bar {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e8e8e8;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    .search-bar:focus {
+      outline: none;
+      border-color: var(--gradient-end);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--card-radius);
+      padding: 16px;
+      text-align: center;
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.05),
+        0 1px 4px rgba(0, 0, 0, 0.03),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+    }
+    .stat-card .value { font-size: 24px; font-weight: 700; color: var(--gradient-end); }
+    .stat-card .label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+    .profile-header-anchor {
+      margin-bottom: 24px;
+      will-change: transform;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      will-change: transform;
+    }
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 28px;
+      flex-shrink: 0;
+      overflow: hidden;
+      will-change: transform, border-radius;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-info { flex: 1; min-width: 0; will-change: opacity; }
+    .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
+    .profile-handle { font-size: 13px; color: #000; margin-bottom: 2px; }
+    .profile-bio { font-size: 12px; color: #000; }
+
+    .stats-card {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 24px;
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      will-change: padding, border-radius;
+    }
+    .stats-row {
+      display: flex;
+      align-items: center;
+      will-change: transform;
+    }
+    .stats-row .stat {
+      flex: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      will-change: transform;
+    }
+    .stats-row .stat .value { font-size: 22px; font-weight: 600; color: var(--text); }
+    .stats-row .stat .label { font-size: 12px; color: #000; font-family: 'Inter', sans-serif; }
+    .stats-divider { width: 1px; height: 28px; background: #ebebeb; flex-shrink: 0; }
+
+    .profile-sticky-header {
+      position: fixed;
+      top: calc(12px + var(--safe-top));
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 40px);
+      max-width: 390px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: calc(10px + var(--safe-top)) 16px 10px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      border-radius: 24px;
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+    }
+    .profile-sticky-header.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .profile-sticky-header .sticky-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .profile-sticky-header .sticky-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .profile-sticky-header .sticky-stats-row {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
+    .profile-sticky-header .sticky-stat {
+      flex: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .profile-sticky-header .sticky-stat .value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #000;
+    }
+    .profile-sticky-header .sticky-stat .label {
+      font-size: 11px;
+      color: #000;
+      font-family: 'Inter', sans-serif;
+    }
+    .profile-sticky-header .sticky-stat-divider {
+      width: 1px;
+      height: 24px;
+      background: #ebebeb;
+      flex-shrink: 0;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-header .section-title { margin-bottom: 0; }
+    .section-header .count { font-size: 13px; color: #000; font-family: 'Inter', sans-serif; }
+
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px 0;
+      margin-bottom: 8px;
+    }
+    .badge-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge-item .icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .badge-item .icon img {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+    }
+    .badge-item .label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text);
+      text-align: center;
+    }
+    
+    .see-all-badges {
+      display: block;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 500;
+      color: #000;
+      text-decoration: none;
+      padding: 8px 0;
+      margin-bottom: 16px;
+    }
+    .see-all-badges:hover { text-decoration: underline; }
+
+    .see-all-link {
+      font-size: 13px;
+      font-weight: 500;
+      color: #000;
+      text-decoration: none;
+    }
+    .see-all-link:hover { text-decoration: underline; }
+
+    .top-artist-item {
+      display: flex;
+      align-items: stretch;
+      min-height: 72px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+      position: relative;
+      transition: background-color 0.4s ease;
+    }
+    .top-artist-item:last-child { margin-bottom: 0; }
+    .top-artist-img-wrap {
+      width: 72px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .top-artist-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .top-artist-img-fallback {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .top-artist-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+    }
+    .top-artist-rank {
+      font-size: 18px;
+      font-weight: 800;
+      opacity: 0.35;
+      flex-shrink: 0;
+    }
+    .top-artist-info { flex: 1; min-width: 0; }
+    .top-artist-name {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .top-artist-count {
+      font-size: 12px;
+      opacity: 0.65;
+      margin-top: 2px;
+    }
+    .top-artist-item[data-theme="light"] .top-artist-name,
+    .top-artist-item[data-theme="light"] .top-artist-rank { color: #000; }
+    .top-artist-item[data-theme="light"] .top-artist-count { color: #000; }
+    .top-artist-item[data-theme="dark"] .top-artist-name,
+    .top-artist-item[data-theme="dark"] .top-artist-rank { color: #fff; }
+    .top-artist-item[data-theme="dark"] .top-artist-count { color: #fff; }
+
+    .show-card-layout {
+      display: flex;
+      align-items: stretch;
+      min-height: 90px;
+    }
+    .show-card-img-wrap {
+      position: relative;
+      width: 90px;
+      flex-shrink: 0;
+      overflow: hidden;
+      border-radius: 0;
+      margin: -16px 14px -16px -16px;
+    }
+    .show-card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .show-card-fallback {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .show-card-content {
+      flex: 1;
+      min-width: 0;
+      padding: 2px 0;
+      position: relative;
+      z-index: 1;
+    }
+    .show-card[data-theme="light"] .concert-artist,
+    .show-card[data-theme="light"] .concert-venue,
+    .show-card[data-theme="light"] .concert-venue svg { color: #000; stroke: #000; }
+    .show-card[data-theme="light"] .concert-date { color: #000; }
+    .show-card[data-theme="light"] .delete-btn,
+    .show-card[data-theme="light"] .upcoming-remove-btn { color: rgba(0,0,0,0.35); }
+    .show-card[data-theme="light"] .delete-btn:hover,
+    .show-card[data-theme="light"] .upcoming-remove-btn:hover { color: #000; }
+    .show-card[data-theme="light"] .setlist-link { color: #000; }
+    .show-card[data-theme="dark"] .concert-artist,
+    .show-card[data-theme="dark"] .concert-venue,
+    .show-card[data-theme="dark"] .concert-venue svg { color: #fff; stroke: #fff; }
+    .show-card[data-theme="dark"] .concert-date { color: #fff; }
+    .show-card[data-theme="dark"] .delete-btn,
+    .show-card[data-theme="dark"] .upcoming-remove-btn { color: #fff; }
+    .show-card[data-theme="dark"] .delete-btn:hover,
+    .show-card[data-theme="dark"] .upcoming-remove-btn:hover { color: #fff; }
+    .show-card[data-theme="dark"] .setlist-link { color: #fff; }
+
+    .profile-divider {
+      height: 1px;
+      background: #ebebeb;
+      margin-bottom: 20px;
+    }
+
+    .show-card {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.08),
+        0 1px 4px rgba(0, 0, 0, 0.04);
+      border: none;
+      position: relative;
+      overflow: hidden;
+      transition: background-color 0.4s ease;
+    }
+    .show-card .delete-btn,
+    .show-card .upcoming-remove-btn {
+      position: absolute; top: 16px; right: 16px; z-index: 5;
+      background: none; border: none; cursor: pointer;
+      color: #000; font-size: 16px; padding: 8px;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    }
+    .show-card .delete-btn:hover,
+    .show-card .upcoming-remove-btn:hover { color: #000; }
+    .show-card .concert-artist { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .show-card .concert-date { font-size: 13px; color: #000; font-weight: 500; margin-bottom: 6px; }
+    .show-card .concert-venue {
+      font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 4px; margin-bottom: 6px;
+    }
+    .show-card .concert-venue svg { flex-shrink: 0; }
+    .show-card .setlist-link {
+      font-size: 13px; font-weight: 500; color: #000; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .show-card .setlist-link:hover { text-decoration: underline; }
+
+    .add-past-shows-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      margin-top: 16px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border: 1px dashed rgba(0, 0, 0, 0.25);
+      border-radius: var(--card-radius);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gradient-end);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.05),
+        0 1px 4px rgba(0, 0, 0, 0.03),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+    }
+    .add-past-shows-btn svg { stroke: var(--gradient-end); }
+    .add-past-shows-btn:hover {
+      background: rgba(0, 0, 0, 0.04);
+      border-color: var(--gradient-end);
+    }
+
+    .past-shows-sheet {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; height: 100%;
+      background: var(--bg); z-index: 1100;
+      display: none; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    }
+    .past-shows-sheet::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: inherit;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .past-shows-sheet.open { display: flex; }
+    #setlistDetailSheet {
+      transform-origin: center center;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+    }
+    #setlistDetailSheet.open.sheet-grow-in {
+      animation: setlist-sheet-grow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    #setlistDetailSheet.sheet-shrink-out {
+      animation: setlist-sheet-shrink 0.3s cubic-bezier(0.55, 0, 0.55, 0.2) forwards;
+    }
+    @keyframes setlist-sheet-grow {
+      0%   { transform: translateX(-50%) scale(0.88); opacity: 0.85; }
+      100% { transform: translateX(-50%) scale(1); opacity: 1; }
+    }
+    @keyframes setlist-sheet-shrink {
+      0%   { transform: translateX(-50%) scale(1); opacity: 1; }
+      100% { transform: translateX(-50%) scale(0.92); opacity: 0; }
+    }
+    .past-shows-sheet-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .past-shows-sheet-header .title { font-size: 18px; font-weight: 700; }
+    .past-shows-sheet-header .close {
+      padding: 8px; cursor: pointer; font-size: 20px; color: var(--text-muted);
+      background: none; border: none; font-family: inherit;
+    }
+    .past-shows-sheet-body {
+      flex: 1; overflow-y: auto; padding: 20px; position: relative; z-index: 1;
+    }
+    .past-shows-search-box {
+      display: flex; gap: 10px; margin-bottom: 20px;
+    }
+    .past-shows-search-box input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+      color: var(--text);
+    }
+    .past-shows-search-box input:focus {
+      outline: none;
+      border-color: var(--gradient-end);
+    }
+    .past-shows-search-box input::placeholder { color: var(--text-muted); }
+    .past-shows-search-btn {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+    .past-shows-search-btn:hover { opacity: 0.9; }
+    .past-shows-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .past-shows-hints {
+      margin-bottom: 20px;
+    }
+    .past-shows-hints .hint-title {
+      font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px;
+    }
+    .past-shows-hint-chips {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .past-shows-hint-chip {
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 20px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .past-shows-hint-chip:hover {
+      background: rgba(0, 0, 0, 0.06);
+      border-color: rgba(0, 0, 0, 0.15);
+      color: var(--gradient-end);
+    }
+
+    #pastShowsSuggestions { margin-top: 20px; }
+    .suggestions-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+    }
+    .suggestions-header .section-title { font-size: 15px; font-weight: 700; }
+    .suggestions-loading {
+      display: flex; align-items: center; gap: 8px; color: #000; font-size: 13px; padding: 16px 0;
+    }
+    .suggestions-loading .spinner { width: 18px; height: 18px; border-width: 2px; }
+    .suggestion-card {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 12px; margin-bottom: 8px;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,0,0,0.06); border-radius: 10px;
+    }
+    .suggestion-info { flex: 1; min-width: 0; }
+    .suggestion-artist { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .suggestion-detail { font-size: 12px; color: #000; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .suggestion-add {
+      flex-shrink: 0; margin-left: 10px; padding: 6px 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600;
+      color: #fff; border: none; border-radius: 6px; cursor: pointer;
+      background: linear-gradient(114deg, #50eed6 2%, #626be4 42%);
+    }
+    .suggestion-add.added { background: #c8c6c0; cursor: default; }
+    .suggestion-add:active:not(.added) { transform: scale(0.95); }
+    .suggestions-connect {
+      padding: 20px; text-align: center;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,0,0,0.06); border-radius: 12px;
+    }
+    .suggestions-connect p { font-size: 14px; color: #000; margin-bottom: 12px; }
+    .suggestions-connect-btn {
+      padding: 10px 24px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px; font-weight: 600; color: #fff; border: none; border-radius: 8px;
+      cursor: pointer; background: linear-gradient(114deg, #50eed6 2%, #626be4 42%);
+    }
+    .suggestions-connect-btn:active { transform: scale(0.96); }
+    .suggestions-more-btn {
+      display: block; width: 100%; padding: 10px; margin-top: 4px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 600;
+      color: #000; background: none; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px;
+      cursor: pointer; text-align: center;
+    }
+    .suggestions-more-btn:hover { background: rgba(0,0,0,0.03); }
+
+    .past-show-result {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.05),
+        0 1px 4px rgba(0, 0, 0, 0.03),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+    }
+    .past-show-result .result-info { flex: 1; min-width: 0; }
+    .past-show-result .result-artist {
+      font-size: 15px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .past-show-result .result-date { font-size: 12px; color: var(--gradient-end); font-weight: 500; margin-top: 2px; }
+    .past-show-result .result-venue { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+    .past-show-add-btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: none;
+      transition: all 0.15s;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: #fff;
+    }
+    .past-show-add-btn:hover { opacity: 0.9; }
+    .past-show-add-btn.added {
+      background: #1a1a1a;
+      cursor: default;
+    }
+
+    .checkin-form-fields { display: flex; flex-direction: column; gap: 10px; }
+    .checkin-form-input {
+      width: 100%; padding: 12px 14px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px; border: 1px solid rgba(0,0,0,0.1); border-radius: 10px;
+      background: rgba(255,255,255,0.15); color: #000; outline: none;
+    }
+    .checkin-form-input:focus { border-color: rgba(0,0,0,0.25); }
+    .checkin-form-input::placeholder { color: #999; }
+
+    .checkin-event-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; margin-bottom: 8px;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0,0,0,0.06); border-radius: 10px;
+    }
+    .checkin-event-img {
+      width: 56px; height: 56px; border-radius: 6px; object-fit: cover; flex-shrink: 0;
+      background: #d4d2cc;
+    }
+    .checkin-event-info { flex: 1; min-width: 0; }
+    .checkin-event-artist { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .checkin-event-detail { font-size: 12px; color: #000; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .checkin-event-add {
+      flex-shrink: 0; padding: 6px 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600;
+      color: #fff; border: none; border-radius: 6px; cursor: pointer;
+      background: linear-gradient(114deg, #50eed6 2%, #626be4 42%);
+    }
+    .checkin-event-add.added { background: #c8c6c0; cursor: default; }
+    .checkin-event-add:active:not(.added) { transform: scale(0.95); }
+
+    .setlist-detail-header {
+      margin-bottom: 24px;
+    }
+    .setlist-detail-header .detail-artist {
+      font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+    }
+    .setlist-detail-header .detail-date {
+      font-size: 14px; font-weight: 500; color: var(--gradient-end); margin-bottom: 2px;
+    }
+    .setlist-detail-header .detail-venue {
+      font-size: 14px; color: var(--text-muted);
+    }
+    .setlist-song-list {
+      list-style: none; padding: 0; margin: 0;
+    }
+    .setlist-song-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    }
+    .setlist-song-item:last-child { border-bottom: none; }
+    .setlist-song-num {
+      width: 24px; text-align: center;
+      font-size: 13px; font-weight: 700; color: var(--gradient-end); flex-shrink: 0;
+    }
+    .setlist-song-name {
+      font-size: 14px; font-weight: 500; color: var(--text);
+    }
+    .setlist-external-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 20px; font-size: 13px; font-weight: 500;
+      color: #000; text-decoration: none;
+    }
+    .setlist-external-link:hover { text-decoration: underline; }
+    .setlist-empty {
+      text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 14px;
+    }
+
+    #setlistDetailSheet[data-theme="dark"] .detail-artist,
+    #setlistDetailSheet[data-theme="dark"] .setlist-song-name { color: #fff; }
+    #setlistDetailSheet[data-theme="dark"] .detail-date,
+    #setlistDetailSheet[data-theme="dark"] .setlist-song-num { color: #fff; }
+    #setlistDetailSheet[data-theme="dark"] .detail-venue,
+    #setlistDetailSheet[data-theme="dark"] .setlist-empty { color: #fff; }
+    #setlistDetailSheet[data-theme="dark"] .detail-venue svg { stroke: #fff; }
+    #setlistDetailSheet[data-theme="dark"] .setlist-external-link { color: #fff; }
+    #setlistDetailSheet[data-theme="dark"] .setlist-external-link svg { stroke: #fff; }
+    #setlistDetailSheet[data-theme="dark"] .past-shows-sheet-header .title { color: #fff; }
+    #setlistDetailSheet[data-theme="dark"] .past-shows-sheet-header .close { color: #fff; }
+    #setlistDetailSheet[data-theme="dark"] .setlist-song-item {
+      border-bottom-color: rgba(255,255,255,0.2);
+    }
+    #setlistDetailSheet[data-theme="light"] .detail-artist,
+    #setlistDetailSheet[data-theme="light"] .setlist-song-name { color: #000; }
+    #setlistDetailSheet[data-theme="light"] .detail-date,
+    #setlistDetailSheet[data-theme="light"] .setlist-song-num { color: #000; }
+    #setlistDetailSheet[data-theme="light"] .detail-venue,
+    #setlistDetailSheet[data-theme="light"] .setlist-empty { color: #000; }
+    #setlistDetailSheet[data-theme="light"] .setlist-external-link { color: #000; }
+    #setlistDetailSheet[data-theme="light"] .past-shows-sheet-header .title { color: #000; }
+    #setlistDetailSheet[data-theme="light"] .past-shows-sheet-header .close { color: #000; }
+    #setlistDetailSheet[data-theme="light"] .setlist-song-item {
+      border-bottom-color: rgba(0,0,0,0.12);
+    }
+
+    .friends-toggle {
+      display: flex;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.05),
+        0 1px 4px rgba(0, 0, 0, 0.03),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+    }
+    .friends-toggle-btn {
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .friends-toggle-btn.active {
+      background: rgba(255, 255, 255, 0.7);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .friends-counts {
+      font-size: 13px;
+      color: #000;
+      margin-bottom: 16px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .friend-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border-radius: var(--card-radius);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.05),
+        0 1px 4px rgba(0, 0, 0, 0.03),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+    }
+    .friend-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .friend-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .friend-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .friend-handle {
+      font-size: 12px;
+      color: #000;
+      margin-top: 1px;
+    }
+    .friend-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .friend-show-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .friend-badges {
+      display: flex;
+      gap: 4px;
+    }
+    .friend-badges img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+    }
+    .friend-action-btn {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+      border: none;
+    }
+    .friend-action-btn.follow {
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: #fff;
+    }
+    .friend-action-btn.follow:hover { opacity: 0.9; }
+    .friend-action-btn.following {
+      background: rgba(255, 255, 255, 0.4);
+      color: var(--text-muted);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    .friend-action-btn.following:hover {
+      color: #000;
+      border-color: rgba(0, 0, 0, 0.2);
+    }
+
+    .add-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+    .add-btn {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--card-radius);
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.05),
+        0 1px 4px rgba(0, 0, 0, 0.03),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .add-btn:hover {
+      border-color: rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0,0,0,0.04), inset 0 0.5px 0 rgba(255,255,255,0.4);
+    }
+    .add-btn .icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 18px;
+    }
+
+    .tab-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      max-width: 430px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: var(--safe-bottom);
+      z-index: 900;
+    }
+    .tab-bar-pill {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      border-radius: 35px;
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      padding: 0 8px;
+    }
+    .tab-bar .tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 58px;
+      height: 58px;
+      cursor: pointer;
+      color: #000;
+      transition: color 0.2s ease;
+    }
+    .tab-bar .tab:hover { color: #000; }
+    .tab-bar .tab.active { color: #000; font-weight: 700; }
+    .tab-bar .tab svg { display: block; stroke: #000; }
+    .tab-bar .tab.active svg { stroke: #000; stroke-width: 2.5; }
+    .tab-bar .tab.active > div { transform: scale(1.08); }
+    .tab-add-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .tab-add-btn:hover {
+      transform: scale(1.06);
+      box-shadow:
+        0 10px 36px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.05),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.8);
+    }
+    .tab-add-btn.active {
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.08),
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.8);
+    }
+    .tab-add-btn svg {
+      width: 24px;
+      height: 24px;
+      stroke: #000;
+    }
+    @keyframes add-btn-liquid {
+      0%   { transform: scale(1); border-radius: 50%; filter: brightness(1); }
+      20%  { transform: scale(0.85) scaleX(1.15); border-radius: 42%; filter: brightness(1.15); }
+      40%  { transform: scale(1.08) scaleX(0.95); border-radius: 48%; filter: brightness(1.05); }
+      55%  { transform: scale(0.97) scaleX(1.03); border-radius: 50%; filter: brightness(1); }
+      70%  { transform: scale(1.02); border-radius: 50%; filter: brightness(1); }
+      85%  { transform: scale(0.99); border-radius: 50%; filter: brightness(1); }
+      100% { transform: scale(1); border-radius: 50%; filter: brightness(1); }
+    }
+    .tab-add-btn.liquid-press {
+      animation: add-btn-liquid 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      transition: none;
+    }
+    .tab-add-btn.liquid-press svg {
+      animation: add-btn-liquid-icon 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    @keyframes add-btn-liquid-icon {
+      0%   { transform: scale(1) rotate(0deg); }
+      20%  { transform: scale(0.7) rotate(-8deg); }
+      40%  { transform: scale(1.1) rotate(4deg); }
+      55%  { transform: scale(0.98) rotate(-2deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    .add-menu-backdrop {
+      position: fixed; inset: 0; z-index: 850;
+      background: rgba(0, 0, 0, 0.35);
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 0.2s ease, visibility 0.2s;
+    }
+    .add-menu-backdrop.open {
+      opacity: 1; visibility: visible; pointer-events: auto;
+    }
+    .add-menu {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: calc(58px + 24px + 12px + var(--safe-bottom));
+      width: calc(100% - 32px); max-width: 280px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(40px) saturate(200%);
+      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      padding: 8px;
+      z-index: 901;
+      opacity: 0; visibility: hidden; transform: translateX(-50%) translateY(8px);
+      transition: opacity 0.2s ease, visibility 0.2s, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .add-menu.open {
+      opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0);
+    }
+    .add-menu-item {
+      display: flex; align-items: center; gap: 14px;
+      width: 100%; padding: 16px 18px;
+      border: none; border-radius: 12px;
+      font-family: inherit; font-size: 16px; font-weight: 600;
+      color: #000; background: transparent;
+      cursor: pointer; text-align: left;
+      transition: background 0.15s ease;
+    }
+    .add-menu-item:hover { background: rgba(0, 0, 0, 0.06); }
+    .add-menu-item:active { background: rgba(0, 0, 0, 0.1); }
+    .add-menu-primary .add-menu-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .add-menu-secondary {
+      font-weight: 500; color: rgba(0, 0, 0, 0.7);
+    }
+    .add-menu-secondary .add-menu-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.08);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    .search-results { margin-top: 16px; }
+    .search-results.hidden { display: none; }
+    .search-location-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .search-going-list, #search-nearby-shows {
+      display: flex; flex-direction: column; gap: 12px; min-height: 0;
+    }
+    .search-going-list:empty::before { content: 'No shows yet. Mark shows as "I\'m going" below.'; font-size: 14px; color: var(--text-muted); padding: 16px; border: 1px dashed var(--bar-unfilled); border-radius: var(--card-radius); background: rgba(255,255,255,0.3); }
+    .search-event-card { position: relative; padding-right: 100px; }
+    .search-event-card .im-going-btn {
+      position: absolute; top: 12px; right: 12px; z-index: 2;
+      padding: 6px 12px; font-size: 12px; font-weight: 600;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: #fff; border: none; border-radius: 8px; cursor: pointer;
+    }
+    .im-going-btn:hover { opacity: 0.9; }
+    .im-going-btn.going { background: #1a1a1a; cursor: default; }
+
+    .spotify-connect-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      text-align: center;
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.05),
+        0 1px 4px rgba(0, 0, 0, 0.03),
+        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+    }
+    .spotify-connect-card .icon { font-size: 40px; margin-bottom: 12px; }
+    .spotify-connect-card .title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .spotify-connect-card .desc { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5; }
+    .spotify-connect-btn {
+      display: inline-block;
+      padding: 14px 28px;
+      background: #1a1a1a;
+      color: #fff;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .spotify-connect-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .spotify-form-section { display: none; margin-bottom: 24px; }
+    .spotify-form-section.show { display: block; }
+    .spotify-form-section label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+    .spotify-form-section textarea, .spotify-form-section input, .spotify-form-section select {
+      width: 100%; padding: 10px 12px; border: 2px solid #e8e8e8; border-radius: 10px;
+      font-family: inherit; font-size: 16px; margin-bottom: 12px;
+    }
+    .spotify-form-section .row { display: flex; gap: 12px; }
+    .spotify-form-section .row > * { flex: 1; }
+    .spotify-form-section .hint { font-size: 12px; color: var(--text-muted); margin: -6px 0 12px; }
+    .spotify-connected-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .spotify-connected-header .badge { background: #1a1a1a; color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 20px; }
+    .home-loading { text-align: center; padding: 24px; display: none; }
+    .home-loading.show { display: block; }
+    .home-loading .spinner { border: 3px solid #eee; border-top-color: #000; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .artist-group { border: 1px solid rgba(255, 255, 255, 0.25); border-radius: var(--card-radius); margin-bottom: 12px; overflow: hidden; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(32px) saturate(180%); -webkit-backdrop-filter: blur(32px) saturate(180%); box-shadow: 0 4px 20px rgba(0,0,0,0.05), 0 1px 4px rgba(0,0,0,0.03), inset 0 0.5px 0 rgba(255,255,255,0.4); }
+    .artist-group-header { display: flex; justify-content: space-between; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); cursor: pointer; }
+    .artist-group-header .name { font-weight: 600; } .artist-group-header .count { font-size: 13px; color: var(--text-muted); }
+    .artist-group-header .chevron { font-size: 12px; color: var(--text-muted); transition: transform 0.2s; }
+    .artist-group-header.open .chevron { transform: rotate(180deg); }
+    .artist-group-shows { display: none; padding: 12px; border-top: 1px solid rgba(255, 255, 255, 0.2); }
+    .artist-group-shows.open { display: block; }
+    .home-results-header { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(32px) saturate(180%); -webkit-backdrop-filter: blur(32px) saturate(180%); padding: 16px; border-radius: var(--card-radius); margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 4px 20px rgba(0,0,0,0.05), 0 1px 4px rgba(0,0,0,0.03), inset 0 0.5px 0 rgba(255,255,255,0.4); }
+    .artist-group-shows .concert-card { position: relative; padding-right: 110px; }
+    .attended-btn {
+      position: absolute; top: 12px; right: 12px;
+      padding: 6px 12px; font-size: 12px; font-weight: 600;
+      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      color: #fff; border: none; border-radius: 8px;
+      cursor: pointer; font-family: inherit;
+    }
+    .attended-btn:hover { opacity: 0.9; }
+    .attended-btn.done { background: #1a1a1a; }
+    .localhost-warning { background: #f0f0f0; color: #000; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+    .localhost-warning a { color: #000; font-weight: 600; }
+
+    .landing-overlay {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; height: 100%;
+      background: #f9f8f4; z-index: 1000;
+      display: flex; flex-direction: column;
+      padding-top: var(--safe-top);
+      transition: opacity 0.35s, visibility 0.35s;
+    }
+    .landing-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .onb-step { display: none; flex-direction: column; width: 100%; height: 100%; }
+    .onb-step.active { display: flex; }
+
+    .onb-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 16px 0; flex-shrink: 0; min-height: 40px;
+    }
+    .onb-header-btn {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 500;
+      background: none; border: none; cursor: pointer; color: #000; padding: 0;
+      min-width: 48px; text-align: left;
+    }
+    .onb-header-btn.right { text-align: right; }
+    .onb-header-logo {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 22px; font-weight: 800;
+      color: #000; letter-spacing: -0.5px;
+    }
+    .onb-header-spacer { min-width: 48px; }
+
+    .onb-body {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      padding: 0 16px; overflow-y: auto;
+    }
+
+    /* Welcome screen */
+    .onb-welcome-body {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center; padding: 0 32px 0;
+    }
+    .onb-welcome-logo {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 64px; font-weight: 800;
+      color: #000; letter-spacing: -1px; margin-bottom: 16px;
+    }
+    .onb-welcome-tagline { font-size: 16px; font-weight: 500; color: #000; margin-bottom: 80px; }
+    .onb-progress-bar {
+      width: 200px; height: 10px; border-radius: 4px;
+      background: #e3e1da; margin-bottom: 80px; overflow: hidden; position: relative;
+    }
+    .onb-progress-fill {
+      height: 100%; border-radius: 4px; transition: width 0.4s ease;
+      background: #000;
+    }
+    .onb-continue-btn {
+      width: 150px; height: 45px; border-radius: 8px; border: none;
+      background: #000; color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 600;
+      cursor: pointer;
+    }
+    .onb-continue-btn:active { transform: scale(0.96); }
+    .onb-welcome-signin {
+      margin-top: 46px; font-size: 16px; font-weight: 400; color: #000;
+    }
+    .onb-welcome-signin a { color: #000; font-weight: 600; text-decoration: underline; cursor: pointer; }
+    .onb-welcome-terms {
+      margin-top: auto; padding-bottom: 20px; font-size: 12px; color: #595959; text-align: center;
+    }
+    .onb-welcome-terms a { color: #595959; text-decoration: underline; }
+
+    /* Shared step content styles */
+    .onb-title {
+      font-size: 24px; font-weight: 600; color: #000; text-align: center; margin-bottom: 0;
+    }
+    .onb-subtitle {
+      font-size: 16px; font-weight: 500; color: #000; text-align: center; margin-top: 40px;
+    }
+    .onb-text-input {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 600;
+      color: #000; text-align: center; border: none; background: transparent;
+      outline: none; padding: 6px 6px; margin-top: 16px; caret-color: #000;
+      width: auto; min-width: 120px; max-width: 90%;
+    }
+    .onb-text-input::placeholder { color: #8e8c8c; font-weight: 600; }
+    .onb-helper {
+      font-size: 12px; font-weight: 400; color: #595959; text-align: center;
+      position: absolute; bottom: 24px; left: 16px; right: 16px;
+    }
+    .onb-helper a { color: #595959; text-decoration: underline; cursor: pointer; }
+    .onb-step-content {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-start; padding-top: 80px; position: relative; width: 100%;
+    }
+    .onb-error {
+      font-size: 13px; color: #c00; text-align: center; margin-top: 12px;
+      display: none; width: 100%;
+    }
+    .onb-error.show { display: block; }
+
+    /* OTP code */
+    .onb-otp-input {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 600;
+      color: #000; letter-spacing: 6px; text-align: center; margin-top: 20px;
+      border: none; background: transparent; outline: none; caret-color: #000;
+      width: 220px; padding: 6px 0;
+    }
+    .onb-countdown {
+      font-size: 12px; color: #595959; text-align: center;
+      position: absolute; bottom: 24px; left: 16px; right: 16px;
+    }
+    .onb-countdown a { color: #595959; text-decoration: underline; cursor: pointer; }
+
+    /* Spotify connect button */
+    .onb-spotify-btn {
+      width: 209px; height: 45px; border-radius: 8px; border: none;
+      background: #000; color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 600;
+      cursor: pointer; margin-top: 40px;
+    }
+    .onb-spotify-btn:active { transform: scale(0.96); }
+
+    /* Location step */
+    .onb-search-btn {
+      width: 209px; height: 45px; border-radius: 8px; border: none;
+      background: #000; color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 600;
+      cursor: pointer; margin-top: 32px;
+    }
+    .onb-search-btn:active { transform: scale(0.96); }
+
+    /* Location cards (shared: onboarding + settings) */
+    .loc-list { width: 100%; display: flex; flex-direction: column; gap: 12px; }
+    .loc-card {
+      background: #fff; border: 1px solid #e3e1da; border-radius: 12px;
+      padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+    }
+    .loc-card-info { flex: 1; min-width: 0; }
+    .loc-card-city {
+      font-size: 16px; font-weight: 600; color: #000;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .loc-card-years { font-size: 13px; color: #595959; margin-top: 2px; }
+    .loc-card-remove {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: #999; transition: color 0.15s; flex-shrink: 0;
+    }
+    .loc-card-remove:hover { color: #c00; }
+    .loc-add-btn {
+      width: 100%; padding: 14px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px; font-weight: 600; color: #000;
+      background: transparent; border: 1px dashed #ccc; border-radius: 12px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    }
+    .loc-add-btn:hover { border-color: #999; background: rgba(0,0,0,0.02); }
+    .loc-form {
+      background: #fff; border: 1px solid #e3e1da; border-radius: 12px;
+      padding: 16px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .loc-form-row { display: flex; align-items: center; gap: 8px; }
+    .loc-form-input {
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 500;
+      color: #000; border: 1px solid #e3e1da; border-radius: 8px;
+      padding: 10px 12px; background: #fff; outline: none; width: 100%;
+    }
+    .loc-form-input:focus { border-color: #999; }
+    .loc-form-input::placeholder { color: #8e8c8c; }
+    .loc-form-input.year { width: 72px; text-align: center; flex-shrink: 0; }
+    .loc-form-dash { color: #000; font-size: 16px; flex-shrink: 0; }
+    .loc-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .loc-form-save {
+      padding: 8px 20px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px; font-weight: 600; color: #fff; border: none;
+      border-radius: 8px; cursor: pointer;
+      background: #000;
+    }
+    .loc-form-save:active { transform: scale(0.96); }
+    .loc-form-cancel {
+      padding: 8px 16px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px; font-weight: 500; color: #595959; background: transparent;
+      border: 1px solid #e3e1da; border-radius: 8px; cursor: pointer;
+    }
+
+    /* Onboarding results */
+    .onb-results-scroll { max-height: 380px; overflow-y: auto; width: 100%; }
+    .onb-result-card {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid #e3e1da;
+    }
+    .onb-result-card:last-child { border-bottom: none; }
+    .onb-result-info { flex: 1; min-width: 0; }
+    .onb-result-artist { font-weight: 700; font-size: 14px; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .onb-result-detail { font-size: 12px; color: #595959; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .onb-result-add {
+      flex-shrink: 0; margin-left: 12px; padding: 6px 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600;
+      color: #fff; border: none; border-radius: 6px; cursor: pointer;
+      background: #000;
+    }
+    .onb-result-add.added { background: #c8c6c0; color: #fff; cursor: default; }
+    .onb-result-add:active:not(.added) { transform: scale(0.95); }
+
+    /* Photo prompt overlay */
+    .photo-prompt-overlay {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 4px;
+      background: rgba(0,0,0,0.45); border-radius: inherit; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .photo-prompt-overlay svg { opacity: 0.9; }
+    .photo-prompt-overlay span {
+      font-size: 10px; font-weight: 600; color: #fff; letter-spacing: 0.3px;
+    }
+    .photo-prompt-overlay:hover { background: rgba(0,0,0,0.55); }
+
+    /* Settings gear */
+    .profile-settings-btn {
+      position: absolute; top: -4px; right: -4px; z-index: 10;
+      background: none; border: none; cursor: pointer; padding: 12px;
+      color: #000; opacity: 0.6; transition: opacity 0.15s;
+    }
+    .profile-settings-btn:hover { opacity: 1; }
+    .profile-settings-btn svg { display: block; }
+
+    /* Settings sheet */
+    .settings-sheet {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; height: 100%;
+      background: #f9f8f4; z-index: 1100;
+      display: none; flex-direction: column;
+    }
+    .settings-sheet.open { display: flex; }
+    .settings-sheet-header {
+      display: flex; align-items: center; padding: 16px 20px;
+      border-bottom: 1px solid #e3e1da; flex-shrink: 0;
+    }
+    .settings-sheet-header .back-btn {
+      background: none; border: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px; font-weight: 500; color: #000; padding: 0;
+    }
+    .settings-sheet-header .title {
+      flex: 1; text-align: center; font-size: 18px; font-weight: 700;
+      margin-right: 40px;
+    }
+    .settings-sheet-body {
+      flex: 1; padding: 32px 20px; display: flex; flex-direction: column;
+    }
+    .settings-logout-btn {
+      width: 100%; padding: 16px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px; font-weight: 600; color: #c00;
+      background: #fff; border: 1px solid #e3e1da; border-radius: 12px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .settings-logout-btn:hover { background: #fdf0f0; }
+
+    .spotify-sheet {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; height: 100%;
+      background: var(--bg); z-index: 1100;
+      display: none; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    }
+    .spotify-sheet.open { display: flex; }
+    .spotify-sheet-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid #e8e8e8; flex-shrink: 0;
+    }
+    .spotify-sheet-header .title { font-size: 18px; font-weight: 700; }
+    .spotify-sheet-header .close { padding: 8px; cursor: pointer; font-size: 20px; color: var(--text-muted); }
+    .spotify-sheet-body { flex: 1; overflow-y: auto; padding: 20px; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div id="landingOverlay" class="landing-overlay">
+    <!-- Step 0: Welcome -->
+    <div id="onbStep0" class="onb-step active">
+      <div class="onb-welcome-body">
+        <div class="onb-welcome-logo">willcall</div>
+        <p class="onb-welcome-tagline">Track your shows. Share your story.</p>
+        <div class="onb-progress-bar">
+          <div class="onb-progress-fill" id="onbProgressFill" style="width:17%"></div>
+        </div>
+        <button type="button" class="onb-continue-btn" id="onbContinueBtn">CONTINUE</button>
+        <p class="onb-welcome-signin">Already have an account? <a id="onbSignInLink">Sign in.</a></p>
+        <p class="onb-welcome-terms">By tapping "Let's Go" you are accepting <a href="/terms">the terms</a>.</p>
+      </div>
+    </div>
+
+    <!-- Step 1: Name -->
+    <div id="onbStep1" class="onb-step">
+      <div class="onb-header">
+        <button class="onb-header-btn" id="onbBackToWelcome">Back</button>
+        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-spacer"></div>
+      </div>
+      <div class="onb-body">
+        <div class="onb-step-content">
+          <p class="onb-subtitle" style="margin-top:80px">Welcome! What is your name?</p>
+          <input type="text" id="onbNameInput" class="onb-text-input" placeholder="First Name" autocomplete="given-name" autofocus>
+          <p id="onbNameError" class="onb-error"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Email -->
+    <div id="onbStep2" class="onb-step">
+      <div class="onb-header">
+        <button class="onb-header-btn" id="onbBackToName">Back</button>
+        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-spacer"></div>
+      </div>
+      <div class="onb-body">
+        <div class="onb-step-content">
+          <p class="onb-title" id="onbEmailGreeting">Hi!</p>
+          <p class="onb-subtitle">What's your email address?</p>
+          <input type="email" id="onbEmailInput" class="onb-text-input" placeholder="you@email.com" autocomplete="email">
+          <p id="onbEmailError" class="onb-error"></p>
+          <p class="onb-helper">We'll use your email to create your account.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: OTP Code -->
+    <div id="onbStep3" class="onb-step">
+      <div class="onb-header">
+        <button class="onb-header-btn" id="onbBackToEmail">Back</button>
+        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-spacer"></div>
+      </div>
+      <div class="onb-body">
+        <div class="onb-step-content" id="onbOtpArea">
+          <p class="onb-subtitle" style="margin-top:60px;max-width:291px" id="onbOtpMessage">Enter the code we sent to your email.</p>
+          <input type="tel" id="onbOtpInput" class="onb-otp-input" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+          <p id="onbOtpError" class="onb-error"></p>
+          <p class="onb-countdown" id="onbCountdown">You can request a new code in <span id="onbCountdownSec">60</span> seconds<br>or <a id="onbChangeEmail">change your email.</a></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Username -->
+    <div id="onbStep4" class="onb-step">
+      <div class="onb-header">
+        <button class="onb-header-btn" id="onbBackToOtp">Back</button>
+        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-spacer"></div>
+      </div>
+      <div class="onb-body">
+        <div class="onb-step-content">
+          <p class="onb-title">Great!</p>
+          <p class="onb-subtitle">Now choose a username.</p>
+          <input type="text" id="onbUsernameInput" class="onb-text-input" placeholder="username" autocomplete="username">
+          <p id="onbUsernameError" class="onb-error"></p>
+          <p class="onb-helper">This will be on your profile and is a way for people to find you.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5: Location -->
+    <div id="onbStep5" class="onb-step">
+      <div class="onb-header">
+        <button class="onb-header-btn" id="onbBackToUsername">Back</button>
+        <div class="onb-header-logo">willcall</div>
+        <button class="onb-header-btn right" id="onbSkipLocation">Skip</button>
+      </div>
+      <div class="onb-body">
+        <div class="onb-step-content" style="padding-top:40px">
+          <p class="onb-title" style="font-size:22px;text-align:left;width:100%">Where do you go to shows?</p>
+          <div id="onbLocList" class="loc-list" style="margin-top:20px"></div>
+          <div id="onbLocFormWrap" style="width:100%;margin-top:12px"></div>
+          <button type="button" class="onb-search-btn" id="onbDoneLocBtn" style="margin-top:24px">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 6: Spotify -->
+    <div id="onbStep6" class="onb-step">
+      <div class="onb-header">
+        <button class="onb-header-btn" id="onbBackToLocation">Back</button>
+        <div class="onb-header-logo">willcall</div>
+        <button class="onb-header-btn right" id="onbSkipSpotify">Skip</button>
+      </div>
+      <div class="onb-body">
+        <div class="onb-step-content">
+          <p class="onb-title" style="font-size:22px">Now let's find some shows!</p>
+          <p class="onb-subtitle" style="max-width:291px">Connect to Spotify so we can see what you listen to.</p>
+          <button type="button" class="onb-spotify-btn" id="onbSpotifyBtn">Connect to Spotify</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 7: Results -->
+    <div id="onbStep7" class="onb-step">
+      <div class="onb-header">
+        <div class="onb-header-spacer"></div>
+        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-spacer"></div>
+      </div>
+      <div class="onb-body">
+        <div class="onb-step-content" style="padding-top:20px;justify-content:flex-start">
+          <p class="onb-title" style="font-size:22px;text-align:left;width:100%">Shows you may have been to</p>
+          <p class="onb-subtitle" style="text-align:left;width:100%;margin-top:8px;font-size:14px;color:#595959">Tap the ones you went to and we'll add them to your profile.</p>
+          <div id="onbResultsLoading" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:40px;color:#595959;font-size:14px">
+            <div class="spinner" style="width:28px;height:28px;border:3px solid #e3e1da;border-top-color:#000;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+            <span>Searching your artists...</span>
+          </div>
+          <div id="onbResultsList" style="width:100%;margin-top:20px;display:none"></div>
+          <p id="onbResultsEmpty" style="display:none;text-align:center;color:#595959;font-size:14px;margin-top:40px">No results found. You can add shows later from your profile.</p>
+          <button type="button" class="onb-search-btn" id="onbResultsDoneBtn" style="margin-top:24px;display:none">Continue to profile</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span class="time">9:41</span>
+    <div class="dynamic-island" aria-hidden="true"></div>
+    <div class="icons"><span>📶</span><span>📡</span><span>🔋</span></div>
+  </div>
+
+  <section id="tab-home" class="tab-content active">
+    <div class="profile-color-wash" id="profileColorWash"></div>
+    <div id="localhostWarning" class="localhost-warning" style="display: none;">
+      <strong>Use this URL so login works:</strong> <a href="http://127.0.0.1:3000/app" id="correctUrl">http://127.0.0.1:3000/app</a>
+    </div>
+
+    <div id="profile-header-anchor" class="profile-header-anchor" style="position:relative">
+      <button class="profile-settings-btn" id="openSettingsBtn" aria-label="Settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <div class="profile-header" id="profileHeader">
+        <div class="profile-avatar" id="profileAvatar"><svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="4" fill="#d4d2cc"/><circle cx="40" cy="30" r="14" fill="#fff"/><ellipse cx="40" cy="66" rx="24" ry="18" fill="#fff"/></svg></div>
+        <div class="profile-info" id="profileInfo">
+          <div class="profile-name" id="profileName"></div>
+          <div class="profile-handle" id="profileHandle"></div>
+          <div class="profile-bio" id="profileBio"></div>
+        </div>
+      </div>
+      <div class="stats-card" id="profileStatsCard">
+        <div class="stats-row">
+          <div class="stat"><div class="value" id="profile-stat-shows">0</div><div class="label">Shows</div></div>
+          <div class="stats-divider"></div>
+          <div class="stat"><div class="value" id="profile-stat-artists">0</div><div class="label">Artists</div></div>
+          <div class="stats-divider"></div>
+          <div class="stat"><div class="value" id="profile-stat-venues">0</div><div class="label">Venues</div></div>
+          <div class="stats-divider"></div>
+          <div class="stat"><div class="value" id="profile-stat-cities">0</div><div class="label">Cities</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="profile-sticky-header" class="profile-sticky-header" aria-hidden="true">
+      <div class="sticky-avatar"><svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="4" fill="#d4d2cc"/><circle cx="40" cy="30" r="14" fill="#fff"/><ellipse cx="40" cy="66" rx="24" ry="18" fill="#fff"/></svg></div>
+      <div class="sticky-stats-row">
+        <div class="sticky-stat"><div class="value" id="sticky-stat-shows">0</div><div class="label">Shows</div></div>
+        <div class="sticky-stat-divider"></div>
+        <div class="sticky-stat"><div class="value" id="sticky-stat-artists">0</div><div class="label">Artists</div></div>
+        <div class="sticky-stat-divider"></div>
+        <div class="sticky-stat"><div class="value" id="sticky-stat-venues">0</div><div class="label">Venues</div></div>
+        <div class="sticky-stat-divider"></div>
+        <div class="sticky-stat"><div class="value" id="sticky-stat-cities">0</div><div class="label">Cities</div></div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <h2 class="section-title">Top Artists</h2>
+      <a href="#" class="see-all-link" id="see-all-artists">See All</a>
+    </div>
+    <div id="top-artists-list">
+      <div class="empty-state">Check in to shows to see your top artists.</div>
+    </div>
+
+    <div class="profile-divider"></div>
+
+    <div class="section-header">
+      <h2 class="section-title">Top Badges</h2>
+      <span class="count" id="profile-badge-count">0 of 32</span>
+    </div>
+    <div class="badge-grid" id="profileBadges">
+      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/star.svg" alt="First Show"></div><div class="label">First Show</div></div>
+      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/beer.svg" alt="Bar Fly"></div><div class="label">Bar Fly</div></div>
+      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lighter.svg" alt="Encore"></div><div class="label">Encore</div></div>
+      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/van.svg" alt="On Tour"></div><div class="label">On Tour</div></div>
+      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/pizza.svg" alt="NYC Local"></div><div class="label">NYC Local</div></div>
+      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/record.svg" alt="Legend"></div><div class="label">Legend</div></div>
+      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lightning.svg" alt="Electric"></div><div class="label">Electric</div></div>
+      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/eyes.svg" alt="Superfan"></div><div class="label">Superfan</div></div>
+    </div>
+    <a href="#" class="see-all-badges">See all 32 badges</a>
+
+    <div class="profile-divider"></div>
+
+    <div class="section-header" id="profile-upcoming-header">
+      <h2 class="section-title">Upcoming shows</h2>
+      <span class="count" id="profile-upcoming-count">0 shows</span>
+    </div>
+    <div id="profile-upcoming"></div>
+
+    <div class="profile-divider"></div>
+
+    <div class="section-header" id="profile-shows-header">
+      <h2 class="section-title">My Shows</h2>
+      <span class="count" id="profile-shows-count">0 shows</span>
+    </div>
+    <div id="profile-shows">
+      <div class="empty-state">
+        <a href="#" onclick="switchTab('add'); openSpotifySheet(); return false;">Find concerts from Spotify</a> or check in from the + tab.
+      </div>
+    </div>
+    <button type="button" class="add-past-shows-btn" onclick="openPastShowsSheet()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Past Shows
+    </button>
+  </section>
+
+  <section id="tab-search" class="tab-content">
+    <input type="text" class="search-bar" id="search-input" placeholder="Search artists, venues, people...">
+    <div id="search-results" class="search-results hidden"></div>
+
+    <div id="search-explore">
+      <div class="search-location-row" style="margin-bottom: 16px;">
+        <label for="search-city" style="font-size: 13px; font-weight: 500; color: var(--text-muted); margin-right: 8px;">Shows near</label>
+        <input type="text" id="search-city" placeholder="New York" style="flex: 1; max-width: 140px; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; font-size: 14px;">
+        <button type="button" id="search-city-btn" class="past-shows-search-btn" style="padding: 8px 14px;">Update</button>
+      </div>
+
+      <h2 class="section-title" style="margin-top: 24px;">I'm going</h2>
+      <div id="search-going-list" class="search-going-list"></div>
+
+      <h2 class="section-title" style="margin-top: 24px;">Upcoming shows near you</h2>
+      <div id="search-nearby-shows"></div>
+
+      <h2 class="section-title" style="margin-top: 24px;">Trending artists this week</h2>
+      <div class="horizontal-scroll">
+        <div class="artist-chip"><div class="avatar">TS</div><span class="name">Taylor Swift</span></div>
+        <div class="artist-chip"><div class="avatar">PB</div><span class="name">Phoebe Bridgers</span></div>
+        <div class="artist-chip"><div class="avatar">BM</div><span class="name">Billie Eilish</span></div>
+        <div class="artist-chip"><div class="avatar">OV</div><span class="name">Olivia Rodrigo</span></div>
+        <div class="artist-chip"><div class="avatar">HW</div><span class="name">Harry Styles</span></div>
+      </div>
+
+      <h2 class="section-title" style="margin-top: 24px;">Popular venues</h2>
+      <div class="horizontal-scroll">
+        <span class="venue-chip">Madison Square Garden</span>
+        <span class="venue-chip">Radio City</span>
+        <span class="venue-chip">Brooklyn Steel</span>
+        <span class="venue-chip">Terminal 5</span>
+      </div>
+
+      <h2 class="section-title" style="margin-top: 24px;">People on willcall</h2>
+      <div class="past-shows-search-box" style="margin-bottom:12px">
+        <input type="text" id="people-search-input" placeholder="Search by name or username...">
+        <button type="button" class="past-shows-search-btn" id="people-search-btn">Search</button>
+      </div>
+      <div id="search-people-results" style="display:none"></div>
+      <div id="search-people-suggestions"></div>
+    </div>
+  </section>
+
+  <section id="tab-profile" class="tab-content">
+    <h2 class="section-title" style="margin-bottom: 20px;">Friends</h2>
+
+    <div class="friends-toggle">
+      <button class="friends-toggle-btn active" data-friends-tab="followers">Followers</button>
+      <button class="friends-toggle-btn" data-friends-tab="following">Following</button>
+    </div>
+
+    <div class="friends-counts">
+      <span id="friends-count-label">0 followers</span>
+    </div>
+
+    <div id="friends-list"></div>
+  </section>
+
+  <section id="tab-add" class="tab-content">
+    <h2 class="section-title" style="margin-bottom: 20px;">Add to your concert journey</h2>
+    <div class="add-actions">
+      <button class="add-btn" onclick="openSpotifySheet()">
+        <span class="icon">🎵</span>
+        <span>Connect Spotify / Find concerts</span>
+      </button>
+      <button class="add-btn" onclick="openCheckIn()">
+        <span class="icon">📍</span>
+        <span>Check in to a concert</span>
+      </button>
+      <button class="add-btn" disabled title="Coming soon">
+        <span class="icon">📷</span>
+        <span>Upload ticket photo</span>
+      </button>
+      <a class="add-btn" href="/gmail-parser" style="text-decoration: none;">
+        <span class="icon">✉</span>
+        <span>Scan email for ticket</span>
+      </a>
+    </div>
+  </section>
+
+  <div id="spotifySheet" class="spotify-sheet">
+    <div class="spotify-sheet-header">
+      <span class="title" id="spotifySheetTitle">Spotify</span>
+      <span class="close" onclick="closeSpotifySheet()">✕</span>
+    </div>
+    <div class="spotify-sheet-body">
+      <div id="localhostWarningSheet" class="localhost-warning" style="display: none; margin-bottom: 16px;">
+        <strong>Use this URL so login works:</strong> <a href="http://127.0.0.1:3000/app" id="correctUrlSheet">http://127.0.0.1:3000/app</a>
+      </div>
+      <div id="spotifyConnectCard" class="spotify-connect-card">
+        <div class="icon">🎵</div>
+        <div class="title">Connect Spotify</div>
+        <div class="desc">Connect your account to discover concerts you may have attended based on your listening history.</div>
+        <a href="#" class="spotify-connect-btn" id="connectSpotifyBtn">Connect Spotify</a>
+      </div>
+      <div id="spotifyFormSection" class="spotify-form-section">
+        <div class="spotify-connected-header">
+          <h2 class="section-title" style="margin-bottom: 0;">Find concerts you may have attended</h2>
+          <span class="badge">Connected</span>
+        </div>
+        <label for="homeCities">Cities (comma-separated)</label>
+        <textarea id="homeCities" rows="2" placeholder="e.g. New York, Brooklyn, Miami"></textarea>
+        <p class="hint">Add every city you've seen shows in for better matches.</p>
+        <div class="row">
+          <div><label for="homeYearStart">Year start (optional)</label><input type="number" id="homeYearStart" placeholder="2015" min="1990" max="2030"></div>
+          <div><label for="homeYearEnd">Year end (optional)</label><input type="number" id="homeYearEnd" placeholder="2024" min="1990" max="2030"></div>
+        </div>
+        <label for="homeArtistLimit">Artists to search</label>
+        <select id="homeArtistLimit">
+          <option value="10">10 (fast)</option><option value="20" selected>20</option><option value="30">30</option><option value="50">50</option>
+        </select>
+        <div style="display: flex; gap: 12px; align-items: center; margin-top: 12px; flex-wrap: wrap;">
+          <button type="button" class="spotify-connect-btn" id="homeFindBtn">Find concerts</button>
+          <button type="button" style="padding: 12px 16px; background: transparent; border: 1px solid var(--bar-unfilled); border-radius: 10px; font-family: inherit; font-size: 14px; cursor: pointer; color: var(--text-muted);" onclick="disconnectSpotify()">Disconnect</button>
+        </div>
+      </div>
+      <div id="homeLoading" class="home-loading">
+        <div class="spinner"></div>
+        <div>Checking your artists and Setlist.fm…</div>
+      </div>
+      <div id="homeResults" style="display: none;"></div>
+    </div>
+  </div>
+
+  <div id="pastShowsSheet" class="past-shows-sheet">
+    <div class="past-shows-sheet-header">
+      <span class="title">Add Past Shows</span>
+      <button class="close" onclick="closePastShowsSheet()">✕</button>
+    </div>
+    <div class="past-shows-sheet-body">
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">Describe a show you went to and we'll find it. Use natural language — artist names, venues, cities, dates, even opening acts.</p>
+      <div class="past-shows-search-box">
+        <input type="text" id="pastShowsInput" placeholder="e.g. Radiohead at MSG in 2018">
+        <button type="button" class="past-shows-search-btn" id="pastShowsSearchBtn">Search</button>
+      </div>
+      <div class="past-shows-hints" id="pastShowsHints">
+        <div class="hint-title">Try something like:</div>
+        <div class="past-shows-hint-chips">
+          <button class="past-shows-hint-chip" data-hint="Radiohead at Madison Square Garden">Radiohead at MSG</button>
+          <button class="past-shows-hint-chip" data-hint="Tame Impala Brooklyn 2024">Tame Impala Brooklyn 2024</button>
+          <button class="past-shows-hint-chip" data-hint="The Strokes at Forest Hills Stadium">The Strokes Forest Hills</button>
+          <button class="past-shows-hint-chip" data-hint="LCD Soundsystem New Years Eve Brooklyn Steel">LCD NYE Brooklyn Steel</button>
+        </div>
+      </div>
+      <div id="pastShowsSuggestions"></div>
+      <div id="pastShowsLoading" class="home-loading">
+        <div class="spinner"></div>
+        <div>Searching Setlist.fm...</div>
+      </div>
+      <div id="pastShowsResults"></div>
+    </div>
+  </div>
+
+  <div id="checkInSheet" class="past-shows-sheet">
+    <div class="past-shows-sheet-header">
+      <span class="title">Check in at a show</span>
+      <button class="close" onclick="closeCheckInSheet()">✕</button>
+    </div>
+    <div class="past-shows-sheet-body">
+      <p style="font-size: 14px; color: #000; margin-bottom: 16px; line-height: 1.5;">Find the show you're at. Search by artist or venue name.</p>
+      <div class="past-shows-search-box">
+        <input type="text" id="checkInInput" placeholder="e.g. Taylor Swift, MSG, Beyoncé...">
+        <button type="button" class="past-shows-search-btn" id="checkInSearchBtn">Search</button>
+      </div>
+      <div id="checkInLoading" class="home-loading">
+        <div class="spinner"></div>
+        <div>Searching upcoming shows...</div>
+      </div>
+      <div id="checkInResults"></div>
+      <div id="checkInManual" style="display:none">
+        <div style="text-align:center;padding:12px 0 16px;font-size:14px;color:#000">Can't find your show?</div>
+        <button type="button" class="suggestions-more-btn" id="checkInManualBtn" style="margin-bottom:16px">Add show manually</button>
+      </div>
+      <div id="checkInForm" style="display:none">
+        <div style="font-size:15px;font-weight:700;margin-bottom:12px">Add show details</div>
+        <div class="checkin-form-fields">
+          <input type="text" id="checkInFormArtist" class="checkin-form-input" placeholder="Artist name *">
+          <input type="text" id="checkInFormVenue" class="checkin-form-input" placeholder="Venue name">
+          <input type="text" id="checkInFormCity" class="checkin-form-input" placeholder="City">
+          <input type="date" id="checkInFormDate" class="checkin-form-input">
+          <p id="checkInFormError" style="color:#e53935;font-size:13px;margin:0;display:none"></p>
+          <button type="button" class="past-shows-search-btn" id="checkInFormSave" style="width:100%;margin-top:8px">Check in</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="setlistDetailSheet" class="past-shows-sheet">
+    <div class="past-shows-sheet-header">
+      <span class="title" id="setlistDetailTitle">Setlist</span>
+      <button class="close" onclick="closeSetlistDetail()">✕</button>
+    </div>
+    <div class="past-shows-sheet-body" id="setlistDetailBody"></div>
+  </div>
+
+  <div id="settingsSheet" class="settings-sheet">
+    <div class="settings-sheet-header">
+      <button class="back-btn" id="closeSettingsBtn">Back</button>
+      <span class="title">Settings</span>
+    </div>
+    <div class="settings-sheet-body">
+      <p style="font-size:16px;font-weight:700;margin-bottom:12px">My Locations</p>
+      <p style="font-size:13px;color:#595959;margin-bottom:16px">Cities where you go to shows and when. This helps us find concerts for you.</p>
+      <div id="settingsLocList" class="loc-list"></div>
+      <div id="settingsLocFormWrap" style="margin-top:12px"></div>
+      <div style="flex:1"></div>
+      <button type="button" class="settings-logout-btn" id="settingsLogoutBtn" style="margin-top:32px">Log Out</button>
+    </div>
+  </div>
+
+  <nav class="tab-bar">
+    <div class="tab-bar-pill">
+      <div class="tab active" data-tab="home" title="Home">
+        <div id="lottie-home" style="width:30px;height:30px;"></div>
+      </div>
+      <div class="tab" data-tab="search" title="Search">
+        <div id="lottie-search" style="width:30px;height:30px;"></div>
+      </div>
+      <div class="tab" data-tab="profile" title="Friends">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+    </div>
+    <div class="tab-add-btn" id="tabAddBtn" title="Add">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+  </nav>
+
+  <div id="addMenuBackdrop" class="add-menu-backdrop" aria-hidden="true"></div>
+  <div id="addMenu" class="add-menu" aria-hidden="true">
+    <button type="button" class="add-menu-item add-menu-primary" data-action="checkin">
+      <span class="add-menu-icon">📍</span>
+      <span>Check-in at a show</span>
+    </button>
+    <button type="button" class="add-menu-item add-menu-secondary" data-action="past-show">
+      <span class="add-menu-icon">➕</span>
+      <span>Add a past show</span>
+    </button>
+  </div>
+
+  <script>
+    // Shared location manager
+    var FanatikLocations = (function() {
+      var STORAGE_KEY = 'fanatik_locations';
+
+      function getAll() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+        catch(e) { return []; }
+      }
+
+      function saveAll(locs) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(locs));
+      }
+
+      function add(city, yearFrom, yearTo) {
+        if (!city) return;
+        var locs = getAll();
+        locs.push({ city: city, yearFrom: yearFrom || '', yearTo: yearTo || '' });
+        saveAll(locs);
+        return locs;
+      }
+
+      function remove(index) {
+        var locs = getAll();
+        locs.splice(index, 1);
+        saveAll(locs);
+        return locs;
+      }
+
+      function renderList(containerEl, formWrapEl, opts) {
+        if (!containerEl) return;
+        var locs = getAll();
+        var html = '';
+        locs.forEach(function(loc, i) {
+          var years = '';
+          if (loc.yearFrom && loc.yearTo) years = loc.yearFrom + ' – ' + loc.yearTo;
+          else if (loc.yearFrom) years = loc.yearFrom + ' – present';
+          else if (loc.yearTo) years = 'Until ' + loc.yearTo;
+          html += '<div class="loc-card">'
+            + '<div class="loc-card-info">'
+            + '<div class="loc-card-city">' + loc.city + '</div>'
+            + (years ? '<div class="loc-card-years">' + years + '</div>' : '')
+            + '</div>'
+            + '<button class="loc-card-remove" data-loc-idx="' + i + '" aria-label="Remove">'
+            + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+            + '</button></div>';
+        });
+        html += '<button type="button" class="loc-add-btn" id="' + (opts.prefix || '') + 'LocAddBtn">+ Add a location</button>';
+        containerEl.innerHTML = html;
+
+        containerEl.querySelectorAll('.loc-card-remove').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            remove(parseInt(btn.dataset.locIdx));
+            renderList(containerEl, formWrapEl, opts);
+          });
+        });
+
+        var addBtn = containerEl.querySelector('.loc-add-btn');
+        addBtn.addEventListener('click', function() {
+          showForm(containerEl, formWrapEl, opts);
+        });
+
+        if (formWrapEl) formWrapEl.innerHTML = '';
+
+        if (locs.length === 0 && opts.autoShowForm) {
+          showForm(containerEl, formWrapEl, opts);
+        }
+      }
+
+      function showForm(containerEl, formWrapEl, opts) {
+        if (!formWrapEl) return;
+        formWrapEl.innerHTML =
+          '<div class="loc-form">'
+          + '<input type="text" class="loc-form-input" id="' + (opts.prefix || '') + 'LocCity" placeholder="City, State" autocomplete="address-level2">'
+          + '<div class="loc-form-row">'
+          + '<input type="tel" class="loc-form-input year" id="' + (opts.prefix || '') + 'LocYearFrom" placeholder="From" maxlength="4" inputmode="numeric">'
+          + '<span class="loc-form-dash">&ndash;</span>'
+          + '<input type="tel" class="loc-form-input year" id="' + (opts.prefix || '') + 'LocYearTo" placeholder="To" maxlength="4" inputmode="numeric">'
+          + '</div>'
+          + '<div class="loc-form-actions">'
+          + '<button type="button" class="loc-form-cancel" id="' + (opts.prefix || '') + 'LocCancel">Cancel</button>'
+          + '<button type="button" class="loc-form-save" id="' + (opts.prefix || '') + 'LocSave">Add</button>'
+          + '</div></div>';
+
+        var cityInput = document.getElementById((opts.prefix || '') + 'LocCity');
+        setTimeout(function() { cityInput.focus(); }, 50);
+
+        document.getElementById((opts.prefix || '') + 'LocCancel').addEventListener('click', function() {
+          formWrapEl.innerHTML = '';
+        });
+
+        document.getElementById((opts.prefix || '') + 'LocSave').addEventListener('click', function() {
+          var city = cityInput.value.trim();
+          if (!city) { cityInput.style.borderColor = '#c00'; return; }
+          var yf = document.getElementById((opts.prefix || '') + 'LocYearFrom').value.trim();
+          var yt = document.getElementById((opts.prefix || '') + 'LocYearTo').value.trim();
+          add(city, yf, yt);
+          renderList(containerEl, formWrapEl, opts);
+        });
+
+        cityInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') document.getElementById((opts.prefix || '') + 'LocSave').click();
+        });
+      }
+
+      return { getAll: getAll, saveAll: saveAll, add: add, remove: remove, renderList: renderList };
+    })();
+
+    (function() {
+      var overlay = document.getElementById('landingOverlay');
+      var steps = [
+        document.getElementById('onbStep0'),
+        document.getElementById('onbStep1'),
+        document.getElementById('onbStep2'),
+        document.getElementById('onbStep3'),
+        document.getElementById('onbStep4'),
+        document.getElementById('onbStep5'),
+        document.getElementById('onbStep6'),
+        document.getElementById('onbStep7')
+      ];
+      var progressFill = document.getElementById('onbProgressFill');
+      var progressPercents = [12, 25, 37, 50, 62, 75, 87, 100];
+
+      var supabaseClient = null;
+      window._getSupabase = function() { return supabaseClient; };
+      var onbData = { name: '', email: '', username: '' };
+      var otpCountdownTimer = null;
+
+      function goToStep(idx) {
+        steps.forEach(function(s) { if (s) s.classList.remove('active'); });
+        if (steps[idx]) {
+          steps[idx].classList.add('active');
+          if (progressFill) progressFill.style.width = progressPercents[Math.min(idx, progressPercents.length - 1)] + '%';
+          if (idx === 5) {
+            FanatikLocations.renderList(
+              document.getElementById('onbLocList'),
+              document.getElementById('onbLocFormWrap'),
+              { prefix: 'onb', autoShowForm: true }
+            );
+          }
+          if (idx === 7) {
+            runConcertSearch();
+          }
+          var inp = steps[idx].querySelector('input');
+          if (inp && idx !== 5) setTimeout(function() { inp.focus(); }, 100);
+        }
+      }
+
+      function hideOnboarding() {
+        if (overlay) overlay.classList.add('hidden');
+        sessionStorage.setItem('fanatikSeenLanding', '1');
+        if (typeof loadConnections === 'function') loadConnections();
+        if (typeof loadSuggestedPeople === 'function') loadSuggestedPeople();
+      }
+
+      function showFieldError(id, msg) {
+        var el = document.getElementById(id);
+        if (el) { el.textContent = msg || ''; el.classList.toggle('show', !!msg); }
+      }
+
+      async function initSupabase() {
+        try {
+          var res = await fetch(window.location.origin + '/api/supabase-config');
+          var cfg = await res.json();
+          if (cfg.url && cfg.anonKey) {
+            supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey);
+            return true;
+          }
+        } catch (e) { console.warn('Supabase init failed:', e); }
+        return false;
+      }
+
+      async function checkAuth() {
+        if (!supabaseClient) return false;
+        var { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) { hideOnboarding(); return true; }
+        var hash = window.location.hash;
+        if (hash && (hash.indexOf('access_token') !== -1 || hash.indexOf('refresh_token') !== -1)) {
+          var result = await supabaseClient.auth.getSession();
+          if (result.data.session && !result.error) {
+            window.history.replaceState(null, '', window.location.pathname);
+            hideOnboarding();
+            return true;
+          }
+        }
+        return false;
+      }
+
+      // Step 0: Welcome
+      var continueBtn = document.getElementById('onbContinueBtn');
+      var signInLink = document.getElementById('onbSignInLink');
+      if (continueBtn) continueBtn.addEventListener('click', function() { goToStep(1); });
+      if (signInLink) signInLink.addEventListener('click', function(e) { e.preventDefault(); goToStep(2); });
+
+      // Step 1: Name
+      document.getElementById('onbBackToWelcome').addEventListener('click', function() { goToStep(0); });
+      var nameInput = document.getElementById('onbNameInput');
+      nameInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          var val = nameInput.value.trim();
+          if (!val) { showFieldError('onbNameError', 'Please enter your name'); return; }
+          showFieldError('onbNameError', '');
+          onbData.name = val;
+          var greeting = document.getElementById('onbEmailGreeting');
+          if (greeting) greeting.textContent = 'Hi ' + val + '!';
+          goToStep(2);
+        }
+      });
+
+      // Step 2: Email
+      document.getElementById('onbBackToName').addEventListener('click', function() { goToStep(1); });
+      var emailInput = document.getElementById('onbEmailInput');
+      emailInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') sendOtp();
+      });
+
+      async function sendOtp() {
+        var email = emailInput.value.trim();
+        if (!email || !email.includes('@')) { showFieldError('onbEmailError', 'Please enter a valid email'); return; }
+        showFieldError('onbEmailError', '');
+        onbData.email = email;
+
+        try {
+          var sb = window._getSupabase();
+          if (!sb) { showFieldError('onbEmailError', 'Auth not ready. Try again.'); return; }
+          var { error } = await sb.auth.signInWithOtp({ email: email });
+          if (error) { showFieldError('onbEmailError', error.message); return; }
+        } catch (e) { showFieldError('onbEmailError', e.message || 'Failed to send code'); return; }
+
+        var otpMsg = document.getElementById('onbOtpMessage');
+        if (otpMsg) otpMsg.textContent = 'Enter the code we sent to your email, ' + email + '.';
+        goToStep(3);
+        startCountdown();
+      }
+
+      // Step 3: OTP
+      document.getElementById('onbBackToEmail').addEventListener('click', function() {
+        clearOtpState();
+        goToStep(2);
+      });
+      document.getElementById('onbChangeEmail').addEventListener('click', function(e) {
+        e.preventDefault();
+        clearOtpState();
+        goToStep(2);
+      });
+
+      var otpInput = document.getElementById('onbOtpInput');
+
+      otpInput.addEventListener('input', function() {
+        var val = otpInput.value.replace(/\D/g, '').slice(0, 6);
+        otpInput.value = val;
+        if (val.length === 6) verifyOtp(val);
+      });
+
+      otpInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        var pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+        otpInput.value = pasted;
+        otpInput.dispatchEvent(new Event('input'));
+      });
+
+      async function verifyOtp(code) {
+        showFieldError('onbOtpError', '');
+        try {
+          var sb = window._getSupabase();
+          if (!sb) { showFieldError('onbOtpError', 'Auth not ready. Try again.'); return; }
+          var { error } = await sb.auth.verifyOtp({ email: onbData.email, token: code, type: 'email' });
+          if (error) { showFieldError('onbOtpError', error.message); resetOtpInput(); return; }
+          goToStep(4);
+        } catch (e) { showFieldError('onbOtpError', e.message || 'Verification failed'); resetOtpInput(); }
+      }
+
+      function resetOtpInput() {
+        otpInput.value = '';
+      }
+
+      function clearOtpState() {
+        if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+        resetOtpInput();
+        showFieldError('onbOtpError', '');
+      }
+
+      function startCountdown() {
+        var sec = 60;
+        var span = document.getElementById('onbCountdownSec');
+        if (otpCountdownTimer) clearInterval(otpCountdownTimer);
+        span.textContent = sec;
+        otpCountdownTimer = setInterval(function() {
+          sec--;
+          span.textContent = sec;
+          if (sec <= 0) {
+            clearInterval(otpCountdownTimer);
+            span.parentElement.innerHTML = '<a id="onbResendCode" style="text-decoration:underline;cursor:pointer">Resend code</a> or <a id="onbChangeEmail2" style="text-decoration:underline;cursor:pointer">change your email.</a>';
+            var resendEl = document.getElementById('onbResendCode');
+            if (resendEl) resendEl.addEventListener('click', function() { sendOtp(); });
+            var changeEl = document.getElementById('onbChangeEmail2');
+            if (changeEl) changeEl.addEventListener('click', function() { clearOtpState(); goToStep(2); });
+          }
+        }, 1000);
+      }
+
+      // Step 4: Username
+      document.getElementById('onbBackToOtp').addEventListener('click', function() { goToStep(3); });
+      var usernameInput = document.getElementById('onbUsernameInput');
+      usernameInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') submitUsername();
+      });
+
+      async function submitUsername() {
+        var val = usernameInput.value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+        if (!val || val.length < 3) { showFieldError('onbUsernameError', 'Username must be at least 3 characters'); return; }
+        showFieldError('onbUsernameError', '');
+        onbData.username = val;
+        await saveProfile();
+        goToStep(5); // Location step
+      }
+
+      async function saveProfile() {
+        if (!supabaseClient) return;
+        try {
+          var { data: { user } } = await supabaseClient.auth.getUser();
+          if (!user) return;
+          await supabaseClient.from('profiles').upsert({
+            id: user.id,
+            display_name: onbData.name,
+            username: onbData.username,
+            email: onbData.email
+          });
+        } catch (e) { console.warn('Profile save failed:', e); }
+      }
+
+      // Step 5: Location
+      document.getElementById('onbBackToUsername').addEventListener('click', function() { goToStep(4); });
+      document.getElementById('onbSkipLocation').addEventListener('click', function() { goToStep(6); });
+      document.getElementById('onbDoneLocBtn').addEventListener('click', function() { goToStep(6); });
+
+      // Step 6: Spotify
+      document.getElementById('onbBackToLocation').addEventListener('click', function() { goToStep(5); });
+      document.getElementById('onbSkipSpotify').addEventListener('click', function() { finishOnboarding(); });
+      document.getElementById('onbSpotifyBtn').addEventListener('click', function() {
+        sessionStorage.setItem('fanatik_onb_state', JSON.stringify(onbData));
+        window.location.href = '/oauth/spotify';
+      });
+
+      // Step 7: Results
+      document.getElementById('onbResultsDoneBtn').addEventListener('click', function() { finishOnboarding(); });
+
+      var _onbConcerts = [];
+
+      function runConcertSearch() {
+        var loadingEl = document.getElementById('onbResultsLoading');
+        var listEl = document.getElementById('onbResultsList');
+        var emptyEl = document.getElementById('onbResultsEmpty');
+        var doneBtn = document.getElementById('onbResultsDoneBtn');
+        loadingEl.style.display = 'flex';
+        listEl.style.display = 'none';
+        emptyEl.style.display = 'none';
+        doneBtn.style.display = 'none';
+
+        var locs = FanatikLocations.getAll();
+        if (locs.length === 0) {
+          loadingEl.style.display = 'none';
+          emptyEl.textContent = 'No locations added. You can search for shows from your profile.';
+          emptyEl.style.display = 'block';
+          doneBtn.style.display = 'block';
+          return;
+        }
+
+        var cities = locs.map(function(l) { return l.city; });
+        var yearStart = null, yearEnd = null;
+        locs.forEach(function(l) {
+          if (l.yearFrom && (!yearStart || parseInt(l.yearFrom) < parseInt(yearStart))) yearStart = l.yearFrom;
+          if (l.yearTo && (!yearEnd || parseInt(l.yearTo) > parseInt(yearEnd))) yearEnd = l.yearTo;
+        });
+
+        fetch('/api/spotify/concerts-suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 30 })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            loadingEl.style.display = 'none';
+            doneBtn.style.display = 'block';
+            if (data.concerts && data.concerts.length > 0) {
+              _onbConcerts = data.concerts;
+              var html = '<div class="onb-results-scroll">';
+              data.concerts.forEach(function(c, i) {
+                var artist = c.artist && c.artist.name ? c.artist.name : (c._sourceArtist || 'Unknown');
+                var d = formatDate(c.eventDate);
+                var v = c.venue && c.venue.name ? c.venue.name : '';
+                var city = c.venue && c.venue.city ? c.venue.city.name : '';
+                var detail = [d, v, city].filter(Boolean).join(' · ');
+                var attended = isAttended(c);
+                html += '<div class="onb-result-card">'
+                  + '<div class="onb-result-info"><div class="onb-result-artist">' + artist + '</div>'
+                  + '<div class="onb-result-detail">' + detail + '</div></div>'
+                  + '<button type="button" class="onb-result-add' + (attended ? ' added' : '') + '" data-onb-idx="' + i + '">'
+                  + (attended ? '✓ Added' : 'I was there') + '</button></div>';
+              });
+              html += '</div>';
+              listEl.innerHTML = html;
+              listEl.style.display = 'block';
+            } else {
+              emptyEl.style.display = 'block';
+            }
+          })
+          .catch(function(e) {
+            loadingEl.style.display = 'none';
+            emptyEl.textContent = 'Something went wrong. You can search for shows from your profile.';
+            emptyEl.style.display = 'block';
+            doneBtn.style.display = 'block';
+          });
+      }
+
+      document.getElementById('onbResultsList').addEventListener('click', function(ev) {
+        var btn = ev.target.closest('.onb-result-add');
+        if (!btn || btn.classList.contains('added')) return;
+        var idx = parseInt(btn.getAttribute('data-onb-idx'), 10);
+        if (_onbConcerts[idx]) {
+          addAttendedShow(_onbConcerts[idx]);
+          btn.textContent = '✓ Added';
+          btn.classList.add('added');
+        }
+      });
+
+      function finishOnboarding() {
+        localStorage.setItem('fanatik_profile', JSON.stringify(onbData));
+
+        var profileName = document.getElementById('profileName');
+        var profileHandle = document.getElementById('profileHandle');
+        if (profileName) profileName.textContent = onbData.name || '';
+        if (profileHandle) profileHandle.textContent = onbData.username ? '@' + onbData.username : '';
+
+        if (typeof renderProfileShows === 'function') renderProfileShows();
+        if (typeof backfillArtistImages === 'function') backfillArtistImages();
+
+        localStorage.setItem('fanatik_needs_photo', '1');
+        showPhotoPrompt();
+
+        hideOnboarding();
+      }
+
+      function showPhotoPrompt() {
+        var avatar = document.getElementById('profileAvatar');
+        if (!avatar || avatar.querySelector('.photo-prompt-overlay')) return;
+        avatar.style.position = 'relative';
+        var ov = document.createElement('div');
+        ov.className = 'photo-prompt-overlay';
+        ov.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add photo</span>';
+        ov.addEventListener('click', function() { alert('Photo upload coming soon!'); });
+        avatar.appendChild(ov);
+      }
+
+      // Init
+      (async function() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var spotifyReturn = urlParams.get('authenticated') === 'true';
+        var savedOnbState = sessionStorage.getItem('fanatik_onb_state');
+
+        if (spotifyReturn && savedOnbState) {
+          try { Object.assign(onbData, JSON.parse(savedOnbState)); } catch (e) {}
+          sessionStorage.removeItem('fanatik_onb_state');
+          window.history.replaceState(null, '', window.location.pathname);
+          goToStep(7);
+          return;
+        }
+
+        if (spotifyReturn) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+
+        var ok = await initSupabase();
+        if (ok) {
+          supabaseClient.auth.onAuthStateChange(function(event, session) {
+            if (event === 'SIGNED_IN' && session) {
+              // don't auto-hide during onboarding flow — let user finish profile steps
+            }
+          });
+          if (await checkAuth()) return;
+        } else {
+          if (sessionStorage.getItem('fanatikSeenLanding')) hideOnboarding();
+        }
+      })();
+    })();
+
+    // Settings sheet
+    (function() {
+      var settingsSheet = document.getElementById('settingsSheet');
+      var openBtn = document.getElementById('openSettingsBtn');
+      var closeBtn = document.getElementById('closeSettingsBtn');
+      var logoutBtn = document.getElementById('settingsLogoutBtn');
+
+      if (openBtn) openBtn.addEventListener('click', function() {
+        settingsSheet.classList.add('open');
+        FanatikLocations.renderList(
+          document.getElementById('settingsLocList'),
+          document.getElementById('settingsLocFormWrap'),
+          { prefix: 'settings', autoShowForm: false }
+        );
+      });
+      if (closeBtn) closeBtn.addEventListener('click', function() {
+        settingsSheet.classList.remove('open');
+      });
+      if (logoutBtn) logoutBtn.addEventListener('click', async function() {
+        var sb = window._getSupabase ? window._getSupabase() : null;
+        if (sb) {
+          try { await sb.auth.signOut(); } catch (e) { console.warn('Sign out error:', e); }
+        }
+        localStorage.removeItem('fanatik_profile');
+        localStorage.removeItem('fanatik_locations');
+        sessionStorage.removeItem('fanatikSeenLanding');
+        window.location.reload();
+      });
+    })();
+
+    var ATTENDED_KEY = 'fanatik_attended_shows';
+    var GOING_KEY = 'fanatik_going_shows';
+    function getAttendedShows() {
+      try {
+        var raw = localStorage.getItem(ATTENDED_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) { return []; }
+    }
+    function getGoingShows() {
+      try {
+        var raw = localStorage.getItem(GOING_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) { return []; }
+    }
+    function isGoing(eventId) {
+      return getGoingShows().some(function(e) { return e.id === eventId; });
+    }
+    function addGoingShow(ev) {
+      var list = getGoingShows();
+      if (list.some(function(e) { return e.id === ev.id; })) return;
+      list.push(ev);
+      localStorage.setItem(GOING_KEY, JSON.stringify(list));
+    }
+    function removeGoingShow(eventId) {
+      var list = getGoingShows().filter(function(e) { return e.id !== eventId; });
+      localStorage.setItem(GOING_KEY, JSON.stringify(list));
+    }
+    function showId(c) {
+      var a = (c.artist && typeof c.artist === 'object') ? c.artist.name : (c.artist || c._sourceArtist || '');
+      var d = c.eventDate || '';
+      var v = (c.venue && typeof c.venue === 'object') ? c.venue.name : (c.venue || '');
+      return a + '|' + d + '|' + v;
+    }
+    function isAttended(c) {
+      var list = getAttendedShows();
+      var id = showId(c);
+      return list.some(function(s) { return showId(s) === id; });
+    }
+    var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    function formatDate(raw) {
+      if (!raw) return '';
+      var parts = raw.split('-');
+      if (parts.length === 3) {
+        var d, m, y;
+        if (parts[0].length === 4) {
+          y = parts[0]; m = parseInt(parts[1], 10) - 1; d = parseInt(parts[2], 10);
+        } else {
+          d = parseInt(parts[0], 10); m = parseInt(parts[1], 10) - 1; y = parts[2];
+        }
+        if (!isNaN(d) && !isNaN(m) && m >= 0 && m < 12) return MONTHS[m] + ' ' + d + ', ' + y;
+      }
+      return raw;
+    }
+
+    function extractSets(c) {
+      if (!c || !c.sets || !c.sets.set) return null;
+      var songs = [];
+      c.sets.set.forEach(function(s) {
+        if (s.song) s.song.forEach(function(sg) { if (sg.name) songs.push(sg.name); });
+      });
+      return songs.length > 0 ? songs : null;
+    }
+
+    function addAttendedShow(c) {
+      if (isAttended(c)) return;
+      var list = getAttendedShows();
+      var entry = {
+        artist: c.artist && c.artist.name ? c.artist.name : (c._sourceArtist || 'Unknown'),
+        eventDate: c.eventDate || '',
+        venue: c.venue && c.venue.name ? c.venue.name : '—',
+        city: c.venue && c.venue.city ? c.venue.city.name : '',
+        country: c.venue && c.venue.city && c.venue.city.country ? c.venue.city.country.name : '',
+        artistImage: c._sourceArtistImage || c.imageUrl || null
+      };
+      var songs = extractSets(c);
+      if (songs) entry.setlist = songs;
+      if (c.id) entry.setlistId = c.id;
+      if (c.url) entry.setlistUrl = c.url;
+      list.push(entry);
+      localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
+      renderProfileShows();
+    }
+    var PIN_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+    var LINK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+    var TRASH_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+
+    function srgbToLinear(c) { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+    function relativeLuminance(r, g, b) {
+      return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
+    }
+    function bestTextTheme(r, g, b) {
+      var L = relativeLuminance(r, g, b);
+      return L > 0.179 ? 'light' : 'dark';
+    }
+    function getDominantColor(img, cb) {
+      try {
+        var canvas = document.createElement('canvas');
+        canvas.width = 8; canvas.height = 8;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 8, 8);
+        var data = ctx.getImageData(0, 0, 8, 8).data;
+        var rT = 0, gT = 0, bT = 0, count = 0;
+        for (var i = 0; i < data.length; i += 4) {
+          rT += data[i]; gT += data[i+1]; bT += data[i+2]; count++;
+        }
+        cb(Math.round(rT/count), Math.round(gT/count), Math.round(bT/count));
+      } catch(e) { cb(null, null, null); }
+    }
+    function colorizeCards(selector, imgSelector) {
+      var cards = document.querySelectorAll(selector);
+      cards.forEach(function(card) {
+        var img = card.querySelector(imgSelector);
+        if (!img) return;
+        var apply = function() {
+          getDominantColor(img, function(r, g, b) {
+            if (r === null) return;
+            card.style.backgroundColor = 'rgb(' + r + ',' + g + ',' + b + ')';
+            card.setAttribute('data-theme', bestTextTheme(r, g, b));
+          });
+        };
+        if (img.complete && img.naturalWidth > 0) { apply(); }
+        else { img.addEventListener('load', apply); }
+      });
+    }
+    function colorizeShowCards() {
+      colorizeCards('.show-card', '.show-card-img-wrap img');
+    }
+    function colorizeTopArtists() {
+      colorizeCards('.top-artist-item', '.top-artist-img-wrap img');
+    }
+    function colorizeProfileWash() {
+      var avatarImg = document.querySelector('#profileAvatar img');
+      var wash = document.getElementById('profileColorWash');
+      if (!avatarImg || !wash) return;
+      var apply = function() {
+        getDominantColor(avatarImg, function(r, g, b) {
+          if (r === null) return;
+          var c = r + ',' + g + ',' + b;
+          wash.style.background =
+            'linear-gradient(to bottom, rgba(' + c + ',0.5) 0%, rgba(' + c + ',0.2) 40%, rgba(' + c + ',0) 65%), var(--bg)';
+        });
+      };
+      if (avatarImg.complete && avatarImg.naturalWidth > 0) { apply(); }
+      else { avatarImg.addEventListener('load', apply); }
+    }
+
+    function renderProfileUpcomingShows() {
+      var list = getGoingShows();
+      var container = document.getElementById('profile-upcoming');
+      var countSpan = document.getElementById('profile-upcoming-count');
+      if (countSpan) countSpan.textContent = list.length + ' show' + (list.length !== 1 ? 's' : '');
+      if (!container) return;
+      if (list.length === 0) {
+        container.innerHTML = '<div class="empty-state">No upcoming shows. Mark shows as "I\'m going" on the Search tab.</div>';
+        return;
+      }
+      var html = '';
+      list.forEach(function(ev) {
+        var artist = ev.artist && ev.artist.name ? ev.artist.name : ev.name || 'Unknown';
+        var date = formatDate(ev.eventDate);
+        var venue = ev.venue && ev.venue.name ? ev.venue.name : '—';
+        var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+        var imgHtml = ev.imageUrl
+          ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
+          : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
+        html += '<div class="show-card profile-upcoming-card" data-upcoming-id="' + ev.id + '">';
+        html += '<button type="button" class="upcoming-remove-btn" title="Remove from upcoming">' + TRASH_SVG + '</button>';
+        html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
+        html += '<div class="concert-artist">' + artist + '</div>';
+        html += '<div class="concert-date">' + date + '</div>';
+        html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
+        if (ev.url) html += '<a href="' + ev.url + '" target="_blank" rel="noopener" class="setlist-link">Get tickets ' + LINK_SVG + '</a>';
+        html += '</div></div></div>';
+      });
+      container.innerHTML = html;
+      colorizeCards('#profile-upcoming .show-card', '.show-card-img-wrap img');
+      container.querySelectorAll('[data-upcoming-id]').forEach(function(card) {
+        var btn = card.querySelector('.upcoming-remove-btn');
+        if (btn) btn.addEventListener('click', function() {
+          removeGoingShow(card.dataset.upcomingId);
+          renderProfileUpcomingShows();
+          renderSearchGoingList();
+        });
+      });
+    }
+
+    function renderProfileShows() {
+      var list = getAttendedShows();
+      var container = document.getElementById('profile-shows');
+      var countSpan = document.getElementById('profile-shows-count');
+      if (countSpan) countSpan.textContent = list.length + ' show' + (list.length !== 1 ? 's' : '');
+
+      var artists = new Set(), venues = new Set(), cities = new Set();
+      list.forEach(function(s) {
+        if (s.artist) artists.add(s.artist);
+        if (s.venue) venues.add(s.venue);
+        if (s.city) cities.add(s.city);
+      });
+      var el;
+      el = document.getElementById('profile-stat-shows'); if (el) el.textContent = list.length;
+      el = document.getElementById('profile-stat-artists'); if (el) el.textContent = artists.size;
+      el = document.getElementById('profile-stat-venues'); if (el) el.textContent = venues.size;
+      el = document.getElementById('profile-stat-cities'); if (el) el.textContent = cities.size;
+      el = document.getElementById('sticky-stat-shows'); if (el) el.textContent = list.length;
+      el = document.getElementById('sticky-stat-artists'); if (el) el.textContent = artists.size;
+      el = document.getElementById('sticky-stat-venues'); if (el) el.textContent = venues.size;
+      el = document.getElementById('sticky-stat-cities'); if (el) el.textContent = cities.size;
+
+      var artistCounts = {};
+      var artistImages = {};
+      list.forEach(function(s) {
+        if (s.artist) {
+          artistCounts[s.artist] = (artistCounts[s.artist] || 0) + 1;
+          if (s.artistImage && !artistImages[s.artist]) artistImages[s.artist] = s.artistImage;
+        }
+      });
+      var sortedArtists = Object.keys(artistCounts).sort(function(a, b) {
+        return artistCounts[b] - artistCounts[a];
+      });
+      var topArtistsEl = document.getElementById('top-artists-list');
+      var seeAllBtn = document.getElementById('see-all-artists');
+      if (sortedArtists.length === 0) {
+        topArtistsEl.innerHTML = '<div class="empty-state">Check in to shows to see your top artists.</div>';
+        if (seeAllBtn) seeAllBtn.style.display = 'none';
+      } else {
+        var showAll = topArtistsEl.dataset.showAll === 'true';
+        var displayArtists = showAll ? sortedArtists : sortedArtists.slice(0, 3);
+        var aHtml = '';
+        displayArtists.forEach(function(name, idx) {
+          var count = artistCounts[name];
+          var initials = name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+          var imgWrapHtml = artistImages[name]
+            ? '<div class="top-artist-img-wrap"><img src="' + artistImages[name] + '" alt="' + name + '" crossorigin="anonymous"></div>'
+            : '<div class="top-artist-img-wrap"><div class="top-artist-img-fallback">' + initials + '</div></div>';
+          aHtml += '<div class="top-artist-item">';
+          aHtml += imgWrapHtml;
+          aHtml += '<div class="top-artist-body">';
+          aHtml += '<div class="top-artist-rank">' + (idx + 1) + '</div>';
+          aHtml += '<div class="top-artist-info">';
+          aHtml += '<div class="top-artist-name">' + name + '</div>';
+          aHtml += '<div class="top-artist-count">' + count + (count === 1 ? ' show' : ' shows') + '</div>';
+          aHtml += '</div></div></div>';
+        });
+        topArtistsEl.innerHTML = aHtml;
+        colorizeTopArtists();
+        if (seeAllBtn) {
+          seeAllBtn.style.display = sortedArtists.length > 3 ? '' : 'none';
+          seeAllBtn.textContent = showAll ? 'Show Less' : 'See All';
+        }
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = '<div class="empty-state"><a href="#" onclick="switchTab(\'add\'); openSpotifySheet(); return false;">Find concerts from Spotify</a> or check in from the + tab.</div>';
+      } else {
+        var html = '';
+        var indexed = list.map(function(s, i) { return { s: s, idx: i }; });
+        indexed.sort(function(a, b) {
+          var pa = a.s.eventDate ? a.s.eventDate.split('-') : [];
+          var pb = b.s.eventDate ? b.s.eventDate.split('-') : [];
+          var da = pa.length === 3 ? new Date(pa[2], pa[1] - 1, pa[0]) : new Date(0);
+          var db = pb.length === 3 ? new Date(pb[2], pb[1] - 1, pb[0]) : new Date(0);
+          return db - da;
+        });
+        indexed.forEach(function(item) {
+          var s = item.s;
+          var realIdx = item.idx;
+          var initials = (s.artist || '?').split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+          var imgWrapHtml;
+          if (s.artistImage) {
+            imgWrapHtml = '<div class="show-card-img-wrap">'
+              + '<img src="' + s.artistImage + '" alt="' + (s.artist || '') + '" crossorigin="anonymous">'
+              + '</div>';
+          } else {
+            imgWrapHtml = '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
+          }
+          html += '<div class="show-card" data-show-idx="' + realIdx + '">';
+          html += '<button type="button" class="delete-btn" title="Remove show">' + TRASH_SVG + '</button>';
+          html += '<div class="show-card-layout">';
+          html += imgWrapHtml;
+          html += '<div class="show-card-content">';
+          html += '<div class="concert-artist">' + (s.artist || '') + '</div>';
+          html += '<div class="concert-date">' + formatDate(s.eventDate) + '</div>';
+          html += '<div class="concert-venue">' + PIN_SVG + ' ' + (s.venue || '') + '</div>';
+          if (s.setlist && s.setlist.length > 0) {
+            html += '<a href="#" class="setlist-link" data-show-idx="' + realIdx + '">Setlist (' + s.setlist.length + ' songs) ' + LINK_SVG + '</a>';
+          } else if (s.setlistUrl) {
+            html += '<a href="' + s.setlistUrl + '" target="_blank" class="setlist-link">Setlist ' + LINK_SVG + '</a>';
+          }
+          html += '</div></div></div>';
+        });
+        container.innerHTML = html;
+        colorizeShowCards();
+      }
+    }
+
+    document.getElementById('profile-shows').addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.delete-btn');
+      if (!btn) return;
+      var card = btn.closest('.show-card');
+      if (!card) return;
+      var idx = parseInt(card.getAttribute('data-show-idx'), 10);
+      var list = getAttendedShows();
+      if (idx >= 0 && idx < list.length) {
+        list.splice(idx, 1);
+        localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
+        renderProfileShows();
+      }
+    });
+
+    document.getElementById('see-all-artists').addEventListener('click', function(e) {
+      e.preventDefault();
+      var listEl = document.getElementById('top-artists-list');
+      listEl.dataset.showAll = listEl.dataset.showAll === 'true' ? 'false' : 'true';
+      renderProfileShows();
+    });
+
+    function backfillArtistImages() {
+      var list = getAttendedShows();
+      var missing = [];
+      list.forEach(function(s) {
+        if (s.artist && !s.artistImage && missing.indexOf(s.artist) === -1) missing.push(s.artist);
+      });
+      if (missing.length === 0) return;
+      console.log('[backfill] Fetching images for', missing.length, 'artists:', missing);
+      fetch('/api/spotify/status')
+        .then(function(r) { return r.json(); })
+        .then(function(status) {
+          if (!status.connected) {
+            console.log('[backfill] Spotify not connected — skipping. Connect Spotify first.');
+            return;
+          }
+          return fetch('/api/spotify/artist-images', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ names: missing })
+          })
+          .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+          })
+          .then(function(data) {
+            if (!data.images) { console.log('[backfill] No images returned'); return; }
+            var found = Object.keys(data.images).length;
+            console.log('[backfill] Got images for', found, '/', missing.length, 'artists');
+            var list = getAttendedShows();
+            var changed = false;
+            list.forEach(function(s) {
+              if (s.artist && !s.artistImage && data.images[s.artist]) {
+                s.artistImage = data.images[s.artist];
+                changed = true;
+              }
+            });
+            if (changed) {
+              localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
+              renderProfileShows();
+              console.log('[backfill] Updated localStorage and re-rendered');
+            }
+          });
+        })
+        .catch(function(e) { console.warn('[backfill] Error:', e); });
+    }
+
+    function toggleArtist(groupId, showsId) {
+      var header = document.querySelector('#' + groupId + ' .artist-group-header');
+      var shows = document.getElementById(showsId);
+      if (header && shows) {
+        header.classList.toggle('open');
+        shows.classList.toggle('open');
+      }
+    }
+
+    function openSpotifySheet() {
+      switchTab('add');
+      document.getElementById('spotifySheet').classList.add('open');
+      if (window.location.hostname === 'localhost') {
+        document.getElementById('localhostWarningSheet').style.display = 'block';
+      }
+      refreshSpotifySheetState();
+    }
+    function closeSpotifySheet() {
+      document.getElementById('spotifySheet').classList.remove('open');
+    }
+    function refreshSpotifySheetState() {
+      fetch('/api/spotify/status').then(function(r) { return r.json(); }).then(function(data) {
+        if (data.connected) {
+          document.getElementById('spotifyConnectCard').style.display = 'none';
+          document.getElementById('spotifyFormSection').classList.add('show');
+          backfillArtistImages();
+        } else {
+          document.getElementById('spotifyConnectCard').style.display = 'block';
+          document.getElementById('spotifyFormSection').classList.remove('show');
+        }
+        document.getElementById('homeResults').style.display = 'none';
+      }).catch(function() {
+        document.getElementById('spotifyConnectCard').style.display = 'block';
+        document.getElementById('spotifyFormSection').classList.remove('show');
+      });
+    }
+
+    function disconnectSpotify() {
+      fetch('/api/spotify/disconnect', { method: 'POST' })
+        .then(function() {
+          document.getElementById('spotifyConnectCard').style.display = 'block';
+          document.getElementById('spotifyFormSection').classList.remove('show');
+          document.getElementById('homeResults').style.display = 'none';
+        })
+        .catch(function(e) { alert('Could not disconnect: ' + e.message); });
+    }
+
+    document.getElementById('connectSpotifyBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      var base = (window.location.protocol === 'file:' || !window.location.origin) ? 'http://127.0.0.1:3000' : window.location.origin;
+      window.location.href = base + '/oauth/spotify';
+    });
+
+    (function initSpotify() {
+      if (window.location.hostname === 'localhost') {
+        document.getElementById('localhostWarning').style.display = 'block';
+      }
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('error')) {
+        var msg = params.get('error') === 'auth_failed' ? 'Spotify login failed.' : params.get('error') === 'state_mismatch' ? 'Session mismatch. Open at http://127.0.0.1:3000/app and try again.' : 'Something went wrong.';
+        alert(msg);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      if (params.get('authenticated') === 'true') {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        openSpotifySheet();
+      }
+      if (!localStorage.getItem('fanatik_cleared_dummy')) {
+        localStorage.removeItem('fanatik_attended_shows');
+        localStorage.removeItem('fanatik_going_shows');
+        localStorage.removeItem('fanatik_img_v2');
+        localStorage.setItem('fanatik_cleared_dummy', '1');
+      }
+      if (!localStorage.getItem('fanatik_img_v3')) {
+        var imgList = getAttendedShows();
+        imgList.forEach(function(s) { s.artistImage = null; });
+        localStorage.setItem(ATTENDED_KEY, JSON.stringify(imgList));
+        localStorage.setItem('fanatik_img_v3', '1');
+      }
+      renderProfileShows();
+      renderProfileUpcomingShows();
+      backfillArtistImages();
+      colorizeProfileWash();
+
+      if (localStorage.getItem('fanatik_needs_photo') === '1') {
+        var avatar = document.getElementById('profileAvatar');
+        if (avatar && !avatar.querySelector('.photo-prompt-overlay')) {
+          avatar.style.position = 'relative';
+          var overlay = document.createElement('div');
+          overlay.className = 'photo-prompt-overlay';
+          overlay.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add photo</span>';
+          overlay.addEventListener('click', function() {
+            alert('Photo upload coming soon!');
+          });
+          avatar.appendChild(overlay);
+        }
+      }
+
+      var savedProfile = null;
+      try { savedProfile = JSON.parse(localStorage.getItem('fanatik_profile')); } catch(e) {}
+      if (savedProfile) {
+        var pn = document.getElementById('profileName');
+        var ph = document.getElementById('profileHandle');
+        if (pn && savedProfile.name) pn.textContent = savedProfile.name;
+        if (ph && savedProfile.username) ph.textContent = '@' + savedProfile.username;
+      }
+    })();
+
+    (function initProfileScrollMorph() {
+      var SCROLL_RANGE = 70;
+      var anchor = document.getElementById('profile-header-anchor');
+      var header = document.getElementById('profileHeader');
+      var info = document.getElementById('profileInfo');
+      var avatar = document.getElementById('profileAvatar');
+      var statsCard = document.getElementById('profileStatsCard');
+      var statsRow = statsCard ? statsCard.querySelector('.stats-row') : null;
+      var sticky = document.getElementById('profile-sticky-header');
+      var ticking = false;
+
+      function updateMorph() {
+        if (!anchor || !header) return;
+        var tabHome = document.getElementById('tab-home');
+        if (!tabHome || !tabHome.classList.contains('active')) {
+          if (sticky) sticky.classList.remove('visible');
+          if (info) info.style.opacity = '';
+          if (header) header.style.marginBottom = '';
+          if (avatar) { avatar.style.transform = ''; avatar.style.transformOrigin = ''; avatar.style.borderRadius = ''; }
+          if (statsCard) { statsCard.style.padding = ''; statsCard.style.borderRadius = ''; }
+          if (statsRow) statsRow.style.transform = '';
+          return;
+        }
+        var rect = anchor.getBoundingClientRect();
+        var headerTop = rect.top;
+        var progress = headerTop >= 0 ? 0 : Math.min(1, -headerTop / SCROLL_RANGE);
+
+        if (info) info.style.opacity = String(1 - progress);
+        if (header) header.style.marginBottom = (24 * (1 - progress)) + 'px';
+        if (avatar) {
+          var scale = 1 - 0.6 * progress;
+          var radiusPx = 4 + 36 * progress;
+          avatar.style.transform = 'scale(' + scale + ')';
+          avatar.style.transformOrigin = 'top left';
+          avatar.style.borderRadius = radiusPx + 'px';
+        }
+        if (statsCard) {
+          var pad = 16 - 8 * progress;
+          statsCard.style.padding = pad + 'px';
+          statsCard.style.borderRadius = (14 - 6 * progress) + 'px';
+        }
+        if (statsRow) {
+          var statScale = 1 - 0.55 * progress;
+          statsRow.style.transform = 'scaleX(' + statScale + ') scaleY(' + statScale + ')';
+          statsRow.style.transformOrigin = 'center center';
+        }
+        if (progress >= 1) {
+          if (sticky) sticky.classList.add('visible');
+        } else {
+          if (sticky) sticky.classList.remove('visible');
+        }
+      }
+
+      function onScroll() {
+        if (!ticking) {
+          requestAnimationFrame(function() {
+            updateMorph();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll);
+      updateMorph();
+    })();
+
+    document.getElementById('homeResults').addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.attended-btn');
+      if (!btn || btn.classList.contains('done')) return;
+      var idx = parseInt(btn.getAttribute('data-idx'), 10);
+      var arr = window._lastSpotifyConcerts;
+      if (arr && arr[idx]) {
+        addAttendedShow(arr[idx]);
+        btn.textContent = '✓ Attended';
+        btn.classList.add('done');
+      }
+    });
+
+    document.getElementById('homeFindBtn').addEventListener('click', function findConcerts() {
+      var citiesInput = document.getElementById('homeCities').value.trim();
+      var cities = citiesInput ? citiesInput.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+      if (cities.length === 0) { alert('Please enter at least one city.'); return; }
+      var yearStart = document.getElementById('homeYearStart').value.trim() || null;
+      var yearEnd = document.getElementById('homeYearEnd').value.trim() || null;
+      var artistLimit = parseInt(document.getElementById('homeArtistLimit').value, 10) || 20;
+      var btn = document.getElementById('homeFindBtn');
+      var loading = document.getElementById('homeLoading');
+      var resultsDiv = document.getElementById('homeResults');
+      btn.disabled = true;
+      loading.classList.add('show');
+      resultsDiv.style.display = 'none';
+      fetch('/api/spotify/concerts-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: artistLimit })
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          loading.classList.remove('show');
+          btn.disabled = false;
+          var html = '<div class="home-results-header"><div class="section-title">Concerts you may have attended</div><div style="font-size:14px;color:var(--text-muted)">' + (data.concerts ? data.concerts.length : 0) + ' show(s) in ' + cities.join(', ') + '</div></div>';
+          if (data.concerts && data.concerts.length > 0) {
+            window._lastSpotifyConcerts = data.concerts;
+            var byArtist = {};
+            data.concerts.forEach(function(c) {
+              var a = c.artist && c.artist.name ? c.artist.name : (c._sourceArtist || 'Unknown');
+              if (!byArtist[a]) byArtist[a] = [];
+              byArtist[a].push(c);
+            });
+            Object.keys(byArtist).sort().forEach(function(artist, idx) {
+              var shows = byArtist[artist];
+              var gid = 'ag-' + idx, sid = 'as-' + idx;
+              html += '<div class="artist-group" id="' + gid + '"><div class="artist-group-header' + (idx === 0 ? ' open' : '') + '" onclick="toggleArtist(\'' + gid + '\',\'' + sid + '\')"><span class="name">' + artist + '</span><span class="count">(' + shows.length + ')</span><span class="chevron">▼</span></div>';
+              html += '<div class="artist-group-shows' + (idx === 0 ? ' open' : '') + '" id="' + sid + '">';
+              shows.forEach(function(c) {
+                var d = formatDate(c.eventDate), v = c.venue && c.venue.name ? c.venue.name : '—';
+                var city = c.venue && c.venue.city ? c.venue.city.name : '', country = c.venue && c.venue.city && c.venue.city.country ? c.venue.city.country.name : '';
+                var idxVal = data.concerts.indexOf(c);
+                var attended = isAttended(c);
+                html += '<div class="concert-card"><button type="button" class="attended-btn' + (attended ? ' done' : '') + '" data-idx="' + idxVal + '">' + (attended ? '✓ Attended' : 'I went to this') + '</button>';
+                html += '<div class="concert-date">' + d + '</div><div class="concert-venue">' + v + '</div><div class="concert-location">' + [city, country].filter(Boolean).join(', ') + '</div></div>';
+              });
+              html += '</div></div>';
+            });
+          } else {
+            html += '<div class="empty-state">No concerts found. Try more cities or a wider year range.</div>';
+          }
+          resultsDiv.innerHTML = html;
+          resultsDiv.style.display = 'block';
+        })
+        .catch(function(e) {
+          loading.classList.remove('show');
+          btn.disabled = false;
+          resultsDiv.innerHTML = '<div class="empty-state">Error: ' + e.message + '</div>';
+          resultsDiv.style.display = 'block';
+        });
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.tab-bar .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-bar .tab-add-btn').forEach(t => t.classList.remove('active'));
+      const content = document.getElementById('tab-' + tabId);
+      const tabBtn = document.querySelector('[data-tab="' + tabId + '"]');
+      if (content) content.classList.add('active');
+      if (tabBtn) tabBtn.classList.add('active');
+      if (tabId === 'home') {
+        window.dispatchEvent(new Event('scroll'));
+        renderProfileUpcomingShows();
+      }
+    }
+
+    document.querySelectorAll('.tab-bar .tab').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    var addBtn = document.getElementById('tabAddBtn');
+    var addMenu = document.getElementById('addMenu');
+    var addMenuBackdrop = document.getElementById('addMenuBackdrop');
+
+    function openAddMenu() {
+      addMenu.classList.add('open');
+      addMenuBackdrop.classList.add('open');
+      addMenu.setAttribute('aria-hidden', 'false');
+      addMenuBackdrop.setAttribute('aria-hidden', 'false');
+    }
+    function closeAddMenu() {
+      addMenu.classList.remove('open');
+      addMenuBackdrop.classList.remove('open');
+      addMenu.setAttribute('aria-hidden', 'true');
+      addMenuBackdrop.setAttribute('aria-hidden', 'true');
+    }
+
+    addBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      addBtn.classList.remove('liquid-press');
+      void addBtn.offsetWidth;
+      addBtn.classList.add('liquid-press');
+      addBtn.addEventListener('animationend', function onEnd() {
+        addBtn.classList.remove('liquid-press');
+        addBtn.removeEventListener('animationend', onEnd);
+      }, { once: true });
+      if (addMenu.classList.contains('open')) {
+        closeAddMenu();
+      } else {
+        openAddMenu();
+      }
+    });
+
+    addMenuBackdrop.addEventListener('click', closeAddMenu);
+
+    addMenu.querySelectorAll('.add-menu-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var action = item.dataset.action;
+        closeAddMenu();
+        if (action === 'checkin') openCheckInSheet();
+        else if (action === 'past-show') openPastShowsSheet();
+      });
+    });
+
+    var ACTIVE_FILTER = 'brightness(0) saturate(100%)';
+    var INACTIVE_FILTER = 'brightness(0) saturate(100%)';
+
+    function initLottieTab(id, path, isActiveByDefault) {
+      var anim = lottie.loadAnimation({
+        container: document.getElementById(id),
+        renderer: 'svg',
+        loop: false,
+        autoplay: false,
+        path: path
+      });
+      anim.goToAndStop(0, true);
+      anim.addEventListener('DOMLoaded', function() {
+        var svg = document.querySelector('#' + id + ' svg');
+        if (svg) svg.style.filter = isActiveByDefault ? ACTIVE_FILTER : INACTIVE_FILTER;
+      });
+      return anim;
+    }
+
+    var homeAnim = initLottieTab('lottie-home', 'assets/icons8-house.json', true);
+    var searchAnim = initLottieTab('lottie-search', 'assets/icons8-search.json', false);
+
+    function updateLottieColors(tabId) {
+      var mapping = { 'lottie-home': 'home', 'lottie-search': 'search' };
+      Object.keys(mapping).forEach(function(id) {
+        var svg = document.querySelector('#' + id + ' svg');
+        if (svg) svg.style.filter = (mapping[id] === tabId) ? ACTIVE_FILTER : INACTIVE_FILTER;
+      });
+    }
+
+    var origSwitchTab = switchTab;
+    switchTab = function(tabId) {
+      origSwitchTab(tabId);
+      updateLottieColors(tabId);
+    };
+
+    document.querySelector('[data-tab="home"]').addEventListener('click', function() {
+      homeAnim.goToAndStop(0, true);
+      homeAnim.play();
+    });
+    document.querySelector('[data-tab="search"]').addEventListener('click', function() {
+      searchAnim.goToAndStop(0, true);
+      searchAnim.play();
+    });
+
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    const searchExplore = document.getElementById('search-explore');
+
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') doSearch(this.value.trim());
+    });
+
+    async function doSearch(query) {
+      if (!query) return;
+      searchResults.classList.remove('hidden');
+      searchResults.innerHTML = '<div class="empty-state">Searching...</div>';
+      searchExplore.style.display = 'none';
+      try {
+        const res = await fetch('/parse-concert-query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        });
+        const data = await res.json();
+        searchExplore.style.display = 'block';
+        if (data.error) {
+          searchResults.innerHTML = '<div class="empty-state">' + data.error + '</div>';
+          return;
+        }
+        const results = data.results || [];
+        if (results.length === 0) {
+          searchResults.innerHTML = '<div class="empty-state">No concerts found. Try another search.</div>';
+          return;
+        }
+        let html = '<h2 class="section-title">Search results</h2>';
+        results.slice(0, 10).forEach(c => {
+          const artist = c.artist?.name || 'Unknown';
+          const date = formatDate(c.eventDate);
+          const venue = c.venue?.name || '—';
+          const city = c.venue?.city?.name || '';
+          const country = c.venue?.city?.country?.name || '';
+          const loc = [city, country].filter(Boolean).join(', ');
+          html += '<div class="concert-card"><div class="concert-artist">' + artist + '</div>';
+          html += '<div class="concert-date">' + date + '</div>';
+          html += '<div class="concert-venue">' + venue + '</div>';
+          if (loc) html += '<div class="concert-location">' + loc + '</div>';
+          html += '</div>';
+        });
+        searchResults.innerHTML = html;
+      } catch (err) {
+        searchExplore.style.display = 'block';
+        searchResults.innerHTML = '<div class="empty-state">Search failed: ' + err.message + '</div>';
+      }
+    }
+
+    var searchCity = 'New York';
+    var searchNearbyEvents = [];
+
+    function renderSearchGoingList() {
+      var el = document.getElementById('search-going-list');
+      if (!el) return;
+      var list = getGoingShows();
+      if (list.length === 0) {
+        el.innerHTML = '';
+        return;
+      }
+      var html = '';
+      list.forEach(function(ev) {
+        var artist = ev.artist && ev.artist.name ? ev.artist.name : ev.name || 'Unknown';
+        var date = formatDate(ev.eventDate);
+        var venue = ev.venue && ev.venue.name ? ev.venue.name : '—';
+        var city = ev.venue && ev.venue.city ? ev.venue.city.name : '';
+        var country = ev.venue && ev.venue.city && ev.venue.city.country ? ev.venue.city.country.name : '';
+        var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+        var imgHtml = ev.imageUrl
+          ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
+          : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
+        html += '<div class="show-card search-event-card" data-going-id="' + ev.id + '">';
+        html += '<button type="button" class="im-going-btn going">✓ I\'m going</button>';
+        html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
+        html += '<div class="concert-artist">' + artist + '</div>';
+        html += '<div class="concert-date">' + date + '</div>';
+        html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
+        if (ev.url) html += '<a href="' + ev.url + '" target="_blank" rel="noopener" class="setlist-link">Get tickets ' + LINK_SVG + '</a>';
+        html += '</div></div></div>';
+      });
+      el.innerHTML = html;
+      colorizeCards('#search-going-list .show-card', '.show-card-img-wrap img');
+      el.querySelectorAll('[data-going-id]').forEach(function(card) {
+        var btn = card.querySelector('.im-going-btn');
+        if (btn) btn.addEventListener('click', function() {
+          removeGoingShow(card.dataset.goingId);
+          renderSearchGoingList();
+          renderSearchNearbyShows();
+        });
+      });
+    }
+
+    async function renderSearchNearbyShows() {
+      var el = document.getElementById('search-nearby-shows');
+      if (!el) return;
+      el.innerHTML = '<div class="empty-state">Loading shows...</div>';
+      try {
+        var city = document.getElementById('search-city');
+        var cityVal = (city && city.value.trim()) || searchCity;
+        var query = '?city=' + encodeURIComponent(cityVal) + '&size=15';
+        var url = '/api/ticketmaster/events' + query;
+        var res = await fetch(url);
+        var ct = (res.headers.get('content-type') || '').toLowerCase();
+        if (!ct.includes('application/json') && !ct.includes('json')) {
+          el.innerHTML = '<div class="empty-state">Server returned HTML instead of JSON. Try opening <a href="http://127.0.0.1:3000/api/health" target="_blank">http://127.0.0.1:3000/api/health</a> — you should see {\"ok\":true}. If you see a 404 page instead, restart the server: stop it (Ctrl+C), then run <code>node server.js</code> again in the project folder.</div>';
+          return;
+        }
+        var data;
+        try {
+          data = await res.json();
+        } catch (parseErr) {
+          el.innerHTML = '<div class="empty-state">Invalid response. Open <a href="http://127.0.0.1:3000/app">http://127.0.0.1:3000/app</a> and ensure TICKETMASTER_API_KEY is in .env</div>';
+          return;
+        }
+        if (data && data.error) {
+          el.innerHTML = '<div class="empty-state">' + data.error + '</div>';
+          return;
+        }
+        var events = data.events || [];
+        searchNearbyEvents = events;
+        if (events.length === 0) {
+          el.innerHTML = '<div class="empty-state">No upcoming music events found. Try a different city.</div>';
+          return;
+        }
+        var html = '';
+        events.forEach(function(ev) {
+          var artist = ev.artist && ev.artist.name ? ev.artist.name : ev.name || 'Unknown';
+          var date = formatDate(ev.eventDate);
+          var venue = ev.venue && ev.venue.name ? ev.venue.name : '—';
+          var city = ev.venue && ev.venue.city ? ev.venue.city.name : '';
+          var country = ev.venue && ev.venue.city && ev.venue.city.country ? ev.venue.city.country.name : '';
+          var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+          var imgHtml = ev.imageUrl
+            ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
+            : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
+          var going = isGoing(ev.id);
+          html += '<div class="show-card search-event-card" data-event-id="' + ev.id + '">';
+          html += '<button type="button" class="im-going-btn' + (going ? ' going' : '') + '" data-event-id="' + ev.id + '">' + (going ? '✓ I\'m going' : 'I\'m going') + '</button>';
+          html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
+          html += '<div class="concert-artist">' + artist + '</div>';
+          html += '<div class="concert-date">' + date + '</div>';
+          html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
+          if (ev.url) html += '<a href="' + ev.url + '" target="_blank" rel="noopener" class="setlist-link">Get tickets ' + LINK_SVG + '</a>';
+          html += '</div></div></div>';
+        });
+        el.innerHTML = html;
+        colorizeCards('#search-nearby-shows .show-card', '.show-card-img-wrap img');
+        el.querySelectorAll('.im-going-btn[data-event-id]').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var id = btn.dataset.eventId;
+            var ev = searchNearbyEvents.find(function(e) { return e.id === id; });
+            if (!ev) return;
+            if (isGoing(id)) {
+              removeGoingShow(id);
+            } else {
+              addGoingShow(ev);
+            }
+            renderSearchGoingList();
+            renderSearchNearbyShows();
+          });
+        });
+      } catch (err) {
+        var msg = err.message || 'Unknown error';
+        if (msg === 'Failed to fetch' || msg.indexOf('fetch') !== -1) {
+          el.innerHTML = '<div class="empty-state">Could not connect to the server. Open <strong><a href="http://127.0.0.1:3000/app">http://127.0.0.1:3000/app</a></strong> in your browser (Chrome, Safari, etc.) — not in a preview panel. First run <code>node server.js</code> in the project folder.</div>';
+        } else {
+          el.innerHTML = '<div class="empty-state">Failed to load shows: ' + msg + '</div>';
+        }
+      }
+    }
+
+    document.getElementById('search-city-btn').addEventListener('click', function() {
+      var input = document.getElementById('search-city');
+      if (input) searchCity = input.value.trim() || 'New York';
+      renderSearchNearbyShows();
+    });
+    document.getElementById('search-city').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        searchCity = this.value.trim() || 'New York';
+        renderSearchNearbyShows();
+      }
+    });
+
+    document.querySelector('[data-tab="search"]').addEventListener('click', function() {
+      renderSearchNearbyShows();
+      renderSearchGoingList();
+    });
+
+    var _currentUserId = null;
+    var _followingIds = {};
+    var _connectionsCache = null;
+
+    async function getCurrentUserId() {
+      if (_currentUserId) return _currentUserId;
+      var sb = window._getSupabase ? window._getSupabase() : null;
+      if (!sb) return null;
+      try {
+        var { data: { user } } = await sb.auth.getUser();
+        if (user) _currentUserId = user.id;
+      } catch (e) {}
+      return _currentUserId;
+    }
+
+    function userInitials(name) {
+      if (!name) return '?';
+      var parts = name.trim().split(/\s+/);
+      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+      return name.slice(0, 2).toUpperCase();
+    }
+
+    function renderUserCard(user, isFollowing) {
+      var name = user.display_name || user.username || 'User';
+      var handle = user.username ? '@' + user.username : '';
+      var initials = userInitials(name);
+      var btnClass = isFollowing ? 'friend-action-btn following' : 'friend-action-btn follow';
+      var btnText = isFollowing ? 'Following' : 'Follow';
+      return '<div class="friend-card" data-user-id="' + user.id + '">' +
+        '<div class="friend-avatar" style="background:#1a1a1a">' + initials + '</div>' +
+        '<div class="friend-info">' +
+          '<div class="friend-name">' + name + '</div>' +
+          (handle ? '<div class="friend-handle">' + handle + '</div>' : '') +
+        '</div>' +
+        '<button class="' + btnClass + '" data-user-id="' + user.id + '">' + btnText + '</button>' +
+      '</div>';
+    }
+
+    var currentFriendsTab = 'followers';
+
+    async function loadConnections() {
+      var uid = await getCurrentUserId();
+      if (!uid) return;
+      try {
+        var res = await fetch('/api/users/' + uid + '/connections');
+        var data = await res.json();
+        _connectionsCache = data;
+        _followingIds = {};
+        (data.following || []).forEach(function(u) { _followingIds[u.id] = true; });
+        renderFriends();
+      } catch (e) { console.warn('Failed to load connections:', e); }
+    }
+
+    function renderFriends(type) {
+      currentFriendsTab = type || currentFriendsTab;
+      if (!_connectionsCache) return;
+      var list = currentFriendsTab === 'followers' ? _connectionsCache.followers : _connectionsCache.following;
+      list = list || [];
+      var container = document.getElementById('friends-list');
+      var countLabel = document.getElementById('friends-count-label');
+
+      if (countLabel) {
+        countLabel.textContent = list.length + ' ' + (currentFriendsTab === 'followers' ? 'follower' : 'following') + (currentFriendsTab === 'followers' && list.length !== 1 ? 's' : '');
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = '<div class="empty-state">No ' + currentFriendsTab + ' yet.</div>';
+        return;
+      }
+      var html = '';
+      list.forEach(function(user) {
+        html += renderUserCard(user, !!_followingIds[user.id]);
+      });
+      container.innerHTML = html;
+    }
+
+    async function loadSuggestedPeople() {
+      var el = document.getElementById('search-people-suggestions');
+      if (!el) return;
+      var uid = await getCurrentUserId();
+      try {
+        var url = '/api/users' + (uid ? '?exclude=' + uid : '');
+        var res = await fetch(url);
+        var data = await res.json();
+        var users = data.users || [];
+        if (users.length === 0) {
+          el.innerHTML = '<div class="empty-state">No other users yet. Invite your friends!</div>';
+          return;
+        }
+        var html = '';
+        users.forEach(function(user) {
+          html += renderUserCard(user, !!_followingIds[user.id]);
+        });
+        el.innerHTML = html;
+      } catch (e) {
+        el.innerHTML = '<div class="empty-state">Could not load suggestions.</div>';
+      }
+    }
+
+    async function toggleFollow(userId) {
+      var uid = await getCurrentUserId();
+      if (!uid || userId === uid) return;
+      var isFollowing = !!_followingIds[userId];
+      var endpoint = isFollowing ? '/api/users/unfollow' : '/api/users/follow';
+      try {
+        await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ follower_id: uid, following_id: userId })
+        });
+        if (isFollowing) {
+          delete _followingIds[userId];
+        } else {
+          _followingIds[userId] = true;
+        }
+        await loadConnections();
+        loadSuggestedPeople();
+      } catch (e) { console.warn('Follow/unfollow failed:', e); }
+    }
+
+    loadConnections();
+    loadSuggestedPeople();
+
+    document.querySelectorAll('.friends-toggle-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.friends-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        renderFriends(btn.dataset.friendsTab);
+      });
+    });
+
+    document.getElementById('friends-list').addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.friend-action-btn');
+      if (!btn) return;
+      toggleFollow(btn.dataset.userId);
+    });
+
+    document.getElementById('search-people-suggestions').addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.friend-action-btn');
+      if (!btn) return;
+      toggleFollow(btn.dataset.userId);
+    });
+
+    // People search
+    async function searchPeople(query) {
+      var resultsEl = document.getElementById('search-people-results');
+      var suggestionsEl = document.getElementById('search-people-suggestions');
+      if (!query) {
+        resultsEl.style.display = 'none';
+        suggestionsEl.style.display = '';
+        return;
+      }
+      resultsEl.style.display = 'block';
+      suggestionsEl.style.display = 'none';
+      resultsEl.innerHTML = '<div class="empty-state">Searching...</div>';
+      try {
+        var res = await fetch('/api/users/search?q=' + encodeURIComponent(query));
+        var data = await res.json();
+        var users = data.users || [];
+        var uid = await getCurrentUserId();
+        users = users.filter(function(u) { return u.id !== uid; });
+        if (users.length === 0) {
+          resultsEl.innerHTML = '<div class="empty-state">No users found for "' + query + '".</div>';
+          return;
+        }
+        var html = '';
+        users.forEach(function(user) {
+          html += renderUserCard(user, !!_followingIds[user.id]);
+        });
+        resultsEl.innerHTML = html;
+      } catch (e) {
+        resultsEl.innerHTML = '<div class="empty-state">Search failed.</div>';
+      }
+    }
+
+    document.getElementById('people-search-btn').addEventListener('click', function() {
+      searchPeople(document.getElementById('people-search-input').value.trim());
+    });
+    document.getElementById('people-search-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchPeople(this.value.trim());
+    });
+    document.getElementById('people-search-input').addEventListener('input', function() {
+      if (!this.value.trim()) {
+        document.getElementById('search-people-results').style.display = 'none';
+        document.getElementById('search-people-suggestions').style.display = '';
+      }
+    });
+    document.getElementById('search-people-results').addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.friend-action-btn');
+      if (!btn) return;
+      toggleFollow(btn.dataset.userId);
+    });
+
+    var _pastSuggestionConcerts = [];
+    var _pastSuggestionsLoaded = false;
+
+    function openPastShowsSheet() {
+      document.getElementById('pastShowsSheet').classList.add('open');
+      document.getElementById('pastShowsInput').value = '';
+      document.getElementById('pastShowsResults').innerHTML = '';
+      document.getElementById('pastShowsLoading').classList.remove('show');
+      document.getElementById('pastShowsHints').style.display = '';
+      var sugEl = document.getElementById('pastShowsSuggestions');
+      if (sugEl) sugEl.style.display = '';
+      setTimeout(function() { document.getElementById('pastShowsInput').focus(); }, 100);
+      if (!_pastSuggestionsLoaded) loadPastShowsSuggestions();
+    }
+
+    function loadPastShowsSuggestions() {
+      var container = document.getElementById('pastShowsSuggestions');
+      if (!container) return;
+      container.innerHTML = '<div class="suggestions-loading"><div class="spinner" style="width:18px;height:18px;border:2px solid #e3e1da;border-top-color:#000;border-radius:50%;animation:spin 0.8s linear infinite"></div><span>Loading suggestions...</span></div>';
+
+      fetch('/api/spotify/status')
+        .then(function(r) { return r.json(); })
+        .then(function(status) {
+          if (!status.connected) {
+            container.innerHTML = '<div class="suggestions-header"><span class="section-title">Suggested shows</span></div>'
+              + '<div class="suggestions-connect">'
+              + '<p>Connect Spotify to see shows you may have been to based on your listening history.</p>'
+              + '<button type="button" class="suggestions-connect-btn" id="suggestionsConnectBtn">Connect Spotify</button>'
+              + '</div>';
+            document.getElementById('suggestionsConnectBtn').addEventListener('click', function() {
+              window.location.href = '/oauth/spotify';
+            });
+            return;
+          }
+
+          var locs = FanatikLocations.getAll();
+          var cities = locs.map(function(l) { return l.city; });
+          if (cities.length === 0) cities = ['New York'];
+          var yearStart = null, yearEnd = null;
+          locs.forEach(function(l) {
+            if (l.yearFrom && (!yearStart || parseInt(l.yearFrom) < parseInt(yearStart))) yearStart = l.yearFrom;
+            if (l.yearTo && (!yearEnd || parseInt(l.yearTo) > parseInt(yearEnd))) yearEnd = l.yearTo;
+          });
+
+          return fetch('/api/spotify/concerts-suggestions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 20 })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            _pastSuggestionsLoaded = true;
+            _pastSuggestionConcerts = data.concerts || [];
+            var indexed = [];
+            _pastSuggestionConcerts.forEach(function(c, i) {
+              if (!isAttended(c)) indexed.push({ c: c, idx: i });
+            });
+            if (indexed.length === 0) {
+              container.innerHTML = '';
+              return;
+            }
+            renderPastSuggestions(container, indexed);
+          });
+        })
+        .catch(function() {
+          container.innerHTML = '';
+        });
+    }
+
+    function renderPastSuggestions(container, items) {
+      var INITIAL_COUNT = 5;
+      var showing = Math.min(INITIAL_COUNT, items.length);
+      var html = '<div class="suggestions-header"><span class="section-title">Based on your Spotify</span></div>';
+      for (var i = 0; i < showing; i++) {
+        html += buildSuggestionCard(items[i].c, items[i].idx);
+      }
+      if (items.length > INITIAL_COUNT) {
+        html += '<button type="button" class="suggestions-more-btn" id="suggestionsMoreBtn">Show ' + (items.length - INITIAL_COUNT) + ' more</button>';
+      }
+      container.innerHTML = html;
+      if (document.getElementById('suggestionsMoreBtn')) {
+        document.getElementById('suggestionsMoreBtn').addEventListener('click', function() {
+          var extra = '';
+          for (var j = INITIAL_COUNT; j < items.length; j++) {
+            extra += buildSuggestionCard(items[j].c, items[j].idx);
+          }
+          this.insertAdjacentHTML('beforebegin', extra);
+          this.remove();
+        });
+      }
+    }
+
+    function buildSuggestionCard(c, origIdx) {
+      var artist = c.artist && c.artist.name ? c.artist.name : (c._sourceArtist || 'Unknown');
+      var d = formatDate(c.eventDate);
+      var v = c.venue && c.venue.name ? c.venue.name : '';
+      var city = c.venue && c.venue.city ? c.venue.city.name : '';
+      var detail = [d, v, city].filter(Boolean).join(' · ');
+      return '<div class="suggestion-card">'
+        + '<div class="suggestion-info"><div class="suggestion-artist">' + artist + '</div>'
+        + '<div class="suggestion-detail">' + detail + '</div></div>'
+        + '<button type="button" class="suggestion-add" data-sug-idx="' + origIdx + '">I was there</button></div>';
+    }
+
+    document.getElementById('pastShowsSuggestions').addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.suggestion-add');
+      if (!btn || btn.classList.contains('added')) return;
+      var idx = parseInt(btn.getAttribute('data-sug-idx'), 10);
+      if (_pastSuggestionConcerts[idx]) {
+        addAttendedShow(_pastSuggestionConcerts[idx]);
+        btn.textContent = '✓ Added';
+        btn.classList.add('added');
+      }
+    });
+    function closePastShowsSheet() {
+      document.getElementById('pastShowsSheet').classList.remove('open');
+    }
+
+    function openCheckInSheet() {
+      document.getElementById('checkInSheet').classList.add('open');
+      document.getElementById('checkInInput').value = '';
+      document.getElementById('checkInResults').innerHTML = '';
+      document.getElementById('checkInLoading').classList.remove('show');
+      document.getElementById('checkInManual').style.display = 'none';
+      document.getElementById('checkInForm').style.display = 'none';
+      resetCheckInForm();
+      setTimeout(function() { document.getElementById('checkInInput').focus(); }, 100);
+    }
+    function closeCheckInSheet() {
+      document.getElementById('checkInSheet').classList.remove('open');
+    }
+    function resetCheckInForm() {
+      document.getElementById('checkInFormArtist').value = '';
+      document.getElementById('checkInFormVenue').value = '';
+      document.getElementById('checkInFormCity').value = '';
+      document.getElementById('checkInFormDate').value = new Date().toISOString().slice(0, 10);
+      var err = document.getElementById('checkInFormError');
+      if (err) { err.style.display = 'none'; err.textContent = ''; }
+    }
+
+    window._lastPastShowResults = [];
+
+    async function searchPastShows(query) {
+      if (!query) return;
+      var input = document.getElementById('pastShowsInput');
+      var btn = document.getElementById('pastShowsSearchBtn');
+      var loading = document.getElementById('pastShowsLoading');
+      var results = document.getElementById('pastShowsResults');
+      var hints = document.getElementById('pastShowsHints');
+      var suggestions = document.getElementById('pastShowsSuggestions');
+
+      input.value = query;
+      if (suggestions) suggestions.style.display = 'none';
+      btn.disabled = true;
+      loading.classList.add('show');
+      results.innerHTML = '';
+      hints.style.display = 'none';
+
+      try {
+        var res = await fetch('/parse-concert-query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query })
+        });
+        var data = await res.json();
+        loading.classList.remove('show');
+        btn.disabled = false;
+
+        if (data.error) {
+          results.innerHTML = '<div class="empty-state">' + data.error + '</div>';
+          return;
+        }
+        var concerts = data.results || [];
+        if (concerts.length === 0) {
+          results.innerHTML = '<div class="empty-state">No shows found. Try a different search — include the artist name, venue, or city.</div>';
+          return;
+        }
+
+        window._lastPastShowResults = concerts;
+        var html = '<h2 class="section-title" style="margin-bottom: 12px;">' + concerts.length + ' show' + (concerts.length !== 1 ? 's' : '') + ' found</h2>';
+        concerts.slice(0, 20).forEach(function(c, idx) {
+          var artist = (c.artist && c.artist.name) || 'Unknown';
+          var date = formatDate(c.eventDate);
+          var venue = (c.venue && c.venue.name) || '';
+          var city = (c.venue && c.venue.city && c.venue.city.name) || '';
+          var country = (c.venue && c.venue.city && c.venue.city.country && c.venue.city.country.name) || '';
+          var loc = [venue, city, country].filter(Boolean).join(', ');
+          var alreadyAdded = isAttended(c);
+          var songs = extractSets(c);
+          var hasSets = songs && songs.length > 0;
+
+          html += '<div class="past-show-result' + (hasSets ? ' has-setlist' : '') + '" data-past-idx="' + idx + '">';
+          html += '<div class="result-info" style="cursor:' + (hasSets ? 'pointer' : 'default') + '" ' + (hasSets ? 'data-view-setlist="' + idx + '"' : '') + '>';
+          html += '<div class="result-artist">' + artist + '</div>';
+          html += '<div class="result-date">' + date + '</div>';
+          html += '<div class="result-venue">' + loc + '</div>';
+          if (hasSets) html += '<div style="font-size:11px;color:var(--gradient-end);margin-top:3px;font-weight:500;">View setlist (' + songs.length + ' songs)</div>';
+          html += '</div>';
+          html += '<button class="past-show-add-btn' + (alreadyAdded ? ' added' : '') + '" data-past-idx="' + idx + '">' + (alreadyAdded ? '✓ Added' : 'I was there') + '</button>';
+          html += '</div>';
+        });
+        results.innerHTML = html;
+      } catch (err) {
+        loading.classList.remove('show');
+        btn.disabled = false;
+        results.innerHTML = '<div class="empty-state">Search failed: ' + err.message + '</div>';
+      }
+    }
+
+    document.getElementById('pastShowsSearchBtn').addEventListener('click', function() {
+      searchPastShows(document.getElementById('pastShowsInput').value.trim());
+    });
+    document.getElementById('pastShowsInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchPastShows(this.value.trim());
+    });
+
+    document.querySelectorAll('.past-shows-hint-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        searchPastShows(chip.dataset.hint);
+      });
+    });
+
+    window._lastCheckInResults = [];
+
+    async function searchCheckIn(query) {
+      if (!query) return;
+      var input = document.getElementById('checkInInput');
+      var btn = document.getElementById('checkInSearchBtn');
+      var loading = document.getElementById('checkInLoading');
+      var results = document.getElementById('checkInResults');
+      var manual = document.getElementById('checkInManual');
+      var form = document.getElementById('checkInForm');
+
+      input.value = query;
+      btn.disabled = true;
+      loading.classList.add('show');
+      results.innerHTML = '';
+      manual.style.display = 'none';
+      form.style.display = 'none';
+
+      try {
+        var res = await fetch('/api/ticketmaster/search?keyword=' + encodeURIComponent(query) + '&size=20');
+        var data = await res.json();
+        loading.classList.remove('show');
+        btn.disabled = false;
+
+        if (data.error) {
+          results.innerHTML = '<div class="empty-state">' + data.error + '</div>';
+          manual.style.display = 'block';
+          return;
+        }
+
+        var events = data.events || [];
+        window._lastCheckInResults = events;
+
+        if (events.length === 0) {
+          results.innerHTML = '<div class="empty-state">No upcoming shows found for "' + query + '".</div>';
+          manual.style.display = 'block';
+          return;
+        }
+
+        var html = '<div style="font-size:13px;font-weight:600;color:#000;margin-bottom:10px">' + events.length + ' upcoming show' + (events.length !== 1 ? 's' : '') + '</div>';
+        events.forEach(function(ev, idx) {
+          var artist = ev.artist && ev.artist.name ? ev.artist.name : (ev.name || 'Unknown');
+          var date = ev.eventDate ? formatDate(ev.eventDate) : '';
+          var venue = ev.venue && ev.venue.name ? ev.venue.name : '';
+          var city = ev.venue && ev.venue.city ? ev.venue.city.name : '';
+          var detail = [date, venue, city].filter(Boolean).join(' · ');
+          var imgHtml = ev.imageUrl
+            ? '<img class="checkin-event-img" src="' + ev.imageUrl + '" alt="">'
+            : '<div class="checkin-event-img"></div>';
+          var attended = isAttended(ev);
+          html += '<div class="checkin-event-card">'
+            + imgHtml
+            + '<div class="checkin-event-info"><div class="checkin-event-artist">' + artist + '</div>'
+            + '<div class="checkin-event-detail">' + detail + '</div></div>'
+            + '<button type="button" class="checkin-event-add' + (attended ? ' added' : '') + '" data-checkin-idx="' + idx + '">'
+            + (attended ? '✓ Added' : 'Check in') + '</button></div>';
+        });
+        results.innerHTML = html;
+        manual.style.display = 'block';
+      } catch (err) {
+        loading.classList.remove('show');
+        btn.disabled = false;
+        results.innerHTML = '<div class="empty-state">Search failed: ' + err.message + '</div>';
+        manual.style.display = 'block';
+      }
+    }
+
+    document.getElementById('checkInSearchBtn').addEventListener('click', function() {
+      searchCheckIn(document.getElementById('checkInInput').value.trim());
+    });
+    document.getElementById('checkInInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchCheckIn(this.value.trim());
+    });
+
+    document.getElementById('checkInResults').addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.checkin-event-add');
+      if (!btn || btn.classList.contains('added')) return;
+      var idx = parseInt(btn.getAttribute('data-checkin-idx'), 10);
+      var ev2 = window._lastCheckInResults[idx];
+      if (ev2) {
+        addAttendedShow(ev2);
+        btn.textContent = '✓ Added';
+        btn.classList.add('added');
+      }
+    });
+
+    document.getElementById('checkInManualBtn').addEventListener('click', function() {
+      document.getElementById('checkInManual').style.display = 'none';
+      document.getElementById('checkInForm').style.display = 'block';
+      resetCheckInForm();
+      document.getElementById('checkInFormArtist').focus();
+    });
+
+    document.getElementById('checkInFormSave').addEventListener('click', function() {
+      var artist = document.getElementById('checkInFormArtist').value.trim();
+      var venue = document.getElementById('checkInFormVenue').value.trim();
+      var city = document.getElementById('checkInFormCity').value.trim();
+      var dateVal = document.getElementById('checkInFormDate').value;
+      var errEl = document.getElementById('checkInFormError');
+
+      if (!artist) {
+        errEl.textContent = 'Artist name is required.';
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+
+      var eventDate = '';
+      if (dateVal) {
+        var parts = dateVal.split('-');
+        eventDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+      }
+
+      var entry = {
+        artist: artist,
+        eventDate: eventDate,
+        venue: venue || '',
+        city: city || '',
+        country: ''
+      };
+      var list = getAttendedShows();
+      list.push(entry);
+      localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
+      renderProfileShows();
+
+      document.getElementById('checkInForm').style.display = 'none';
+      document.getElementById('checkInResults').innerHTML = '<div style="text-align:center;padding:24px 0">'
+        + '<div style="font-size:28px;margin-bottom:8px">✓</div>'
+        + '<div style="font-size:16px;font-weight:600">Checked in!</div>'
+        + '<div style="font-size:14px;color:#000;margin-top:4px">' + artist + (venue ? ' at ' + venue : '') + '</div>'
+        + '</div>';
+    });
+
+    document.getElementById('pastShowsResults').addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.past-show-add-btn');
+      if (btn && !btn.classList.contains('added')) {
+        var idx = parseInt(btn.dataset.pastIdx, 10);
+        var c = window._lastPastShowResults[idx];
+        if (c) { addAttendedShow(c); btn.textContent = '✓ Added'; btn.classList.add('added'); }
+        return;
+      }
+      var viewEl = ev.target.closest('[data-view-setlist]');
+      if (viewEl) {
+        var idx2 = parseInt(viewEl.dataset.viewSetlist, 10);
+        var c2 = window._lastPastShowResults[idx2];
+        if (c2) openSetlistDetail(c2);
+      }
+    });
+
+    function openSetlistDetail(showData, bgColor, theme) {
+      var sheet = document.getElementById('setlistDetailSheet');
+      var title = document.getElementById('setlistDetailTitle');
+      var body = document.getElementById('setlistDetailBody');
+
+      if (bgColor) {
+        sheet.style.backgroundColor = bgColor;
+        sheet.querySelector('.past-shows-sheet-header').style.backgroundColor = bgColor;
+        var isDark = theme === 'dark';
+        var textColor = isDark ? '#fff' : '#1a1a1a';
+        var mutedColor = isDark ? '#fff' : '#000';
+        sheet.style.color = textColor;
+        sheet.setAttribute('data-theme', theme || '');
+      } else {
+        sheet.style.backgroundColor = '';
+        sheet.querySelector('.past-shows-sheet-header').style.backgroundColor = '';
+        sheet.style.color = '';
+        sheet.removeAttribute('data-theme');
+      }
+
+      var artist, date, venue, city, songs, url;
+      if (showData.artist && showData.artist.name) {
+        artist = showData.artist.name;
+        date = formatDate(showData.eventDate);
+        venue = (showData.venue && showData.venue.name) || '';
+        city = (showData.venue && showData.venue.city && showData.venue.city.name) || '';
+        songs = extractSets(showData);
+        url = showData.url || null;
+      } else {
+        artist = showData.artist || '';
+        date = formatDate(showData.eventDate);
+        venue = showData.venue || '';
+        city = showData.city || '';
+        songs = showData.setlist || null;
+        url = showData.setlistUrl || null;
+      }
+
+      title.textContent = 'Setlist';
+      var loc = [venue, city].filter(Boolean).join(', ');
+      var html = '<div class="setlist-detail-header">';
+      html += '<div class="detail-artist">' + artist + '</div>';
+      html += '<div class="detail-date">' + date + '</div>';
+      if (loc) html += '<div class="detail-venue">' + PIN_SVG + ' ' + loc + '</div>';
+      html += '</div>';
+
+      if (songs && songs.length > 0) {
+        html += '<ol class="setlist-song-list">';
+        songs.forEach(function(song, i) {
+          html += '<li class="setlist-song-item"><span class="setlist-song-num">' + (i + 1) + '</span><span class="setlist-song-name">' + song + '</span></li>';
+        });
+        html += '</ol>';
+      } else {
+        html += '<div class="setlist-empty">No setlist data available for this show.</div>';
+      }
+
+      if (url) {
+        html += '<a href="' + url + '" target="_blank" class="setlist-external-link">View on Setlist.fm ' + LINK_SVG + '</a>';
+      }
+
+      body.innerHTML = html;
+      sheet.classList.remove('sheet-shrink-out');
+      sheet.classList.add('open');
+      sheet.classList.add('sheet-grow-in');
+      sheet.addEventListener('animationend', function onGrowEnd(e) {
+        if (e.animationName === 'setlist-sheet-grow') {
+          sheet.classList.remove('sheet-grow-in');
+          sheet.removeEventListener('animationend', onGrowEnd);
+        }
+      }, { once: true });
+    }
+
+    function closeSetlistDetail() {
+      var sheet = document.getElementById('setlistDetailSheet');
+      sheet.classList.remove('sheet-grow-in');
+      sheet.classList.add('sheet-shrink-out');
+      sheet.addEventListener('animationend', function onShrinkEnd(e) {
+        if (e.animationName === 'setlist-sheet-shrink') {
+          sheet.classList.remove('open', 'sheet-shrink-out');
+          sheet.style.backgroundColor = '';
+          sheet.style.color = '';
+          sheet.querySelector('.past-shows-sheet-header').style.backgroundColor = '';
+          sheet.removeAttribute('data-theme');
+          sheet.removeEventListener('animationend', onShrinkEnd);
+        }
+      }, { once: true });
+    }
+
+    document.getElementById('profile-shows').addEventListener('click', function(ev) {
+      var link = ev.target.closest('.setlist-link[data-show-idx]');
+      if (!link) return;
+      ev.preventDefault();
+      var idx = parseInt(link.dataset.showIdx, 10);
+      var list = getAttendedShows();
+      if (idx >= 0 && idx < list.length) {
+        var card = link.closest('.show-card');
+        var cardBg = card ? card.style.backgroundColor : null;
+        var cardTheme = card ? card.getAttribute('data-theme') : null;
+        openSetlistDetail(list[idx], cardBg, cardTheme);
+      }
+    });
+
+    function openCheckIn() {
+      openCheckInSheet();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>willcall — Doors opening soon</title>
+  <meta name="description" content="willcall — Doors opening soon. Get on the list.">
+  <meta property="og:title" content="willcall — Doors opening soon">
+  <meta property="og:description" content="Doors opening soon. Get on the list.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #F8F8F4;
+      --text: #1a1a1a;
+      --muted: #595959;
+      --border: rgba(0, 0, 0, 0.08);
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    html {
+      height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100dvh;
+      padding: 15vh 24px 40px;
+      position: relative;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 440px;
+      width: 100%;
+    }
+
+    .brand {
+      font-size: clamp(56px, 12vw, 96px);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1;
+      color: var(--text);
+      margin-bottom: 16px;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    .tagline {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+      margin-bottom: 48px;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fadeUp 0.8s ease 0.15s forwards;
+    }
+
+    .form-wrap {
+      width: 100%;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fadeUp 0.8s ease 0.3s forwards;
+    }
+
+    .form-wrap input {
+      width: 100%;
+      border: 2px solid var(--text);
+      border-radius: 6px;
+      outline: none;
+      background: transparent;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text);
+      padding: 14px 16px;
+    }
+
+    .form-wrap input:focus-visible {
+      outline: 3px solid var(--text);
+      outline-offset: 2px;
+    }
+
+    .form-wrap input::placeholder {
+      color: #666;
+    }
+
+    .form-wrap button {
+      width: 100%;
+      border: 2px solid var(--text);
+      background: var(--text);
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 14px;
+      margin-top: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .form-wrap button:focus-visible {
+      outline: 3px solid var(--text);
+      outline-offset: 2px;
+    }
+
+    .form-wrap button:hover {
+      opacity: 0.85;
+    }
+
+    .form-wrap button:active {
+      transform: scale(0.97);
+    }
+
+    .form-wrap button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .success-msg {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 32px 0;
+      opacity: 0;
+      animation: fadeUp 0.5s ease forwards;
+    }
+
+    .success-msg p {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .success-msg.show {
+      display: flex;
+    }
+
+    .doorguy {
+      width: 100px;
+      height: auto;
+      margin-bottom: 16px;
+    }
+
+    .error-msg {
+      display: none;
+      font-size: 13px;
+      color: #950000;
+      margin-top: 12px;
+    }
+
+    .error-msg.show {
+      display: block;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px;
+      text-align: center;
+      font-size: 12px;
+      opacity: 0;
+      animation: fadeIn 0.8s ease 0.6s forwards;
+    }
+
+    footer a {
+      color: var(--muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-color: rgba(0,0,0,0.2);
+    }
+
+    footer a:hover {
+      color: var(--text);
+      text-decoration-color: rgba(0,0,0,0.4);
+    }
+
+    footer a:focus-visible {
+      outline: 3px solid var(--text);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+
+    html.dark { background: #1a1a1a; }
+    body.dark { background: #1a1a1a; color: #fff; }
+    body.dark .brand { color: #fff; }
+    body.dark .tagline { color: rgba(255,255,255,0.75); }
+    body.dark .success-msg p { color: #fff; }
+    body.dark footer a { color: rgba(255,255,255,0.65); text-decoration-color: rgba(255,255,255,0.25); }
+    body.dark footer a:hover { color: #fff; text-decoration-color: rgba(255,255,255,0.4); }
+    body.dark footer a:focus-visible,
+    body.dark .form-wrap input:focus-visible,
+    body.dark .form-wrap button:focus-visible { outline-color: #fff; }
+
+    html, body, .brand, .tagline, footer a, .success-msg p {
+      transition: background-color 0.6s ease, color 0.6s ease, text-decoration-color 0.4s ease;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <main class="content">
+      <h1 class="brand">willcall</h1>
+      <p class="tagline">Doors opening soon</p>
+      <div class="form-wrap" id="formWrap">
+        <form id="waitlistForm" autocomplete="off">
+          <label for="emailInput" class="visually-hidden">Email address</label>
+          <input type="email" id="emailInput" placeholder="Your email" required autocomplete="email">
+          <button type="submit" id="submitBtn">Get on the list</button>
+        </form>
+        <p class="error-msg" id="errorMsg" role="alert" aria-live="assertive"></p>
+      </div>
+      <div class="success-msg" id="successMsg" role="status" aria-live="polite">
+        <img src="/assets/doorguy.svg" class="doorguy" alt="">
+        <p>You're on the list.</p>
+      </div>
+    </main>
+    <footer>
+      <a href="https://www.kathleenstonedesign.com" target="_blank" rel="noopener noreferrer">
+        Something new from K. Stone
+        <span class="visually-hidden">(opens in a new tab)</span>
+      </a>
+    </footer>
+  </div>
+
+  <script>
+    var form = document.getElementById('waitlistForm');
+    var input = document.getElementById('emailInput');
+    var btn = document.getElementById('submitBtn');
+    var success = document.getElementById('successMsg');
+    var error = document.getElementById('errorMsg');
+    var formWrap = document.getElementById('formWrap');
+
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      var email = input.value.trim();
+      if (!email) return;
+
+      btn.disabled = true;
+      btn.textContent = '...';
+      error.textContent = '';
+      error.classList.remove('show');
+
+      try {
+        var res = await fetch('/api/waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        });
+        var data = await res.json();
+
+        if (!res.ok || data.error) {
+          error.textContent = data.error || 'Something went wrong. Try again.';
+          error.classList.add('show');
+          btn.disabled = false;
+          btn.textContent = 'Get on the list';
+          return;
+        }
+
+        document.documentElement.classList.add('dark');
+        document.body.classList.add('dark');
+        formWrap.style.display = 'none';
+        success.classList.add('show');
+      } catch (err) {
+        error.textContent = 'Something went wrong. Try again.';
+        error.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Get on the list';
+      }
+    });
+  </script>
+</body>
+</html>
