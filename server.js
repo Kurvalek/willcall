@@ -1262,7 +1262,18 @@ app.post('/api/spotify/artist-images', async (req, res) => {
 // Health check – returns JSON so you can verify the API is reachable
 app.get('/api/health', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  res.json({ ok: true, message: 'API is running' });
+  res.json({
+    ok: true,
+    message: 'API is running',
+    configured: {
+      supabase: !!(process.env.SUPABASE_URL && process.env.SUPABASE_KEY),
+      spotify: !!(process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET),
+      ticketmaster: !!process.env.TICKETMASTER_API_KEY,
+      setlistfm: !!process.env.SETLISTFM_API_KEY,
+      anthropic: !!process.env.ANTHROPIC_API_KEY,
+      google: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
+    }
+  });
 });
 
 // Ticketmaster Discovery API – events near a location
