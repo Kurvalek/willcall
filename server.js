@@ -623,7 +623,8 @@ function getSpotifyCredentials(req) {
   };
 }
 
-const COOKIE_OPTS = { httpOnly: true, sameSite: 'lax', secure: true, maxAge: 10 * 60 * 1000 };
+const IS_PROD = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
+const COOKIE_OPTS = { httpOnly: true, sameSite: 'lax', secure: IS_PROD, maxAge: 10 * 60 * 1000 };
 
 app.get('/oauth/spotify', (req, res) => {
   const creds = getSpotifyCredentials(req);
@@ -881,7 +882,7 @@ async function ensureSpotifyAccessToken(req, res) {
         expires_at: Date.now() + data.body.expires_in * 1000
       };
       if (req.session) req.session.spotifyTokens = tokens;
-      if (res) res.cookie('spotify_tokens', JSON.stringify(tokens), { httpOnly: true, sameSite: 'lax', secure: true, maxAge: 30 * 24 * 60 * 60 * 1000 });
+      if (res) res.cookie('spotify_tokens', JSON.stringify(tokens), { httpOnly: true, sameSite: 'lax', secure: IS_PROD, maxAge: 30 * 24 * 60 * 60 * 1000 });
     } catch (_) {
       return null;
     }
@@ -1465,7 +1466,7 @@ app.post('/api/waitlist', async (req, res) => {
 
 // Search users in Supabase profiles
 app.get('/api/users/search', async (req, res) => {
-  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!supabase) return res.json({ users: [] });
   const q = (req.query.q || '').trim();
   if (!q) return res.json({ users: [] });
   try {
@@ -1474,25 +1475,33 @@ app.get('/api/users/search', async (req, res) => {
       .select('id, display_name, username, email')
       .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
       .limit(20);
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      console.warn('/api/users/search error:', error.message);
+      return res.json({ users: [] });
+    }
     res.json({ users: data || [] });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.warn('/api/users/search error:', err.message);
+    res.json({ users: [] });
   }
 });
 
 // List all users (for suggestions)
 app.get('/api/users', async (req, res) => {
-  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!supabase) return res.json({ users: [] });
   const excludeId = req.query.exclude || '';
   try {
     let query = supabase.from('profiles').select('id, display_name, username').limit(20);
     if (excludeId) query = query.neq('id', excludeId);
     const { data, error } = await query;
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      console.warn('/api/users query error:', error.message);
+      return res.json({ users: [] });
+    }
     res.json({ users: data || [] });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.warn('/api/users error:', err.message);
+    res.json({ users: [] });
   }
 });
 

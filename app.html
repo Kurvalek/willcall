@@ -1880,14 +1880,14 @@
       <span class="count" id="profile-badge-count">0 of 32</span>
     </div>
     <div class="badge-grid" id="profileBadges">
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/star.svg" alt="First Show"></div><div class="label">First Show</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/beer.svg" alt="Bar Fly"></div><div class="label">Bar Fly</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lighter.svg" alt="Encore"></div><div class="label">Encore</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/van.svg" alt="On Tour"></div><div class="label">On Tour</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/pizza.svg" alt="NYC Local"></div><div class="label">NYC Local</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/record.svg" alt="Legend"></div><div class="label">Legend</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lightning.svg" alt="Electric"></div><div class="label">Electric</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/eyes.svg" alt="Superfan"></div><div class="label">Superfan</div></div>
+      <div class="badge-item locked"><div class="icon">⭐</div><div class="label">First Show</div></div>
+      <div class="badge-item locked"><div class="icon">🍺</div><div class="label">Bar Fly</div></div>
+      <div class="badge-item locked"><div class="icon">🔥</div><div class="label">Encore</div></div>
+      <div class="badge-item locked"><div class="icon">🚐</div><div class="label">On Tour</div></div>
+      <div class="badge-item locked"><div class="icon">🍕</div><div class="label">NYC Local</div></div>
+      <div class="badge-item locked"><div class="icon">💿</div><div class="label">Legend</div></div>
+      <div class="badge-item locked"><div class="icon">⚡</div><div class="label">Electric</div></div>
+      <div class="badge-item locked"><div class="icon">👀</div><div class="label">Superfan</div></div>
     </div>
     <a href="#" class="see-all-badges">See all 32 badges</a>
 
@@ -3336,8 +3336,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: artistLimit })
       })
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+          if (!r.ok && r.status === 401) throw new Error('Spotify session expired. Reconnect in Settings → My connections.');
+          return r.json();
+        })
         .then(function(data) {
+          if (data.error) throw new Error(data.error);
           loading.classList.remove('show');
           btn.disabled = false;
           var html = '<div class="home-results-header"><div class="section-title">Concerts you may have attended</div><div style="font-size:14px;color:var(--text-muted)">' + (data.concerts ? data.concerts.length : 0) + ' show(s) in ' + cities.join(', ') + '</div></div>';
@@ -3917,8 +3921,17 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 20 })
           })
-          .then(function(r) { return r.json(); })
+          .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+          })
           .then(function(data) {
+            if (data.error) {
+              console.error('[past-suggestions] API error:', data.error);
+              container.innerHTML = '<div class="suggestions-header"><span class="section-title">Suggested shows</span></div>'
+                + '<p style="font-size:13px;color:#999;padding:0 4px">' + (data.error.indexOf('expired') >= 0 || data.error.indexOf('401') >= 0 ? 'Spotify session expired. Reconnect in Settings → My connections.' : 'Could not load suggestions. Try again later.') + '</p>';
+              return;
+            }
             _pastSuggestionsLoaded = true;
             _pastSuggestionConcerts = data.concerts || [];
             var indexed = [];
@@ -3932,8 +3945,10 @@
             renderPastSuggestions(container, indexed);
           });
         })
-        .catch(function() {
-          container.innerHTML = '';
+        .catch(function(e) {
+          console.error('[past-suggestions] fetch error:', e);
+          container.innerHTML = '<div class="suggestions-header"><span class="section-title">Suggested shows</span></div>'
+            + '<p style="font-size:13px;color:#999;padding:0 4px">Could not load suggestions. Check your connection and try again.</p>';
         });
     }
 
