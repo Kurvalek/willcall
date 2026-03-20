@@ -2189,6 +2189,9 @@
     })();
 
     (function() {
+      // Set to false to require Supabase email OTP login again
+      var AUTH_DISABLED = true;
+
       var overlay = document.getElementById('landingOverlay');
       var steps = [
         document.getElementById('onbStep0'),
@@ -2551,6 +2554,16 @@
         var urlParams = new URLSearchParams(window.location.search);
         var spotifyReturn = urlParams.get('authenticated') === 'true';
         var savedOnbState = sessionStorage.getItem('fanatik_onb_state');
+
+        if (AUTH_DISABLED) {
+          if (spotifyReturn) {
+            window.history.replaceState(null, '', window.location.pathname);
+            sessionStorage.removeItem('fanatik_onb_state');
+          }
+          hideOnboarding();
+          try { await initSupabase(); } catch (e) {}
+          return;
+        }
 
         if (spotifyReturn && savedOnbState) {
           try { Object.assign(onbData, JSON.parse(savedOnbState)); } catch (e) {}
