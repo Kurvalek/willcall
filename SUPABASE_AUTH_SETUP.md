@@ -27,7 +27,10 @@ In your Vercel project dashboard → **Settings** → **Environment Variables**,
 | `ANTHROPIC_API_KEY` | Your Anthropic key | Concert search |
 | `SPOTIFY_CLIENT_ID` | Your Spotify app client ID | Spotify features |
 | `SPOTIFY_CLIENT_SECRET` | Your Spotify app secret | Spotify features |
-| `SPOTIFY_REDIRECT_URI` | `https://your-vercel-url.vercel.app/oauth/spotify/callback` | Spotify OAuth |
+| `SPOTIFY_REDIRECT_URI` | *(optional)* Full callback URL if not using `PUBLIC_BASE_URL` | Spotify OAuth |
+| `PUBLIC_BASE_URL` | **`https://willcall.vercel.app`** (no trailing slash) | Canonical URL for Spotify OAuth + post-login redirects |
+
+Production should live at **`https://willcall.vercel.app`** (Vercel uses **`.vercel.app`**, not `vercel.com`). See **`WILLCALL_VERCEL.md`** for domain + Spotify steps.
 
 After adding env vars, **redeploy** the project (Vercel → Deployments → Redeploy).
 
@@ -37,8 +40,8 @@ In Supabase Dashboard → **Authentication** → **URL Configuration** → **Red
 
 - `http://127.0.0.1:3000/app` (local dev)
 - `http://localhost:3000/app` (local dev)
-- `https://your-vercel-url.vercel.app/app` (production)
-- `https://your-vercel-url.vercel.app/` (production)
+- `https://willcall.vercel.app/app` (production)
+- `https://willcall.vercel.app/` (production)
 
 ## 3. Email (Magic Link / OTP)
 
@@ -49,6 +52,6 @@ In Supabase Dashboard → **Authentication** → **URL Configuration** → **Red
 
 In **Authentication** → **URL Configuration** → **Site URL**, set:
 - Development: `http://127.0.0.1:3000`
-- Production: `https://your-vercel-url.vercel.app`
+- Production: `https://willcall.vercel.app`
 
 When deploying to production, update the Site URL to your Vercel URL so magic link emails redirect to the right place.

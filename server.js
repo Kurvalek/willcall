@@ -605,8 +605,17 @@ function getBaseUrl(req) {
   return `${proto}://${host}`;
 }
 
+/** Canonical site URL for OAuth redirects (avoid mismatches when multiple *.vercel.app hosts exist). */
+function getPublicBaseUrl(req) {
+  const explicit = (process.env.PUBLIC_BASE_URL || process.env.WILLCALL_PUBLIC_URL || '').trim().replace(/\/$/, '');
+  if (explicit) return explicit;
+  return getBaseUrl(req);
+}
+
 function getSpotifyCredentials(req) {
-  const redirectUri = process.env.SPOTIFY_REDIRECT_URI || (getBaseUrl(req) + '/oauth/spotify/callback');
+  const redirectUri =
+    process.env.SPOTIFY_REDIRECT_URI ||
+    (getPublicBaseUrl(req) + '/oauth/spotify/callback');
   return {
     clientId: process.env.SPOTIFY_CLIENT_ID,
     clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
@@ -637,7 +646,7 @@ app.get('/oauth/spotify', (req, res) => {
 
 app.get('/oauth/spotify/callback', async (req, res) => {
   const { code, state, error } = req.query;
-  const baseUrl = getBaseUrl(req);
+  const baseUrl = getPublicBaseUrl(req);
   const redirect = (path) => res.redirect(`${baseUrl}${path}`);
   const savedState = req.cookies?.spotify_state;
   const savedRedirectUri = req.cookies?.spotify_redirect_uri;
@@ -1300,9 +1309,11 @@ app.post('/api/spotify/artist-images', async (req, res) => {
 // Health check – returns JSON so you can verify the API is reachable
 app.get('/api/health', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
+  const publicBase = (process.env.PUBLIC_BASE_URL || process.env.WILLCALL_PUBLIC_URL || '').trim().replace(/\/$/, '');
   res.json({
     ok: true,
     message: 'API is running',
+    publicBaseUrl: publicBase || null,
     configured: {
       supabase: !!(process.env.SUPABASE_URL && process.env.SUPABASE_KEY),
       spotify: !!(process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET),
