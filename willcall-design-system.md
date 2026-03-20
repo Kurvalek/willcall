@@ -642,9 +642,11 @@ module.exports = {
 
 ---
 
+## Static app (`app.html`)
+
+The concert-search POC serves a single-page UI from **`app.html`**. The `:root` **CSS variables** (`--wc-*`), **glass utilities** (`.wc-glass`, `.wc-glass-light`, `.wc-glass-heavy`), **`.wc-overlay`**, **`.wc-sheet`**, buttons, cards, and related helpers in that file are the implementation of this spec — **keep them aligned** when you change this document.
+
+---
+
 *Last updated: March 2026*
 *Stack: Next.js · Supabase · Tailwind CSS · Vercel*
-
-### Static app (`app.html`)
-
-The POC app at [`app.html`](app.html) implements this system with CSS custom properties (`--wc-*`), Plus Jakarta Sans + JetBrains Mono, dark-only surfaces (`#0A0A0A` base, `#171717` elevated), sharp corners (except pills/tags and the floating tab bar), primary CTAs as white-on-black, and monospace for stats/dates.
