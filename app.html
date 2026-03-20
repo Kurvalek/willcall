@@ -1479,6 +1479,82 @@
       cursor: pointer; transition: border-color 0.15s, background 0.15s;
     }
     .loc-add-btn:hover { border-color: #999; background: rgba(0,0,0,0.02); }
+
+    /* Settings — linked accounts (Spotify + future) */
+    .settings-connections-section {
+      margin-top: 32px;
+      padding-top: 28px;
+      border-top: 1px solid #e3e1da;
+    }
+    .settings-section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: #000;
+    }
+    .settings-section-desc {
+      font-size: 13px;
+      color: #595959;
+      margin: 0 0 16px;
+      line-height: 1.45;
+    }
+    .settings-connection-card {
+      background: #fff;
+      border: 1px solid #e3e1da;
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .settings-connection-info { flex: 1; min-width: 0; }
+    .settings-connection-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #000;
+    }
+    .settings-connection-status {
+      font-size: 13px;
+      color: #595959;
+      margin-top: 4px;
+    }
+    .settings-connection-status.connected { color: #1a7f37; }
+    .settings-connection-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .settings-connection-btn {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: none;
+      white-space: nowrap;
+    }
+    .settings-connection-btn.primary {
+      background: #000;
+      color: #fff;
+    }
+    .settings-connection-btn.primary:hover { opacity: 0.9; }
+    .settings-connection-btn.secondary {
+      background: #fff;
+      color: #333;
+      border: 1px solid #e3e1da;
+    }
+    .settings-connection-btn.secondary:hover { background: #f5f5f5; }
+    .settings-connections-soon {
+      font-size: 12px;
+      color: #999;
+      margin: 14px 0 0;
+      font-style: italic;
+    }
+
     .loc-form {
       background: #fff; border: 1px solid #e3e1da; border-radius: 12px;
       padding: 16px; display: flex; flex-direction: column; gap: 12px;
@@ -2046,6 +2122,23 @@
       <p style="font-size:13px;color:#595959;margin-bottom:16px">Cities where you go to shows and when. This helps us find concerts for you.</p>
       <div id="settingsLocList" class="loc-list"></div>
       <div id="settingsLocFormWrap" style="margin-top:12px"></div>
+
+      <div class="settings-connections-section" aria-labelledby="settingsConnectionsHeading">
+        <p class="settings-section-title" id="settingsConnectionsHeading">My connections</p>
+        <p class="settings-section-desc">Link music and other services to personalize willcall. You can connect or disconnect anytime.</p>
+        <div class="settings-connection-card" data-connection="spotify">
+          <div class="settings-connection-info">
+            <div class="settings-connection-name">Spotify</div>
+            <div class="settings-connection-status" id="settingsSpotifyStatus">Checking…</div>
+          </div>
+          <div class="settings-connection-actions">
+            <button type="button" class="settings-connection-btn primary" id="settingsSpotifyConnectBtn">Connect</button>
+            <button type="button" class="settings-connection-btn secondary" id="settingsSpotifyDisconnectBtn" style="display:none">Disconnect</button>
+          </div>
+        </div>
+        <p class="settings-connections-soon">More connections coming soon.</p>
+      </div>
+
       <div style="flex:1"></div>
       <button type="button" class="settings-logout-btn" id="settingsLogoutBtn" style="margin-top:32px">Log Out</button>
     </div>
@@ -2605,6 +2698,7 @@
           document.getElementById('settingsLocFormWrap'),
           { prefix: 'settings', autoShowForm: false }
         );
+        if (typeof refreshSettingsConnections === 'function') refreshSettingsConnections();
       });
       if (closeBtn) closeBtn.addEventListener('click', function() {
         settingsSheet.classList.remove('open');
@@ -3003,6 +3097,37 @@
     function closeSpotifySheet() {
       document.getElementById('spotifySheet').classList.remove('open');
     }
+    function refreshSettingsConnections() {
+      var statusEl = document.getElementById('settingsSpotifyStatus');
+      var connectBtn = document.getElementById('settingsSpotifyConnectBtn');
+      var disconnectBtn = document.getElementById('settingsSpotifyDisconnectBtn');
+      if (!statusEl || !connectBtn || !disconnectBtn) return;
+      statusEl.textContent = 'Checking…';
+      statusEl.classList.remove('connected');
+      fetch('/api/spotify/status').then(function(r) { return r.json(); }).then(function(data) {
+        if (data.connected) {
+          statusEl.textContent = 'Connected';
+          statusEl.classList.add('connected');
+          connectBtn.style.display = 'none';
+          disconnectBtn.style.display = 'inline-block';
+        } else {
+          statusEl.textContent = 'Not connected';
+          connectBtn.style.display = 'inline-block';
+          disconnectBtn.style.display = 'none';
+        }
+      }).catch(function() {
+        statusEl.textContent = 'Could not check status';
+        statusEl.classList.remove('connected');
+        connectBtn.style.display = 'inline-block';
+        disconnectBtn.style.display = 'none';
+      });
+    }
+
+    function startSpotifyOAuth() {
+      var base = (window.location.protocol === 'file:' || !window.location.origin) ? 'http://127.0.0.1:3000' : window.location.origin;
+      window.location.href = base + '/oauth/spotify';
+    }
+
     function refreshSpotifySheetState() {
       fetch('/api/spotify/status').then(function(r) { return r.json(); }).then(function(data) {
         if (data.connected) {
@@ -3014,9 +3139,11 @@
           document.getElementById('spotifyFormSection').classList.remove('show');
         }
         document.getElementById('homeResults').style.display = 'none';
+        refreshSettingsConnections();
       }).catch(function() {
         document.getElementById('spotifyConnectCard').style.display = 'block';
         document.getElementById('spotifyFormSection').classList.remove('show');
+        refreshSettingsConnections();
       });
     }
 
@@ -3026,15 +3153,24 @@
           document.getElementById('spotifyConnectCard').style.display = 'block';
           document.getElementById('spotifyFormSection').classList.remove('show');
           document.getElementById('homeResults').style.display = 'none';
+          refreshSettingsConnections();
         })
         .catch(function(e) { alert('Could not disconnect: ' + e.message); });
     }
 
     document.getElementById('connectSpotifyBtn').addEventListener('click', function(e) {
       e.preventDefault();
-      var base = (window.location.protocol === 'file:' || !window.location.origin) ? 'http://127.0.0.1:3000' : window.location.origin;
-      window.location.href = base + '/oauth/spotify';
+      startSpotifyOAuth();
     });
+    (function wireSettingsSpotify() {
+      var c = document.getElementById('settingsSpotifyConnectBtn');
+      var d = document.getElementById('settingsSpotifyDisconnectBtn');
+      if (c) c.addEventListener('click', function(e) { e.preventDefault(); startSpotifyOAuth(); });
+      if (d) d.addEventListener('click', function(e) {
+        e.preventDefault();
+        disconnectSpotify();
+      });
+    })();
 
     (function initSpotify() {
       if (window.location.hostname === 'localhost') {
