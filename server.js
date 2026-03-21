@@ -1592,9 +1592,18 @@ app.post('/api/users/follow', async (req, res) => {
   if (!follower_id || !following_id) return res.status(400).json({ error: 'Missing ids' });
   try {
     const { error } = await supabase.from('follows').upsert({ follower_id, following_id });
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      console.error('Follow error:', error.message);
+      if (error.message.includes('follows') && error.message.includes('not found')) {
+        return res.status(500).json({ error: 'The follows table has not been created yet. Please create it in Supabase.' });
+      }
+      return res.status(500).json({ error: error.message });
+    }
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    console.error('Follow exception:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/users/unfollow', async (req, res) => {
@@ -1606,20 +1615,30 @@ app.post('/api/users/unfollow', async (req, res) => {
       .delete()
       .eq('follower_id', follower_id)
       .eq('following_id', following_id);
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      console.error('Unfollow error:', error.message);
+      return res.status(500).json({ error: error.message });
+    }
     res.json({ ok: true });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    console.error('Unfollow exception:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Get followers and following for a user
 app.get('/api/users/:id/connections', async (req, res) => {
-  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  if (!supabase) return res.json({ followers: [], following: [] });
   const userId = req.params.id;
   try {
     const [followersRes, followingRes] = await Promise.all([
       supabase.from('follows').select('follower_id').eq('following_id', userId),
       supabase.from('follows').select('following_id').eq('follower_id', userId)
     ]);
+    if (followersRes.error || followingRes.error) {
+      console.warn('Connections query error:', followersRes.error?.message || followingRes.error?.message);
+      return res.json({ followers: [], following: [] });
+    }
     const followerIds = (followersRes.data || []).map(r => r.follower_id);
     const followingIds = (followingRes.data || []).map(r => r.following_id);
 
@@ -1636,7 +1655,10 @@ app.get('/api/users/:id/connections', async (req, res) => {
       followers: followerIds.map(id => profileMap[id]).filter(Boolean),
       following: followingIds.map(id => profileMap[id]).filter(Boolean)
     });
-  } catch (err) { res.status(500).json({ error: err.message }); }
+  } catch (err) {
+    console.warn('Connections exception:', err.message);
+    res.json({ followers: [], following: [] });
+  }
 });
 
 // 404 handler – so wrong URLs show what’s available

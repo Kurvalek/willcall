@@ -3889,15 +3889,26 @@
 
     async function toggleFollow(userId) {
       var uid = await getCurrentUserId();
-      if (!uid || userId === uid) return;
+      if (!uid) {
+        console.warn('toggleFollow: no authenticated user — cannot follow');
+        alert('Please sign in to follow people.');
+        return;
+      }
+      if (userId === uid) return;
       var isFollowing = !!_followingIds[userId];
       var endpoint = isFollowing ? '/api/users/unfollow' : '/api/users/follow';
       try {
-        await fetch(endpoint, {
+        var res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ follower_id: uid, following_id: userId })
         });
+        var data = await res.json();
+        if (!res.ok) {
+          console.error('Follow API error:', data.error || res.status);
+          alert('Follow failed: ' + (data.error || 'Server error'));
+          return;
+        }
         if (isFollowing) {
           delete _followingIds[userId];
         } else {
@@ -3905,10 +3916,12 @@
         }
         await loadConnections();
         loadSuggestedPeople();
-        // Refresh friends search results if visible
         var fsi = document.getElementById('friends-search-input');
         if (fsi && fsi.value.trim()) searchFriends(fsi.value.trim());
-      } catch (e) { console.warn('Follow/unfollow failed:', e); }
+      } catch (e) {
+        console.error('Follow/unfollow failed:', e);
+        alert('Follow failed: ' + (e.message || 'Network error'));
+      }
     }
 
     loadConnections();
