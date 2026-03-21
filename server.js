@@ -699,7 +699,6 @@ app.post('/api/spotify/disconnect', (req, res) => {
 app.get('/api/spotify/status', async (req, res) => {
   const tokens = await ensureSpotifyAccessToken(req, res);
   if (!tokens) return res.json({ connected: false });
-  // Quick validation: try a lightweight Spotify call
   try {
     const spotifyApi = new SpotifyWebApi(spotifyCredentials);
     spotifyApi.setAccessToken(tokens.access_token);
@@ -707,6 +706,8 @@ app.get('/api/spotify/status', async (req, res) => {
     res.json({ connected: true });
   } catch (e) {
     console.warn('[spotify-status] Token present but Spotify rejected it:', e.message);
+    // Clear the bad cookie so the user isn't stuck in a "connected but broken" state
+    res.clearCookie('spotify_tokens');
     res.json({ connected: false, reason: 'token_invalid' });
   }
 });
@@ -714,7 +715,7 @@ app.get('/api/spotify/status', async (req, res) => {
 app.get('/api/spotify/top-artists', async (req, res) => {
   try {
     const tokens = await ensureSpotifyAccessToken(req, res);
-    if (!tokens) return res.status(401).json({ error: 'Spotify not connected.' });
+    if (!tokens) { res.clearCookie('spotify_tokens'); return res.status(401).json({ error: 'Spotify session expired. Reconnect in Settings.' }); }
     const artists = await getSpotifyTopArtistsWithIds(tokens.access_token, 50);
     res.json({ artists });
   } catch (e) {
@@ -724,25 +725,48 @@ app.get('/api/spotify/top-artists', async (req, res) => {
 });
 
 app.get('/api/spotify/debug', async (req, res) => {
-  const diag = { hasCookie: false, tokenParsed: false, tokenExpired: null, refreshable: false, spotifyValidated: false, topArtistsCount: 0, error: null };
+  const diag = {
+    hasCookie: false, tokenParsed: false, tokenExpired: null,
+    refreshable: false, refreshed: false, spotifyValidated: false,
+    topArtistsCount: 0, spotifyUser: null, topArtistsSample: [],
+    clientIdSet: !!process.env.SPOTIFY_CLIENT_ID,
+    clientSecretSet: !!process.env.SPOTIFY_CLIENT_SECRET,
+    error: null
+  };
   try {
     const raw = req.cookies?.spotify_tokens;
     diag.hasCookie = !!raw;
-    if (!raw) { diag.error = 'No spotify_tokens cookie'; return res.json(diag); }
+    if (!raw) { diag.error = 'No spotify_tokens cookie. User needs to connect Spotify.'; return res.json(diag); }
     let tokens;
     try { tokens = JSON.parse(raw); diag.tokenParsed = true; } catch (_) { diag.error = 'Cookie not valid JSON'; return res.json(diag); }
-    diag.tokenExpired = tokens.expires_at ? Date.now() >= tokens.expires_at : 'unknown';
+    diag.tokenExpired = tokens.expires_at ? Date.now() >= tokens.expires_at - 60000 : 'unknown';
+    diag.expiresAt = tokens.expires_at ? new Date(tokens.expires_at).toISOString() : null;
     diag.refreshable = !!tokens.refresh_token;
+
     const fresh = await ensureSpotifyAccessToken(req, res);
-    if (!fresh) { diag.error = 'ensureSpotifyAccessToken returned null (refresh likely failed)'; return res.json(diag); }
+    if (!fresh) {
+      diag.error = 'Token refresh failed. User should disconnect and reconnect Spotify.';
+      return res.json(diag);
+    }
+    diag.refreshed = fresh.access_token !== tokens.access_token;
+
     const spotifyApi = new SpotifyWebApi(spotifyCredentials);
     spotifyApi.setAccessToken(fresh.access_token);
-    const me = await spotifyApi.getMe();
-    diag.spotifyValidated = true;
-    diag.spotifyUser = me.body?.display_name || me.body?.id || 'unknown';
+    try {
+      const me = await spotifyApi.getMe();
+      diag.spotifyValidated = true;
+      diag.spotifyUser = me.body?.display_name || me.body?.id || 'unknown';
+    } catch (e) {
+      diag.error = 'getMe() failed: ' + (e.body?.error?.message || e.message) + '. Token is invalid — disconnect and reconnect.';
+      return res.json(diag);
+    }
+
     const artists = await getSpotifyTopArtistsWithIds(fresh.access_token, 10);
     diag.topArtistsCount = artists.length;
-    diag.topArtistsSample = artists.slice(0, 3).map(a => a.name);
+    diag.topArtistsSample = artists.slice(0, 5).map(a => a.name);
+    if (artists.length === 0) {
+      diag.error = 'Token works but Spotify returned 0 top artists. This account may have no listening history.';
+    }
   } catch (e) {
     diag.error = e.message;
   }
@@ -931,7 +955,8 @@ app.post('/api/spotify/concerts-suggestions', async (req, res) => {
   try {
     const tokens = await ensureSpotifyAccessToken(req, res);
     if (!tokens) {
-      return res.status(401).json({ error: 'Spotify not connected or session expired. Please connect Spotify again.' });
+      res.clearCookie('spotify_tokens');
+      return res.status(401).json({ error: 'Spotify session expired. Disconnect and reconnect Spotify in Settings.' });
     }
     let { cities, yearStart, yearEnd, artistLimit } = req.body;
     if (!cities || !Array.isArray(cities)) {
@@ -1304,7 +1329,8 @@ app.post('/api/spotify/artist-images', async (req, res) => {
     const tokens = await ensureSpotifyAccessToken(req, res);
     if (!tokens) {
       console.log('[artist-images] No Spotify tokens — returning 401');
-      return res.status(401).json({ error: 'Spotify not connected.' });
+      res.clearCookie('spotify_tokens');
+      return res.status(401).json({ error: 'Spotify session expired. Reconnect in Settings.' });
     }
     const { names } = req.body;
     if (!Array.isArray(names) || names.length === 0) return res.json({ images: {} });
