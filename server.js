@@ -87,10 +87,16 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Supabase client for Setlist.fm cache (optional)
-const supabase = process.env.SUPABASE_URL && process.env.SUPABASE_KEY
-  ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY)
+// Supabase client — prefer service role key (bypasses RLS) for server-side ops
+const SUPABASE_SERVER_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+const supabase = process.env.SUPABASE_URL && SUPABASE_SERVER_KEY
+  ? createClient(process.env.SUPABASE_URL, SUPABASE_SERVER_KEY)
   : null;
+if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.log('Supabase: using service role key (RLS bypassed)');
+} else if (process.env.SUPABASE_KEY) {
+  console.warn('Supabase: using anon key — add SUPABASE_SERVICE_ROLE_KEY for full access');
+}
 
 // OAuth2 client for Gmail
 const oauth2Client = new google.auth.OAuth2(
