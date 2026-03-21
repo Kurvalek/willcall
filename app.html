@@ -2048,15 +2048,15 @@
   </section>
 
   <section id="tab-profile" class="tab-content">
-    <h2 class="section-title" style="margin-bottom: 20px;">Friends</h2>
+    <h2 class="section-title" style="margin-bottom: 20px;">My List</h2>
 
     <div class="friends-toggle">
-      <button class="friends-toggle-btn active" data-friends-tab="followers">Followers</button>
-      <button class="friends-toggle-btn" data-friends-tab="following">Following</button>
+      <button class="friends-toggle-btn active" data-friends-tab="followers">On my list</button>
+      <button class="friends-toggle-btn" data-friends-tab="following">I'm on theirs</button>
     </div>
 
     <div class="friends-counts">
-      <span id="friends-count-label">0 followers</span>
+      <span id="friends-count-label">0 on your list</span>
     </div>
 
     <div id="friends-list"></div>
@@ -2219,10 +2219,10 @@
         <div class="up-name" id="upName"></div>
         <div class="up-handle" id="upHandle"></div>
         <div class="up-stats">
-          <div class="up-stat"><div class="value" id="upStatFollowers">0</div><div class="label">Followers</div></div>
-          <div class="up-stat"><div class="value" id="upStatFollowing">0</div><div class="label">Following</div></div>
+          <div class="up-stat"><div class="value" id="upStatFollowers">0</div><div class="label">On their list</div></div>
+          <div class="up-stat"><div class="value" id="upStatFollowing">0</div><div class="label">Lists they're on</div></div>
         </div>
-        <button type="button" class="up-follow-btn follow" id="upFollowBtn">Follow</button>
+        <button type="button" class="up-follow-btn follow" id="upFollowBtn">Add to list</button>
       </div>
       <div class="up-section" id="upMutualSection" style="display:none">
         <div class="up-section-title">Mutual connections</div>
@@ -2271,7 +2271,7 @@
       <div class="tab" data-tab="search" title="Search">
         <div id="lottie-search" style="width:30px;height:30px;"></div>
       </div>
-      <div class="tab" data-tab="profile" title="Friends">
+      <div class="tab" data-tab="profile" title="My List">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
     </div>
@@ -3925,7 +3925,7 @@
       var handle = user.username ? '@' + user.username : '';
       var initials = userInitials(name);
       var btnClass = isFollowing ? 'friend-action-btn following' : 'friend-action-btn follow';
-      var btnText = isFollowing ? 'Following' : 'Follow';
+      var btnText = isFollowing ? 'On the list' : 'Add to list';
       return '<div class="friend-card" data-user-id="' + user.id + '">' +
         '<div class="friend-avatar" style="background:#1a1a1a">' + initials + '</div>' +
         '<div class="friend-info">' +
@@ -3954,17 +3954,17 @@
     function renderFriends(type) {
       currentFriendsTab = type || currentFriendsTab;
       if (!_connectionsCache) return;
-      var list = currentFriendsTab === 'followers' ? _connectionsCache.followers : _connectionsCache.following;
+      var list = currentFriendsTab === 'followers' ? _connectionsCache.following : _connectionsCache.followers;
       list = list || [];
       var container = document.getElementById('friends-list');
       var countLabel = document.getElementById('friends-count-label');
 
       if (countLabel) {
-        countLabel.textContent = list.length + ' ' + (currentFriendsTab === 'followers' ? 'follower' : 'following') + (currentFriendsTab === 'followers' && list.length !== 1 ? 's' : '');
+        countLabel.textContent = list.length + (currentFriendsTab === 'followers' ? ' on your list' : ' list' + (list.length !== 1 ? 's' : '') + " you're on");
       }
 
       if (list.length === 0) {
-        container.innerHTML = '<div class="empty-state">No ' + currentFriendsTab + ' yet.</div>';
+        container.innerHTML = '<div class="empty-state">' + (currentFriendsTab === 'followers' ? 'No one on your list yet.' : "You're not on anyone's list yet.") + '</div>';
         return;
       }
       var html = '';
@@ -4000,8 +4000,8 @@
     async function toggleFollow(userId) {
       var uid = await getCurrentUserId();
       if (!uid) {
-        console.warn('toggleFollow: no authenticated user — cannot follow');
-        alert('Please sign in to follow people.');
+        console.warn('toggleFollow: no authenticated user');
+        alert('Please sign in to add people to your list.');
         return;
       }
       if (userId === uid) return;
@@ -4015,8 +4015,8 @@
         });
         var data = await res.json();
         if (!res.ok) {
-          console.error('Follow API error:', data.error || res.status);
-          alert('Follow failed: ' + (data.error || 'Server error'));
+          console.error('List update error:', data.error || res.status);
+          alert('Failed to update list: ' + (data.error || 'Server error'));
           return;
         }
         if (isFollowing) {
@@ -4029,8 +4029,8 @@
         var fsi = document.getElementById('friends-search-input');
         if (fsi && fsi.value.trim()) searchFriends(fsi.value.trim());
       } catch (e) {
-        console.error('Follow/unfollow failed:', e);
-        alert('Follow failed: ' + (e.message || 'Network error'));
+        console.error('List update failed:', e);
+        alert('Failed to update list: ' + (e.message || 'Network error'));
       }
     }
 
@@ -4059,7 +4059,7 @@
 
     function updateFriendsSearchVisibility() {
       if (friendsSearchSection) {
-        friendsSearchSection.style.display = currentFriendsTab === 'following' ? '' : 'none';
+        friendsSearchSection.style.display = currentFriendsTab === 'followers' ? '' : 'none';
       }
     }
 
@@ -4236,7 +4236,7 @@
       if (!_upSheetUserId) return;
       var isFollowing = !!_followingIds[_upSheetUserId];
       btn.className = 'up-follow-btn ' + (isFollowing ? 'following' : 'follow');
-      btn.textContent = isFollowing ? 'Following' : 'Follow';
+      btn.textContent = isFollowing ? 'On the list' : 'Add to list';
     }
 
     document.getElementById('closeUserProfileBtn').addEventListener('click', closeUserProfile);
