@@ -2277,7 +2277,7 @@
         <div id="lottie-search" style="width:30px;height:30px;"></div>
       </div>
       <div class="tab" data-tab="profile" title="My Crowd">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <div id="lottie-crowd" style="width:30px;height:30px;"></div>
       </div>
     </div>
     <div class="tab-add-btn" id="tabAddBtn" title="Add">
@@ -3689,9 +3689,10 @@
 
     var homeAnim = initLottieTab('lottie-home', 'assets/icons8-house.json', true);
     var searchAnim = initLottieTab('lottie-search', 'assets/icons8-search.json', false);
+    var crowdAnim = initLottieTab('lottie-crowd', 'assets/icons8-flame.json', false);
 
     function updateLottieColors(tabId) {
-      var mapping = { 'lottie-home': 'home', 'lottie-search': 'search' };
+      var mapping = { 'lottie-home': 'home', 'lottie-search': 'search', 'lottie-crowd': 'profile' };
       Object.keys(mapping).forEach(function(id) {
         var svg = document.querySelector('#' + id + ' svg');
         if (svg) svg.style.filter = (mapping[id] === tabId) ? ACTIVE_FILTER : INACTIVE_FILTER;
@@ -3711,6 +3712,10 @@
     document.querySelector('[data-tab="search"]').addEventListener('click', function() {
       searchAnim.goToAndStop(0, true);
       searchAnim.play();
+    });
+    document.querySelector('[data-tab="profile"]').addEventListener('click', function() {
+      crowdAnim.goToAndStop(0, true);
+      crowdAnim.play();
     });
 
     const searchInput = document.getElementById('search-input');
