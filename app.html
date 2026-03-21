@@ -1973,6 +1973,15 @@
     </div>
 
     <div id="friends-list"></div>
+
+    <div id="friends-search-section" style="display:none; margin-top:24px;">
+      <h2 class="section-title" style="margin-bottom:12px;">Find people</h2>
+      <div class="past-shows-search-box" style="margin-bottom:12px">
+        <input type="text" id="friends-search-input" placeholder="Search by username..." autocomplete="off">
+        <button type="button" class="past-shows-search-btn" id="friends-search-btn">Search</button>
+      </div>
+      <div id="friends-search-results"></div>
+    </div>
   </section>
 
   <section id="tab-add" class="tab-content">
@@ -2175,8 +2184,8 @@
 
   <script>
     // Shared location manager
-    var FanatikLocations = (function() {
-      var STORAGE_KEY = 'fanatik_locations';
+    var WillcallLocations = (function() {
+      var STORAGE_KEY = 'willcall_locations';
 
       function getAll() {
         try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
@@ -2303,14 +2312,30 @@
       window._getSupabase = function() { return supabaseClient; };
       var onbData = { name: '', email: '', username: '' };
       var otpCountdownTimer = null;
+      var _isSignIn = false; // true when user tapped "Sign in" (returning user)
 
       function goToStep(idx) {
         steps.forEach(function(s) { if (s) s.classList.remove('active'); });
         if (steps[idx]) {
           steps[idx].classList.add('active');
           if (progressFill) progressFill.style.width = progressPercents[Math.min(idx, progressPercents.length - 1)] + '%';
+          if (idx === 2) {
+            // Adapt email step UI for sign-in vs sign-up
+            var greeting = document.getElementById('onbEmailGreeting');
+            var helper = steps[2].querySelector('.onb-helper');
+            var backBtn = document.getElementById('onbBackToName');
+            if (_isSignIn) {
+              if (greeting) greeting.textContent = 'Welcome back!';
+              if (helper) helper.textContent = 'Enter the email you used to create your account.';
+              if (backBtn) backBtn.onclick = function() { goToStep(0); };
+            } else {
+              if (greeting) greeting.textContent = onbData.name ? 'Hi ' + onbData.name + '!' : 'Hi!';
+              if (helper) helper.textContent = "We'll use your email to create your account.";
+              if (backBtn) backBtn.onclick = function() { goToStep(1); };
+            }
+          }
           if (idx === 5) {
-            FanatikLocations.renderList(
+            WillcallLocations.renderList(
               document.getElementById('onbLocList'),
               document.getElementById('onbLocFormWrap'),
               { prefix: 'onb', autoShowForm: true }
@@ -2326,7 +2351,7 @@
 
       function hideOnboarding() {
         if (overlay) overlay.classList.add('hidden');
-        sessionStorage.setItem('fanatikSeenLanding', '1');
+        sessionStorage.setItem('willcallSeenLanding', '1');
         if (typeof loadConnections === 'function') loadConnections();
         if (typeof loadSuggestedPeople === 'function') loadSuggestedPeople();
       }
@@ -2363,24 +2388,40 @@
       async function checkAuth() {
         if (!supabaseClient) return false;
         var { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) { hideOnboarding(); return true; }
-        var hash = window.location.hash;
-        if (hash && (hash.indexOf('access_token') !== -1 || hash.indexOf('refresh_token') !== -1)) {
-          var result = await supabaseClient.auth.getSession();
-          if (result.data.session && !result.error) {
-            window.history.replaceState(null, '', window.location.pathname);
-            hideOnboarding();
-            return true;
+        if (!session) {
+          var hash = window.location.hash;
+          if (hash && (hash.indexOf('access_token') !== -1 || hash.indexOf('refresh_token') !== -1)) {
+            var result = await supabaseClient.auth.getSession();
+            if (result.data.session && !result.error) {
+              session = result.data.session;
+              window.history.replaceState(null, '', window.location.pathname);
+            }
           }
         }
-        return false;
+        if (!session) return false;
+        // Load profile from Supabase for returning users
+        try {
+          var email = session.user.email;
+          if (email && !localStorage.getItem('willcall_profile')) {
+            var { data: profile } = await supabaseClient.from('profiles').select('display_name, username').eq('email', email).maybeSingle();
+            if (profile) {
+              localStorage.setItem('willcall_profile', JSON.stringify({ name: profile.display_name || '', email: email, username: profile.username || '' }));
+              var profileName = document.getElementById('profileName');
+              var profileHandle = document.getElementById('profileHandle');
+              if (profileName) profileName.textContent = profile.display_name || '';
+              if (profileHandle) profileHandle.textContent = profile.username ? '@' + profile.username : '';
+            }
+          }
+        } catch (e) { console.warn('Profile load on auth check:', e); }
+        hideOnboarding();
+        return true;
       }
 
       // Step 0: Welcome
       var continueBtn = document.getElementById('onbContinueBtn');
       var signInLink = document.getElementById('onbSignInLink');
-      if (continueBtn) continueBtn.addEventListener('click', function() { goToStep(1); });
-      if (signInLink) signInLink.addEventListener('click', function(e) { e.preventDefault(); goToStep(2); });
+      if (continueBtn) continueBtn.addEventListener('click', function() { _isSignIn = false; goToStep(1); });
+      if (signInLink) signInLink.addEventListener('click', function(e) { e.preventDefault(); _isSignIn = true; goToStep(2); });
 
       // Step 1: Name
       document.getElementById('onbBackToWelcome').addEventListener('click', function() { goToStep(0); });
@@ -2391,14 +2432,11 @@
           if (!val) { showFieldError('onbNameError', 'Please enter your name'); return; }
           showFieldError('onbNameError', '');
           onbData.name = val;
-          var greeting = document.getElementById('onbEmailGreeting');
-          if (greeting) greeting.textContent = 'Hi ' + val + '!';
           goToStep(2);
         }
       });
 
-      // Step 2: Email
-      document.getElementById('onbBackToName').addEventListener('click', function() { goToStep(1); });
+      // Step 2: Email (back button handler is set dynamically in goToStep)
       var emailInput = document.getElementById('onbEmailInput');
       emailInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') sendOtp();
@@ -2413,6 +2451,24 @@
         try {
           var sb = window._getSupabase();
           if (!sb) { showFieldError('onbEmailError', _supabaseInitError || 'Auth not ready. Try refreshing.'); return; }
+
+          // Check if an account already exists via server-side lookup
+          var checkRes = await fetch(window.location.origin + '/api/auth/check-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email })
+          });
+          var checkData = await checkRes.json();
+
+          if (!_isSignIn && checkData.exists) {
+            showFieldError('onbEmailError', 'An account with this email already exists. Go back and tap "Sign in" instead.');
+            return;
+          }
+          if (_isSignIn && !checkData.exists) {
+            showFieldError('onbEmailError', 'No account found with this email. Go back and tap "Continue" to create one.');
+            return;
+          }
+
           var { error } = await sb.auth.signInWithOtp({ email: email });
           if (error) { showFieldError('onbEmailError', error.message); return; }
         } catch (e) { showFieldError('onbEmailError', e.message || 'Failed to send code'); return; }
@@ -2456,6 +2512,27 @@
           if (!sb) { showFieldError('onbOtpError', _supabaseInitError || 'Auth not ready. Try refreshing.'); return; }
           var { error } = await sb.auth.verifyOtp({ email: onbData.email, token: code, type: 'email' });
           if (error) { showFieldError('onbOtpError', error.message); resetOtpInput(); return; }
+
+          if (_isSignIn) {
+            // Returning user — load their profile and skip onboarding
+            try {
+              var { data: profile } = await sb.from('profiles').select('display_name, username').eq('email', onbData.email).maybeSingle();
+              if (profile) {
+                onbData.name = profile.display_name || '';
+                onbData.username = profile.username || '';
+                localStorage.setItem('willcall_profile', JSON.stringify(onbData));
+                var profileName = document.getElementById('profileName');
+                var profileHandle = document.getElementById('profileHandle');
+                if (profileName) profileName.textContent = onbData.name;
+                if (profileHandle) profileHandle.textContent = onbData.username ? '@' + onbData.username : '';
+              }
+            } catch (e) { console.warn('Could not load profile:', e); }
+            hideOnboarding();
+            if (typeof renderProfileShows === 'function') renderProfileShows();
+            if (typeof backfillArtistImages === 'function') backfillArtistImages();
+            return;
+          }
+
           goToStep(4);
         } catch (e) { showFieldError('onbOtpError', e.message || 'Verification failed'); resetOtpInput(); }
       }
@@ -2528,7 +2605,7 @@
       document.getElementById('onbBackToLocation').addEventListener('click', function() { goToStep(5); });
       document.getElementById('onbSkipSpotify').addEventListener('click', function() { finishOnboarding(); });
       document.getElementById('onbSpotifyBtn').addEventListener('click', function() {
-        sessionStorage.setItem('fanatik_onb_state', JSON.stringify(onbData));
+        sessionStorage.setItem('willcall_onb_state', JSON.stringify(onbData));
         window.location.href = '/oauth/spotify';
       });
 
@@ -2547,7 +2624,7 @@
         emptyEl.style.display = 'none';
         doneBtn.style.display = 'none';
 
-        var locs = FanatikLocations.getAll();
+        var locs = WillcallLocations.getAll();
         if (locs.length === 0) {
           loadingEl.style.display = 'none';
           emptyEl.textContent = 'No locations added. You can search for shows from your profile.';
@@ -2615,7 +2692,7 @@
       });
 
       function finishOnboarding() {
-        localStorage.setItem('fanatik_profile', JSON.stringify(onbData));
+        localStorage.setItem('willcall_profile', JSON.stringify(onbData));
 
         var profileName = document.getElementById('profileName');
         var profileHandle = document.getElementById('profileHandle');
@@ -2625,7 +2702,7 @@
         if (typeof renderProfileShows === 'function') renderProfileShows();
         if (typeof backfillArtistImages === 'function') backfillArtistImages();
 
-        localStorage.setItem('fanatik_needs_photo', '1');
+        localStorage.setItem('willcall_needs_photo', '1');
         showPhotoPrompt();
 
         hideOnboarding();
@@ -2646,12 +2723,12 @@
       (async function() {
         var urlParams = new URLSearchParams(window.location.search);
         var spotifyReturn = urlParams.get('authenticated') === 'true';
-        var savedOnbState = sessionStorage.getItem('fanatik_onb_state');
+        var savedOnbState = sessionStorage.getItem('willcall_onb_state');
 
         if (AUTH_DISABLED) {
           if (spotifyReturn) {
             window.history.replaceState(null, '', window.location.pathname);
-            sessionStorage.removeItem('fanatik_onb_state');
+            sessionStorage.removeItem('willcall_onb_state');
           }
           hideOnboarding();
           try { await initSupabase(); } catch (e) {}
@@ -2660,7 +2737,7 @@
 
         if (spotifyReturn && savedOnbState) {
           try { Object.assign(onbData, JSON.parse(savedOnbState)); } catch (e) {}
-          sessionStorage.removeItem('fanatik_onb_state');
+          sessionStorage.removeItem('willcall_onb_state');
           window.history.replaceState(null, '', window.location.pathname);
           goToStep(7);
           return;
@@ -2679,7 +2756,7 @@
           });
           if (await checkAuth()) return;
         } else {
-          if (sessionStorage.getItem('fanatikSeenLanding')) hideOnboarding();
+          if (sessionStorage.getItem('willcallSeenLanding')) hideOnboarding();
         }
       })();
     })();
@@ -2693,7 +2770,7 @@
 
       if (openBtn) openBtn.addEventListener('click', function() {
         settingsSheet.classList.add('open');
-        FanatikLocations.renderList(
+        WillcallLocations.renderList(
           document.getElementById('settingsLocList'),
           document.getElementById('settingsLocFormWrap'),
           { prefix: 'settings', autoShowForm: false }
@@ -2708,15 +2785,43 @@
         if (sb) {
           try { await sb.auth.signOut(); } catch (e) { console.warn('Sign out error:', e); }
         }
-        localStorage.removeItem('fanatik_profile');
-        localStorage.removeItem('fanatik_locations');
-        sessionStorage.removeItem('fanatikSeenLanding');
+        localStorage.removeItem('willcall_profile');
+        localStorage.removeItem('willcall_locations');
+        sessionStorage.removeItem('willcallSeenLanding');
         window.location.reload();
       });
     })();
 
-    var ATTENDED_KEY = 'fanatik_attended_shows';
-    var GOING_KEY = 'fanatik_going_shows';
+    // Migrate old localStorage keys from "fanatik" → "willcall" for existing users
+    (function migrateStorageKeys() {
+      var keyMap = {
+        'fanatik_profile': 'willcall_profile',
+        'fanatik_locations': 'willcall_locations',
+        'fanatik_attended_shows': 'willcall_attended_shows',
+        'fanatik_going_shows': 'willcall_going_shows',
+        'fanatik_needs_photo': 'willcall_needs_photo',
+        'fanatik_img_v3': 'willcall_img_v3',
+        'fanatik_cleared_dummy': 'willcall_cleared_dummy'
+      };
+      Object.keys(keyMap).forEach(function(oldKey) {
+        var val = localStorage.getItem(oldKey);
+        if (val !== null && localStorage.getItem(keyMap[oldKey]) === null) {
+          localStorage.setItem(keyMap[oldKey], val);
+        }
+        localStorage.removeItem(oldKey);
+      });
+      var sessMap = { 'fanatikSeenLanding': 'willcallSeenLanding', 'fanatik_onb_state': 'willcall_onb_state' };
+      Object.keys(sessMap).forEach(function(oldKey) {
+        var val = sessionStorage.getItem(oldKey);
+        if (val !== null && sessionStorage.getItem(sessMap[oldKey]) === null) {
+          sessionStorage.setItem(sessMap[oldKey], val);
+        }
+        sessionStorage.removeItem(oldKey);
+      });
+    })();
+
+    var ATTENDED_KEY = 'willcall_attended_shows';
+    var GOING_KEY = 'willcall_going_shows';
     function getAttendedShows() {
       try {
         var raw = localStorage.getItem(ATTENDED_KEY);
@@ -3199,24 +3304,24 @@
         window.history.replaceState({}, document.title, window.location.pathname);
         openSpotifySheet();
       }
-      if (!localStorage.getItem('fanatik_cleared_dummy')) {
-        localStorage.removeItem('fanatik_attended_shows');
-        localStorage.removeItem('fanatik_going_shows');
-        localStorage.removeItem('fanatik_img_v2');
-        localStorage.setItem('fanatik_cleared_dummy', '1');
+      if (!localStorage.getItem('willcall_cleared_dummy')) {
+        localStorage.removeItem('willcall_attended_shows');
+        localStorage.removeItem('willcall_going_shows');
+        localStorage.removeItem('willcall_img_v2');
+        localStorage.setItem('willcall_cleared_dummy', '1');
       }
-      if (!localStorage.getItem('fanatik_img_v3')) {
+      if (!localStorage.getItem('willcall_img_v3')) {
         var imgList = getAttendedShows();
         imgList.forEach(function(s) { s.artistImage = null; });
         localStorage.setItem(ATTENDED_KEY, JSON.stringify(imgList));
-        localStorage.setItem('fanatik_img_v3', '1');
+        localStorage.setItem('willcall_img_v3', '1');
       }
       renderProfileShows();
       renderProfileUpcomingShows();
       backfillArtistImages();
       colorizeProfileWash();
 
-      if (localStorage.getItem('fanatik_needs_photo') === '1') {
+      if (localStorage.getItem('willcall_needs_photo') === '1') {
         var avatar = document.getElementById('profileAvatar');
         if (avatar && !avatar.querySelector('.photo-prompt-overlay')) {
           avatar.style.position = 'relative';
@@ -3231,7 +3336,7 @@
       }
 
       var savedProfile = null;
-      try { savedProfile = JSON.parse(localStorage.getItem('fanatik_profile')); } catch(e) {}
+      try { savedProfile = JSON.parse(localStorage.getItem('willcall_profile')); } catch(e) {}
       if (savedProfile) {
         var pn = document.getElementById('profileName');
         var ph = document.getElementById('profileHandle');
@@ -3800,6 +3905,9 @@
         }
         await loadConnections();
         loadSuggestedPeople();
+        // Refresh friends search results if visible
+        var fsi = document.getElementById('friends-search-input');
+        if (fsi && fsi.value.trim()) searchFriends(fsi.value.trim());
       } catch (e) { console.warn('Follow/unfollow failed:', e); }
     }
 
@@ -3811,6 +3919,7 @@
         document.querySelectorAll('.friends-toggle-btn').forEach(function(b) { b.classList.remove('active'); });
         btn.classList.add('active');
         renderFriends(btn.dataset.friendsTab);
+        updateFriendsSearchVisibility();
       });
     });
 
@@ -3819,6 +3928,60 @@
       if (!btn) return;
       toggleFollow(btn.dataset.userId);
     });
+
+    // Friends tab search
+    var friendsSearchSection = document.getElementById('friends-search-section');
+    var friendsSearchInput = document.getElementById('friends-search-input');
+    var friendsSearchResults = document.getElementById('friends-search-results');
+
+    function updateFriendsSearchVisibility() {
+      if (friendsSearchSection) {
+        friendsSearchSection.style.display = currentFriendsTab === 'following' ? '' : 'none';
+      }
+    }
+
+    async function searchFriends(query) {
+      if (!query) {
+        friendsSearchResults.innerHTML = '';
+        return;
+      }
+      friendsSearchResults.innerHTML = '<div class="empty-state">Searching...</div>';
+      try {
+        var res = await fetch('/api/users/search?q=' + encodeURIComponent(query));
+        var data = await res.json();
+        var users = data.users || [];
+        var uid = await getCurrentUserId();
+        users = users.filter(function(u) { return u.id !== uid; });
+        if (users.length === 0) {
+          friendsSearchResults.innerHTML = '<div class="empty-state">No users found for "' + query + '".</div>';
+          return;
+        }
+        var html = '';
+        users.forEach(function(user) {
+          html += renderUserCard(user, !!_followingIds[user.id]);
+        });
+        friendsSearchResults.innerHTML = html;
+      } catch (e) {
+        friendsSearchResults.innerHTML = '<div class="empty-state">Search failed.</div>';
+      }
+    }
+
+    friendsSearchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchFriends(this.value.trim());
+    });
+    document.getElementById('friends-search-btn').addEventListener('click', function() {
+      searchFriends(friendsSearchInput.value.trim());
+    });
+    friendsSearchInput.addEventListener('input', function() {
+      if (!this.value.trim()) friendsSearchResults.innerHTML = '';
+    });
+    friendsSearchResults.addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.friend-action-btn');
+      if (!btn) return;
+      toggleFollow(btn.dataset.userId);
+    });
+
+    updateFriendsSearchVisibility();
 
     document.getElementById('search-people-suggestions').addEventListener('click', function(ev) {
       var btn = ev.target.closest('.friend-action-btn');
@@ -3911,7 +4074,7 @@
             return;
           }
 
-          var locs = FanatikLocations.getAll();
+          var locs = WillcallLocations.getAll();
           var cities = locs.map(function(l) { return l.city; });
           if (cities.length === 0) cities = ['New York'];
           var yearStart = null, yearEnd = null;

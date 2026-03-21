@@ -1526,6 +1526,24 @@ app.post('/api/waitlist', async (req, res) => {
   }
 });
 
+// Check if an account exists for a given email
+app.post('/api/auth/check-email', async (req, res) => {
+  if (!supabase) return res.json({ exists: false });
+  const email = (req.body.email || '').trim().toLowerCase();
+  if (!email) return res.status(400).json({ error: 'Email required' });
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+    res.json({ exists: !!data });
+  } catch (err) {
+    console.warn('check-email error:', err.message);
+    res.json({ exists: false });
+  }
+});
+
 // Search users in Supabase profiles
 app.get('/api/users/search', async (req, res) => {
   if (!supabase) return res.json({ users: [] });

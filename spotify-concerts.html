@@ -191,7 +191,7 @@
             </select>
             <p class="hint">More artists = broader search but longer wait.</p>
             <button id="findBtn" onclick="findConcerts()">Find concerts I may have attended</button>
-            <p style="margin-top: 20px;"><a href="/app" style="color: #1db954; font-weight: 600; text-decoration: none;">Open FANATIK →</a></p>
+            <p style="margin-top: 20px;"><a href="/app" style="color: #1db954; font-weight: 600; text-decoration: none;">Open willcall →</a></p>
             <div class="disconnect">
                 <button type="button" onclick="disconnectSpotify()">Disconnect Spotify</button>
             </div>
@@ -285,7 +285,7 @@
                     let html = '<div class="results-header">';
                     html += '<div class="results-title">Concerts you may have attended</div>';
                     html += '<div class="results-count">' + (data.concerts?.length || 0) + ' show(s) based on your Spotify artists in ' + cities.join(', ') + (data.artistsUsed?.length ? ' · Using ' + data.artistsUsed.length + ' artists' : '') + '</div>';
-                    html += '<p style="margin-top: 12px;"><a href="/app" style="color: #1db954; font-weight: 600; text-decoration: none;">Open FANATIK →</a></p>';
+                    html += '<p style="margin-top: 12px;"><a href="/app" style="color: #1db954; font-weight: 600; text-decoration: none;">Open willcall →</a></p>';
                     html += '</div>';
                     if (data.message) html += '<p class="hint" style="margin-bottom:16px">' + data.message + '</p>';
                     if (data.concerts && data.concerts.length > 0) {
