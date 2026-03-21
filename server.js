@@ -698,7 +698,17 @@ app.post('/api/spotify/disconnect', (req, res) => {
 
 app.get('/api/spotify/status', async (req, res) => {
   const tokens = await ensureSpotifyAccessToken(req, res);
-  res.json({ connected: !!tokens });
+  if (!tokens) return res.json({ connected: false });
+  // Quick validation: try a lightweight Spotify call
+  try {
+    const spotifyApi = new SpotifyWebApi(spotifyCredentials);
+    spotifyApi.setAccessToken(tokens.access_token);
+    await spotifyApi.getMe();
+    res.json({ connected: true });
+  } catch (e) {
+    console.warn('[spotify-status] Token present but Spotify rejected it:', e.message);
+    res.json({ connected: false, reason: 'token_invalid' });
+  }
 });
 
 app.get('/api/spotify/top-artists', async (req, res) => {
@@ -711,6 +721,32 @@ app.get('/api/spotify/top-artists', async (req, res) => {
     console.error('Top artists error:', e);
     res.status(500).json({ error: e.message });
   }
+});
+
+app.get('/api/spotify/debug', async (req, res) => {
+  const diag = { hasCookie: false, tokenParsed: false, tokenExpired: null, refreshable: false, spotifyValidated: false, topArtistsCount: 0, error: null };
+  try {
+    const raw = req.cookies?.spotify_tokens;
+    diag.hasCookie = !!raw;
+    if (!raw) { diag.error = 'No spotify_tokens cookie'; return res.json(diag); }
+    let tokens;
+    try { tokens = JSON.parse(raw); diag.tokenParsed = true; } catch (_) { diag.error = 'Cookie not valid JSON'; return res.json(diag); }
+    diag.tokenExpired = tokens.expires_at ? Date.now() >= tokens.expires_at : 'unknown';
+    diag.refreshable = !!tokens.refresh_token;
+    const fresh = await ensureSpotifyAccessToken(req, res);
+    if (!fresh) { diag.error = 'ensureSpotifyAccessToken returned null (refresh likely failed)'; return res.json(diag); }
+    const spotifyApi = new SpotifyWebApi(spotifyCredentials);
+    spotifyApi.setAccessToken(fresh.access_token);
+    const me = await spotifyApi.getMe();
+    diag.spotifyValidated = true;
+    diag.spotifyUser = me.body?.display_name || me.body?.id || 'unknown';
+    const artists = await getSpotifyTopArtistsWithIds(fresh.access_token, 10);
+    diag.topArtistsCount = artists.length;
+    diag.topArtistsSample = artists.slice(0, 3).map(a => a.name);
+  } catch (e) {
+    diag.error = e.message;
+  }
+  res.json(diag);
 });
 
 // Time ranges for top artists (Spotify: long_term ~years, medium_term ~6 months, short_term ~4 weeks)

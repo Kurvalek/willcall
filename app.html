@@ -3111,7 +3111,9 @@
           connectBtn.style.display = 'none';
           disconnectBtn.style.display = 'inline-block';
         } else {
-          statusEl.textContent = 'Not connected';
+          var msg = 'Not connected';
+          if (data.reason === 'token_invalid') msg = 'Session expired — reconnect';
+          statusEl.textContent = msg;
           connectBtn.style.display = 'inline-block';
           disconnectBtn.style.display = 'none';
         }
@@ -3407,14 +3409,16 @@
     function openAddMenu() {
       addMenu.classList.add('open');
       addMenuBackdrop.classList.add('open');
-      addMenu.setAttribute('aria-hidden', 'false');
-      addMenuBackdrop.setAttribute('aria-hidden', 'false');
+      addMenu.removeAttribute('aria-hidden');
+      addMenuBackdrop.removeAttribute('aria-hidden');
+      addMenu.setAttribute('role', 'menu');
     }
     function closeAddMenu() {
       addMenu.classList.remove('open');
       addMenuBackdrop.classList.remove('open');
       addMenu.setAttribute('aria-hidden', 'true');
       addMenuBackdrop.setAttribute('aria-hidden', 'true');
+      addMenu.removeAttribute('role');
     }
 
     addBtn.addEventListener('click', function(e) {
