@@ -2019,9 +2019,10 @@
 
     <div id="search-explore">
       <div class="search-location-row" style="margin-bottom: 16px;">
-        <label for="search-city" style="font-size: 13px; font-weight: 500; color: var(--text-muted); margin-right: 8px;">Shows near</label>
-        <input type="text" id="search-city" placeholder="New York" style="flex: 1; max-width: 140px; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; font-size: 14px;">
-        <button type="button" id="search-city-btn" class="past-shows-search-btn" style="padding: 8px 14px;">Update</button>
+        <label for="search-city-select" style="font-size: 13px; font-weight: 500; color: var(--text-muted); margin-right: 8px;">Shows near</label>
+        <select id="search-city-select" style="flex: 1; max-width: 200px; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.15); border-radius: 8px; font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.15); appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23666%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;">
+          <option value="">Select a location</option>
+        </select>
       </div>
 
       <h2 class="section-title" style="margin-top: 24px;">I'm going</h2>
@@ -3774,7 +3775,8 @@
       }
     }
 
-    var searchCity = 'New York';
+    var _savedLocs = WillcallLocations.getAll();
+    var searchCity = (_savedLocs.length > 0 && _savedLocs[0].city) ? _savedLocs[0].city : 'New York';
     var searchNearbyEvents = [];
 
     function renderSearchGoingList() {
@@ -3822,8 +3824,7 @@
       if (!el) return;
       el.innerHTML = '<div class="empty-state">Loading shows...</div>';
       try {
-        var city = document.getElementById('search-city');
-        var cityVal = (city && city.value.trim()) || searchCity;
+        var cityVal = searchCity;
         var query = '?city=' + encodeURIComponent(cityVal) + '&size=15';
         var url = '/api/ticketmaster/events' + query;
         var res = await fetch(url);
@@ -3896,19 +3897,78 @@
       }
     }
 
-    document.getElementById('search-city-btn').addEventListener('click', function() {
-      var input = document.getElementById('search-city');
-      if (input) searchCity = input.value.trim() || 'New York';
-      renderSearchNearbyShows();
-    });
-    document.getElementById('search-city').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') {
-        searchCity = this.value.trim() || 'New York';
+    function populateCityDropdown() {
+      var select = document.getElementById('search-city-select');
+      if (!select) return;
+      var locs = WillcallLocations.getAll();
+      var current = searchCity;
+      var html = '';
+      if (locs.length > 0) {
+        locs.forEach(function(loc) {
+          var city = loc.city || '';
+          if (!city) return;
+          var selected = city.toLowerCase() === current.toLowerCase() ? ' selected' : '';
+          html += '<option value="' + city + '"' + selected + '>' + city + '</option>';
+        });
+      }
+      html += '<option value="__current__">📍 Use my current location</option>';
+      select.innerHTML = html;
+      if (locs.length === 0) {
+        select.insertAdjacentHTML('afterbegin', '<option value="" disabled selected>No saved locations</option>');
+      }
+    }
+
+    document.getElementById('search-city-select').addEventListener('change', function() {
+      var val = this.value;
+      if (val === '__current__') {
+        if (!navigator.geolocation) {
+          alert('Geolocation is not supported by your browser.');
+          populateCityDropdown();
+          return;
+        }
+        this.querySelector('[value="__current__"]').textContent = '📍 Locating...';
+        navigator.geolocation.getCurrentPosition(
+          function(pos) {
+            fetch('https://nominatim.openstreetmap.org/reverse?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&format=json')
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                var city = (data.address && (data.address.city || data.address.town || data.address.village)) || 'Unknown';
+                searchCity = city;
+                populateCityDropdown();
+                var sel = document.getElementById('search-city-select');
+                var found = false;
+                for (var i = 0; i < sel.options.length; i++) {
+                  if (sel.options[i].value.toLowerCase() === city.toLowerCase()) {
+                    sel.selectedIndex = i; found = true; break;
+                  }
+                }
+                if (!found) {
+                  sel.insertAdjacentHTML('afterbegin', '<option value="' + city + '" selected>' + city + ' (current)</option>');
+                }
+                renderSearchNearbyShows();
+              })
+              .catch(function() {
+                alert('Could not determine your city.');
+                populateCityDropdown();
+              });
+          },
+          function() {
+            alert('Location access denied.');
+            populateCityDropdown();
+          }
+        );
+        return;
+      }
+      if (val) {
+        searchCity = val;
         renderSearchNearbyShows();
       }
     });
 
+    populateCityDropdown();
+
     document.querySelector('[data-tab="search"]').addEventListener('click', function() {
+      populateCityDropdown();
       renderSearchNearbyShows();
       renderSearchGoingList();
     });
