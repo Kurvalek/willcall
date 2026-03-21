@@ -957,6 +957,11 @@
         0 4px 20px rgba(0, 0, 0, 0.05),
         0 1px 4px rgba(0, 0, 0, 0.03),
         inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .friend-card:active {
+      background: rgba(255, 255, 255, 0.25);
     }
     .friend-avatar {
       width: 48px;
@@ -1655,6 +1660,88 @@
     }
     .settings-logout-btn:hover { background: #fdf0f0; }
 
+    .user-profile-sheet {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; height: 100%;
+      background: #f9f8f4; z-index: 1200;
+      display: none; flex-direction: column;
+    }
+    .user-profile-sheet.open { display: flex; }
+    .user-profile-sheet-header {
+      display: flex; align-items: center; padding: 16px 20px;
+      border-bottom: 1px solid #e3e1da; flex-shrink: 0;
+    }
+    .user-profile-sheet-header .back-btn {
+      background: none; border: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px; font-weight: 500; color: #000; padding: 0;
+    }
+    .user-profile-sheet-header .title {
+      flex: 1; text-align: center; font-size: 18px; font-weight: 700;
+      margin-right: 40px;
+    }
+    .user-profile-sheet-body {
+      flex: 1; overflow-y: auto; padding: 0;
+    }
+    .up-hero {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 32px 20px 24px;
+    }
+    .up-avatar {
+      width: 80px; height: 80px; border-radius: 50%; background: #1a1a1a;
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;
+      margin-bottom: 12px;
+    }
+    .up-name {
+      font-size: 22px; font-weight: 700; color: #000;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .up-handle {
+      font-size: 14px; color: #888; margin-top: 2px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .up-stats {
+      display: flex; gap: 32px; margin-top: 20px;
+    }
+    .up-stat {
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .up-stat .value {
+      font-size: 20px; font-weight: 700; color: #000;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .up-stat .label {
+      font-size: 12px; color: #888; margin-top: 2px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .up-follow-btn {
+      margin-top: 20px; padding: 10px 40px;
+      border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      border: 1.5px solid #1a1a1a; transition: all 0.15s;
+    }
+    .up-follow-btn.follow {
+      background: #1a1a1a; color: #fff;
+    }
+    .up-follow-btn.follow:hover { opacity: 0.9; }
+    .up-follow-btn.following {
+      background: transparent; color: #1a1a1a;
+    }
+    .up-follow-btn.following:hover {
+      background: #fdf0f0; border-color: #c00; color: #c00;
+    }
+    .up-section {
+      padding: 0 20px 24px;
+    }
+    .up-section-title {
+      font-size: 16px; font-weight: 700; color: #000; margin-bottom: 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .up-empty {
+      font-size: 14px; color: #888; text-align: center; padding: 20px 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
     .spotify-sheet {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
       width: 100%; max-width: 430px; height: 100%;
@@ -2119,6 +2206,29 @@
       <button class="close" onclick="closeSetlistDetail()">✕</button>
     </div>
     <div class="past-shows-sheet-body" id="setlistDetailBody"></div>
+  </div>
+
+  <div id="userProfileSheet" class="user-profile-sheet">
+    <div class="user-profile-sheet-header">
+      <button class="back-btn" id="closeUserProfileBtn">Back</button>
+      <span class="title" id="upSheetTitle">Profile</span>
+    </div>
+    <div class="user-profile-sheet-body">
+      <div class="up-hero">
+        <div class="up-avatar" id="upAvatar">?</div>
+        <div class="up-name" id="upName"></div>
+        <div class="up-handle" id="upHandle"></div>
+        <div class="up-stats">
+          <div class="up-stat"><div class="value" id="upStatFollowers">0</div><div class="label">Followers</div></div>
+          <div class="up-stat"><div class="value" id="upStatFollowing">0</div><div class="label">Following</div></div>
+        </div>
+        <button type="button" class="up-follow-btn follow" id="upFollowBtn">Follow</button>
+      </div>
+      <div class="up-section" id="upMutualSection" style="display:none">
+        <div class="up-section-title">Mutual connections</div>
+        <div id="upMutualList"></div>
+      </div>
+    </div>
   </div>
 
   <div id="settingsSheet" class="settings-sheet">
@@ -4050,6 +4160,121 @@
       var btn = ev.target.closest('.friend-action-btn');
       if (!btn) return;
       toggleFollow(btn.dataset.userId);
+    });
+
+    // --- User Profile Sheet ---
+    var _upSheetUserId = null;
+    var upSheet = document.getElementById('userProfileSheet');
+
+    async function openUserProfile(userId) {
+      _upSheetUserId = userId;
+      upSheet.classList.add('open');
+      document.getElementById('upName').textContent = 'Loading...';
+      document.getElementById('upHandle').textContent = '';
+      document.getElementById('upAvatar').textContent = '?';
+      document.getElementById('upStatFollowers').textContent = '—';
+      document.getElementById('upStatFollowing').textContent = '—';
+      document.getElementById('upMutualSection').style.display = 'none';
+      updateUpFollowBtn();
+
+      try {
+        var res = await fetch('/api/users/' + userId + '/profile');
+        if (!res.ok) { document.getElementById('upName').textContent = 'User not found'; return; }
+        var data = await res.json();
+        var p = data.profile;
+        var name = p.display_name || p.username || 'User';
+        var initials = userInitials(name);
+
+        document.getElementById('upName').textContent = name;
+        document.getElementById('upHandle').textContent = p.username ? '@' + p.username : '';
+        document.getElementById('upAvatar').textContent = initials;
+        document.getElementById('upSheetTitle').textContent = p.username ? '@' + p.username : 'Profile';
+        document.getElementById('upStatFollowers').textContent = data.followerCount;
+        document.getElementById('upStatFollowing').textContent = data.followingCount;
+
+        // Show mutual connections
+        var uid = await getCurrentUserId();
+        if (uid && data.followerIds && data.followingIds) {
+          var myFollowing = Object.keys(_followingIds);
+          var theirFollowers = data.followerIds;
+          var theirFollowing = data.followingIds;
+          var allTheirs = [].concat(theirFollowers, theirFollowing);
+          var mutualIds = myFollowing.filter(function(id) {
+            return allTheirs.indexOf(id) !== -1 && id !== uid && id !== userId;
+          });
+          if (mutualIds.length > 0) {
+            document.getElementById('upMutualSection').style.display = '';
+            try {
+              var mRes = await fetch('/api/users/search?q=');
+              var mData = await mRes.json();
+              var allUsers = mData.users || [];
+              var mutualHtml = '';
+              allUsers.forEach(function(u) {
+                if (mutualIds.indexOf(u.id) !== -1) {
+                  mutualHtml += renderUserCard(u, true);
+                }
+              });
+              document.getElementById('upMutualList').innerHTML = mutualHtml || '<div class="up-empty">None yet</div>';
+            } catch(e) {
+              document.getElementById('upMutualList').innerHTML = '<div class="up-empty">Could not load</div>';
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load user profile:', e);
+        document.getElementById('upName').textContent = 'Failed to load';
+      }
+    }
+
+    function closeUserProfile() {
+      upSheet.classList.remove('open');
+      _upSheetUserId = null;
+    }
+
+    function updateUpFollowBtn() {
+      var btn = document.getElementById('upFollowBtn');
+      if (!_upSheetUserId) return;
+      var isFollowing = !!_followingIds[_upSheetUserId];
+      btn.className = 'up-follow-btn ' + (isFollowing ? 'following' : 'follow');
+      btn.textContent = isFollowing ? 'Following' : 'Follow';
+    }
+
+    document.getElementById('closeUserProfileBtn').addEventListener('click', closeUserProfile);
+
+    document.getElementById('upFollowBtn').addEventListener('click', async function() {
+      if (!_upSheetUserId) return;
+      await toggleFollow(_upSheetUserId);
+      updateUpFollowBtn();
+      // Refresh counts
+      try {
+        var res = await fetch('/api/users/' + _upSheetUserId + '/profile');
+        if (res.ok) {
+          var data = await res.json();
+          document.getElementById('upStatFollowers').textContent = data.followerCount;
+          document.getElementById('upStatFollowing').textContent = data.followingCount;
+        }
+      } catch(e) {}
+    });
+
+    // Make clicking a user card (not the follow button) open their profile
+    function handleCardClick(ev) {
+      var btn = ev.target.closest('.friend-action-btn');
+      if (btn) return; // let follow button handler handle it
+      var card = ev.target.closest('.friend-card');
+      if (!card) return;
+      var userId = card.dataset.userId;
+      if (userId) openUserProfile(userId);
+    }
+
+    document.getElementById('friends-list').addEventListener('click', handleCardClick);
+    friendsSearchResults.addEventListener('click', handleCardClick);
+    document.getElementById('search-people-suggestions').addEventListener('click', handleCardClick);
+    document.getElementById('search-people-results').addEventListener('click', handleCardClick);
+    document.getElementById('upMutualList').addEventListener('click', function(ev) {
+      var btn = ev.target.closest('.friend-action-btn');
+      if (btn) { toggleFollow(btn.dataset.userId); return; }
+      var card = ev.target.closest('.friend-card');
+      if (card && card.dataset.userId) openUserProfile(card.dataset.userId);
     });
 
     var _pastSuggestionConcerts = [];

@@ -1550,6 +1550,32 @@ app.post('/api/auth/check-email', async (req, res) => {
   }
 });
 
+// Get a single user's profile + follower/following counts
+app.get('/api/users/:id/profile', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  const userId = req.params.id;
+  try {
+    const [profileRes, followersRes, followingRes] = await Promise.all([
+      supabase.from('profiles').select('id, display_name, username').eq('id', userId).maybeSingle(),
+      supabase.from('follows').select('follower_id').eq('following_id', userId),
+      supabase.from('follows').select('following_id').eq('follower_id', userId)
+    ]);
+    if (!profileRes.data) return res.status(404).json({ error: 'User not found' });
+    const followerIds = (followersRes.data || []).map(r => r.follower_id);
+    const followingIds = (followingRes.data || []).map(r => r.following_id);
+    res.json({
+      profile: profileRes.data,
+      followerCount: followerIds.length,
+      followingCount: followingIds.length,
+      followerIds: followerIds,
+      followingIds: followingIds
+    });
+  } catch (err) {
+    console.error('User profile error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Search users in Supabase profiles
 app.get('/api/users/search', async (req, res) => {
   if (!supabase) return res.json({ users: [] });
