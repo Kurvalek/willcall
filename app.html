@@ -412,22 +412,31 @@
     }
     .see-all-link:hover { text-decoration: underline; }
 
-    .top-artist-item {
+    #top-artists-list {
       display: flex;
-      align-items: stretch;
-      min-height: 72px;
-      border-radius: 4px;
+      gap: 10px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    #top-artists-list::-webkit-scrollbar { display: none; }
+    .top-artist-item {
+      flex: 0 0 120px;
+      width: 120px;
+      height: 150px;
+      border-radius: 10px;
       overflow: hidden;
-      margin-bottom: 10px;
-      background: rgba(255, 255, 255, 0.15);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
       position: relative;
+      scroll-snap-align: start;
+      background: #1a1a1a;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
       transition: background-color 0.4s ease;
     }
-    .top-artist-item:last-child { margin-bottom: 0; }
     .top-artist-img-wrap {
-      width: 72px;
-      flex-shrink: 0;
+      position: absolute;
+      inset: 0;
       overflow: hidden;
     }
     .top-artist-img-wrap img {
@@ -444,42 +453,29 @@
       align-items: center;
       justify-content: center;
       color: #fff;
-      font-size: 17px;
+      font-size: 22px;
       font-weight: 700;
     }
-    .top-artist-body {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
+    .top-artist-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 8px 10px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
     }
-    .top-artist-rank {
-      font-size: 18px;
-      font-weight: 800;
-      opacity: 0.35;
-      flex-shrink: 0;
-    }
-    .top-artist-info { flex: 1; min-width: 0; }
     .top-artist-name {
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 1.2;
     }
     .top-artist-count {
-      font-size: 12px;
-      opacity: 0.65;
-      margin-top: 2px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.75);
+      margin-top: 1px;
     }
-    .top-artist-item[data-theme="light"] .top-artist-name,
-    .top-artist-item[data-theme="light"] .top-artist-rank { color: #000; }
-    .top-artist-item[data-theme="light"] .top-artist-count { color: #000; }
-    .top-artist-item[data-theme="dark"] .top-artist-name,
-    .top-artist-item[data-theme="dark"] .top-artist-rank { color: #fff; }
-    .top-artist-item[data-theme="dark"] .top-artist-count { color: #fff; }
 
     .show-card-layout {
       display: flex;
@@ -3167,9 +3163,9 @@
         if (seeAllBtn) seeAllBtn.style.display = 'none';
       } else {
         var showAll = topArtistsEl.dataset.showAll === 'true';
-        var displayArtists = showAll ? sortedArtists : sortedArtists.slice(0, 3);
+        var displayArtists = showAll ? sortedArtists : sortedArtists.slice(0, 6);
         var aHtml = '';
-        displayArtists.forEach(function(name, idx) {
+        displayArtists.forEach(function(name) {
           var count = artistCounts[name];
           var initials = name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
           var imgWrapHtml = artistImages[name]
@@ -3177,17 +3173,15 @@
             : '<div class="top-artist-img-wrap"><div class="top-artist-img-fallback">' + initials + '</div></div>';
           aHtml += '<div class="top-artist-item">';
           aHtml += imgWrapHtml;
-          aHtml += '<div class="top-artist-body">';
-          aHtml += '<div class="top-artist-rank">' + (idx + 1) + '</div>';
-          aHtml += '<div class="top-artist-info">';
+          aHtml += '<div class="top-artist-overlay">';
           aHtml += '<div class="top-artist-name">' + name + '</div>';
           aHtml += '<div class="top-artist-count">' + count + (count === 1 ? ' show' : ' shows') + '</div>';
-          aHtml += '</div></div></div>';
+          aHtml += '</div></div>';
         });
         topArtistsEl.innerHTML = aHtml;
         colorizeTopArtists();
         if (seeAllBtn) {
-          seeAllBtn.style.display = sortedArtists.length > 3 ? '' : 'none';
+          seeAllBtn.style.display = sortedArtists.length > 6 ? '' : 'none';
           seeAllBtn.textContent = showAll ? 'Show Less' : 'See All';
         }
       }
