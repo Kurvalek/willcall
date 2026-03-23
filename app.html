@@ -38,7 +38,7 @@
       margin: 0 auto;
       position: relative;
       padding-top: var(--safe-top);
-      padding-bottom: calc(var(--tab-height) + 40px + var(--safe-bottom));
+      padding-bottom: calc(var(--tab-height) + 24px + var(--safe-bottom));
     }
 
     .status-bar {
@@ -210,7 +210,6 @@
       display: flex;
       flex-direction: column;
       gap: 34px;
-      background-color: var(--profile-bg, #F9F8F4);
     }
     .home-border-frame .profile-divider { display: none; }
     .home-border-frame .section-header { margin-bottom: 0; }
@@ -1143,82 +1142,60 @@
 
     .tab-bar {
       position: fixed;
-      bottom: 24px;
+      bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: auto;
+      width: 100%;
       max-width: 430px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding-bottom: var(--safe-bottom);
+      justify-content: space-around;
+      padding: 12px 24px;
+      padding-bottom: calc(12px + var(--safe-bottom));
+      background: #f9f8f4;
+      border-top: 1px solid rgba(0,0,0,0.08);
       z-index: 900;
     }
     .tab-bar-pill {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      background: rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(40px) saturate(200%);
-      -webkit-backdrop-filter: blur(40px) saturate(200%);
-      border-radius: 35px;
-      box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      padding: 0 8px;
+      display: contents;
     }
     .tab-bar .tab {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 58px;
-      height: 58px;
+      width: 48px;
+      height: 48px;
       cursor: pointer;
-      color: #000;
-      transition: color 0.2s ease;
+      color: rgba(0,0,0,0.35);
+      transition: color 0.15s ease;
     }
-    .tab-bar .tab:hover { color: #000; }
-    .tab-bar .tab.active { color: #000; font-weight: 700; }
-    .tab-bar .tab svg { display: block; stroke: #000; }
+    .tab-bar .tab:hover { color: rgba(0,0,0,0.6); }
+    .tab-bar .tab.active { color: #000; }
+    .tab-bar .tab svg { display: block; stroke: currentColor; }
     .tab-bar .tab.active svg { stroke: #000; stroke-width: 2.5; }
-    .tab-bar .tab.active > div { transform: scale(1.08); }
+    .tab-bar .tab.active > div { transform: scale(1.05); }
     .tab-add-btn {
-      width: 58px;
-      height: 58px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
-      background: rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(40px) saturate(200%);
-      -webkit-backdrop-filter: blur(40px) saturate(200%);
-      box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: #232323;
+      border: none;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.15s ease;
     }
     .tab-add-btn:hover {
       transform: scale(1.06);
-      box-shadow:
-        0 10px 36px rgba(0, 0, 0, 0.1),
-        0 2px 8px rgba(0, 0, 0, 0.05),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.8);
     }
     .tab-add-btn.active {
-      box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.8);
+      opacity: 0.85;
     }
     .tab-add-btn svg {
-      width: 24px;
-      height: 24px;
-      stroke: #000;
+      width: 20px;
+      height: 20px;
+      stroke: #fff;
     }
     @keyframes add-btn-liquid {
       0%   { transform: scale(1); border-radius: 50%; filter: brightness(1); }
@@ -2352,17 +2329,17 @@
   <nav class="tab-bar">
     <div class="tab-bar-pill">
       <div class="tab active" data-tab="home" title="Home">
-        <div id="lottie-home" style="width:30px;height:30px;"></div>
+        <div id="lottie-home" style="width:28px;height:28px;"></div>
       </div>
       <div class="tab" data-tab="search" title="Search">
-        <div id="lottie-search" style="width:30px;height:30px;"></div>
+        <div id="lottie-search" style="width:28px;height:28px;"></div>
       </div>
       <div class="tab" data-tab="profile" title="My Crowd">
-        <div id="lottie-crowd" style="width:30px;height:30px;"></div>
+        <div id="lottie-crowd" style="width:28px;height:28px;"></div>
       </div>
-    </div>
-    <div class="tab-add-btn" id="tabAddBtn" title="Add">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      <div class="tab-add-btn" id="tabAddBtn" title="Add">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </div>
     </div>
   </nav>
 
@@ -3008,9 +2985,10 @@
       }
 
       function applyProfileColor(color) {
-        var frame = document.querySelector('.home-border-frame');
-        if (frame) frame.style.backgroundColor = color;
-        document.body.style.setProperty('--profile-bg', color);
+        document.body.style.background = color;
+        document.documentElement.style.background = color;
+        var tabBar = document.querySelector('.tab-bar');
+        if (tabBar) tabBar.style.background = color;
       }
 
       function renderSwatches() {
