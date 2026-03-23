@@ -1556,7 +1556,7 @@ app.get('/api/users/:id/profile', async (req, res) => {
   const userId = req.params.id;
   try {
     const [profileRes, followersRes, followingRes] = await Promise.all([
-      supabase.from('profiles').select('id, display_name, username').eq('id', userId).maybeSingle(),
+      supabase.from('profiles').select('id, display_name, username, profile_color').eq('id', userId).maybeSingle(),
       supabase.from('follows').select('follower_id').eq('following_id', userId),
       supabase.from('follows').select('following_id').eq('follower_id', userId)
     ]);
@@ -1573,6 +1573,27 @@ app.get('/api/users/:id/profile', async (req, res) => {
   } catch (err) {
     console.error('User profile error:', err.message);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Update profile color
+app.post('/api/users/:id/profile-color', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  const userId = req.params.id;
+  const color = (req.body && req.body.color) || '#F9F8F4';
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ profile_color: color })
+      .eq('id', userId);
+    if (error) {
+      console.warn('profile-color update error:', error.message);
+      return res.json({ ok: true });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.warn('profile-color error:', err.message);
+    res.json({ ok: true });
   }
 });
 

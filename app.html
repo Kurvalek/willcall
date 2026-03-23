@@ -210,6 +210,7 @@
       display: flex;
       flex-direction: column;
       gap: 34px;
+      background-color: var(--profile-bg, #F9F8F4);
     }
     .home-border-frame .profile-divider { display: none; }
     .home-border-frame .section-header { margin-bottom: 0; }
@@ -1548,6 +1549,23 @@
       padding-top: 28px;
       border-top: 1px solid #e3e1da;
     }
+    .profile-color-picker { margin-bottom: 28px; }
+    .profile-color-picker .settings-section-title { margin-bottom: 12px; }
+    .color-swatches {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .color-swatch {
+      width: 40px; height: 40px; border-radius: 4px; border: 2px solid rgba(0,0,0,0.1);
+      cursor: pointer; position: relative; transition: border-color 0.15s;
+    }
+    .color-swatch:hover { border-color: rgba(0,0,0,0.4); }
+    .color-swatch.active { border-color: #000; }
+    .color-swatch.active::after {
+      content: '✓'; position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; color: #000;
+    }
+
     .settings-section-title {
       font-size: 16px;
       font-weight: 700;
@@ -2299,6 +2317,12 @@
       <span class="title">Settings</span>
     </div>
     <div class="settings-sheet-body">
+      <div class="profile-color-picker">
+        <p class="settings-section-title">Profile Color</p>
+        <p class="settings-section-desc" style="margin-bottom:12px">Choose a background color for your profile.</p>
+        <div class="color-swatches" id="colorSwatches"></div>
+      </div>
+
       <p style="font-size:16px;font-weight:700;margin-bottom:12px">My Locations</p>
       <p style="font-size:13px;color:#595959;margin-bottom:16px">Cities where you go to shows and when. This helps us find concerts for you.</p>
       <div id="settingsLocList" class="loc-list"></div>
@@ -2575,13 +2599,17 @@
         try {
           var email = session.user.email;
           if (email && !localStorage.getItem('willcall_profile')) {
-            var { data: profile } = await supabaseClient.from('profiles').select('display_name, username').eq('email', email).maybeSingle();
+            var { data: profile } = await supabaseClient.from('profiles').select('display_name, username, profile_color').eq('email', email).maybeSingle();
             if (profile) {
-              localStorage.setItem('willcall_profile', JSON.stringify({ name: profile.display_name || '', email: email, username: profile.username || '' }));
+              localStorage.setItem('willcall_profile', JSON.stringify({ name: profile.display_name || '', email: email, username: profile.username || '', profileColor: profile.profile_color || '' }));
               var profileName = document.getElementById('profileName');
               var profileHandle = document.getElementById('profileHandle');
               if (profileName) profileName.textContent = profile.display_name || '';
               if (profileHandle) profileHandle.textContent = profile.username ? '@' + profile.username : '';
+              if (profile.profile_color) {
+                localStorage.setItem('willcall_profile_color', profile.profile_color);
+                if (typeof window._applyProfileColor === 'function') window._applyProfileColor(profile.profile_color);
+              }
             }
           }
         } catch (e) { console.warn('Profile load on auth check:', e); }
@@ -2688,15 +2716,20 @@
           if (_isSignIn) {
             // Returning user — load their profile and skip onboarding
             try {
-              var { data: profile } = await sb.from('profiles').select('display_name, username').eq('email', onbData.email).maybeSingle();
+              var { data: profile } = await sb.from('profiles').select('display_name, username, profile_color').eq('email', onbData.email).maybeSingle();
               if (profile) {
                 onbData.name = profile.display_name || '';
                 onbData.username = profile.username || '';
+                onbData.profileColor = profile.profile_color || '';
                 localStorage.setItem('willcall_profile', JSON.stringify(onbData));
                 var profileName = document.getElementById('profileName');
                 var profileHandle = document.getElementById('profileHandle');
                 if (profileName) profileName.textContent = onbData.name;
                 if (profileHandle) profileHandle.textContent = onbData.username ? '@' + onbData.username : '';
+                if (profile.profile_color) {
+                  localStorage.setItem('willcall_profile_color', profile.profile_color);
+                  if (typeof window._applyProfileColor === 'function') window._applyProfileColor(profile.profile_color);
+                }
               }
             } catch (e) { console.warn('Could not load profile:', e); }
             hideOnboarding();
@@ -2942,6 +2975,7 @@
 
       if (openBtn) openBtn.addEventListener('click', function() {
         settingsSheet.classList.add('open');
+        if (typeof window._renderColorSwatches === 'function') window._renderColorSwatches();
         WillcallLocations.renderList(
           document.getElementById('settingsLocList'),
           document.getElementById('settingsLocFormWrap'),
@@ -2962,6 +2996,69 @@
         sessionStorage.removeItem('willcallSeenLanding');
         window.location.reload();
       });
+    })();
+
+    // Profile color picker
+    (function() {
+      var PROFILE_COLORS = ['#F9F8F4','#EEE9B1','#FC98BC','#D5D6EB','#FC6C2E','#7ABFE8','#A5A49F','#A8C9AA'];
+      var COLOR_KEY = 'willcall_profile_color';
+
+      function getProfileColor() {
+        return localStorage.getItem(COLOR_KEY) || '#F9F8F4';
+      }
+
+      function applyProfileColor(color) {
+        var frame = document.querySelector('.home-border-frame');
+        if (frame) frame.style.backgroundColor = color;
+        document.body.style.setProperty('--profile-bg', color);
+      }
+
+      function renderSwatches() {
+        var container = document.getElementById('colorSwatches');
+        if (!container) return;
+        var current = getProfileColor();
+        container.innerHTML = '';
+        PROFILE_COLORS.forEach(function(c) {
+          var el = document.createElement('button');
+          el.type = 'button';
+          el.className = 'color-swatch' + (c.toUpperCase() === current.toUpperCase() ? ' active' : '');
+          el.style.backgroundColor = c;
+          el.setAttribute('data-color', c);
+          el.setAttribute('aria-label', c);
+          container.appendChild(el);
+        });
+      }
+
+      document.getElementById('colorSwatches').addEventListener('click', function(ev) {
+        var swatch = ev.target.closest('.color-swatch');
+        if (!swatch) return;
+        var color = swatch.dataset.color;
+        localStorage.setItem(COLOR_KEY, color);
+        applyProfileColor(color);
+        document.querySelectorAll('.color-swatch').forEach(function(s) { s.classList.remove('active'); });
+        swatch.classList.add('active');
+
+        var profile = null;
+        try { profile = JSON.parse(localStorage.getItem('willcall_profile')); } catch(e) {}
+        if (profile) {
+          profile.profileColor = color;
+          localStorage.setItem('willcall_profile', JSON.stringify(profile));
+        }
+        var uid = typeof getCurrentUserId === 'function' ? getCurrentUserId() : null;
+        if (uid) {
+          fetch('/api/users/' + uid + '/profile-color', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ color: color })
+          }).catch(function() {});
+        }
+      });
+
+      window._renderColorSwatches = renderSwatches;
+      window._applyProfileColor = applyProfileColor;
+      window._getProfileColor = getProfileColor;
+
+      applyProfileColor(getProfileColor());
     })();
 
     // Migrate old localStorage keys from "fanatik" → "willcall" for existing users
@@ -4385,6 +4482,9 @@
         document.getElementById('upSheetTitle').textContent = p.username ? '@' + p.username : 'Profile';
         document.getElementById('upStatFollowers').textContent = data.followerCount;
         document.getElementById('upStatFollowing').textContent = data.followingCount;
+
+        var upHero = document.querySelector('.up-hero');
+        if (upHero) upHero.style.backgroundColor = p.profile_color || '#F9F8F4';
 
         // Show mutual connections
         var uid = await getCurrentUserId();
