@@ -16,7 +16,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #F8F8F4;
+      --bg: #f9f8f4;
       --text: #000;
       --text-muted: #000;
       --gradient-start: #000;
@@ -25,7 +25,7 @@
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --tab-height: 56px;
-      --card-radius: 12px;
+      --card-radius: 4px;
     }
     html { background: #1a1a1a; min-height: 100vh; min-height: 100dvh; }
     body {
@@ -63,22 +63,13 @@
     .tab-content { display: none; padding: 16px 20px 24px; min-height: calc(100vh - 100px); position: relative; z-index: 1; }
     .tab-content.active { display: block; }
     .profile-color-wash {
-      position: fixed;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 430px;
-      height: 100%;
-      pointer-events: none;
-      background: var(--bg);
-      z-index: -1;
+      display: none;
     }
 
     .section-title {
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 700;
-      color: var(--text);
+      color: #000;
       margin-bottom: 12px;
     }
     .empty-state {
@@ -213,23 +204,51 @@
     .stat-card .value { font-size: 24px; font-weight: 700; color: var(--gradient-end); }
     .stat-card .label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 
+    .home-border-frame {
+      border: 2px solid #232323;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 34px;
+    }
+    .home-border-frame .profile-divider { display: none; }
+    .home-border-frame .section-header { margin-bottom: 0; }
+    .home-border-frame .profile-header { margin-bottom: 0; }
+    .home-border-frame .stats-card { margin-bottom: 0; }
+    .home-border-frame .profile-header-anchor { margin-bottom: 0; }
+    .home-border-frame .show-card { margin-bottom: 0; }
+    .home-border-frame .add-past-shows-btn { margin-top: 0; }
+    .home-section {
+      display: flex;
+      flex-direction: column;
+      gap: 17px;
+    }
+    .home-section .badge-grid { margin-bottom: 0; }
+    .home-section .see-all-badges { margin-bottom: 0; padding: 0; }
+    .home-section #profile-shows,
+    .home-section #profile-upcoming {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .profile-header-anchor {
-      margin-bottom: 24px;
       will-change: transform;
     }
 
     .profile-header {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 19px;
       margin-bottom: 24px;
       will-change: transform;
     }
     .profile-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 4px;
-      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      width: 100px;
+      height: 100px;
+      border-radius: 0;
+      border: 1px solid #000;
+      background: #d4d2cc;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -237,26 +256,25 @@
       font-size: 28px;
       flex-shrink: 0;
       overflow: hidden;
-      will-change: transform, border-radius;
+      will-change: transform;
     }
-    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(1.3) brightness(0.95); }
+    .show-card-img-wrap img,
+    .top-artist-img-wrap img {
+      filter: grayscale(100%) contrast(1.3) brightness(0.95);
+    }
     .profile-info { flex: 1; min-width: 0; will-change: opacity; }
-    .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 2px; }
-    .profile-handle { font-size: 13px; color: #000; margin-bottom: 2px; }
+    .profile-name { font-size: 20px; font-weight: 600; margin-bottom: 7px; color: #000; }
+    .profile-handle { font-size: 14px; font-weight: 500; color: #000; margin-bottom: 2px; }
     .profile-bio { font-size: 12px; color: #000; }
 
     .stats-card {
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(40px) saturate(200%);
-      -webkit-backdrop-filter: blur(40px) saturate(200%);
-      border-radius: 14px;
-      padding: 16px;
+      background: rgba(35, 35, 35, 0.2);
+      border-radius: 4px;
+      padding: 12px 16px;
       margin-bottom: 24px;
-      box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      border: 1px solid #232323;
       will-change: padding, border-radius;
     }
     .stats-row {
@@ -273,9 +291,9 @@
       gap: 4px;
       will-change: transform;
     }
-    .stats-row .stat .value { font-size: 22px; font-weight: 600; color: var(--text); }
-    .stats-row .stat .label { font-size: 12px; color: #000; font-family: 'Inter', sans-serif; }
-    .stats-divider { width: 1px; height: 28px; background: #ebebeb; flex-shrink: 0; }
+    .stats-row .stat .value { font-size: 24px; font-weight: 600; color: #232323; }
+    .stats-row .stat .label { font-size: 12px; color: #232323; font-weight: 500; }
+    .stats-divider { width: 1px; height: 40px; background: #232323; flex-shrink: 0; }
 
     .profile-sticky-header {
       position: fixed;
@@ -288,15 +306,12 @@
       align-items: center;
       gap: 14px;
       padding: calc(10px + var(--safe-top)) 16px 10px;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(40px) saturate(200%);
-      -webkit-backdrop-filter: blur(40px) saturate(200%);
-      border-radius: 24px;
-      box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.6);
-      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(35, 35, 35, 0.15);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 4px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      border: 1px solid #232323;
       z-index: 100;
       opacity: 0;
       visibility: hidden;
@@ -311,7 +326,8 @@
     .profile-sticky-header .sticky-avatar {
       width: 44px;
       height: 44px;
-      border-radius: 50%;
+      border-radius: 0;
+      border: 1px solid #000;
       overflow: hidden;
       flex-shrink: 0;
     }
@@ -319,6 +335,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      filter: grayscale(100%) contrast(1.3) brightness(0.95);
     }
     .profile-sticky-header .sticky-stats-row {
       display: flex;
@@ -347,7 +364,7 @@
     .profile-sticky-header .sticky-stat-divider {
       width: 1px;
       height: 24px;
-      background: #ebebeb;
+      background: #232323;
       flex-shrink: 0;
     }
 
@@ -358,7 +375,7 @@
       margin-bottom: 16px;
     }
     .section-header .section-title { margin-bottom: 0; }
-    .section-header .count { font-size: 13px; color: #000; font-family: 'Inter', sans-serif; }
+    .section-header .count { font-size: 14px; color: #000; font-weight: 500; }
 
     .badge-grid {
       display: grid;
@@ -373,22 +390,22 @@
       gap: 8px;
     }
     .badge-item .icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 12px;
+      width: 39px;
+      height: 39px;
+      border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .badge-item .icon img {
-      width: 38px;
-      height: 38px;
+      width: 39px;
+      height: 39px;
       object-fit: contain;
     }
     .badge-item .label {
       font-size: 11px;
       font-weight: 500;
-      color: var(--text);
+      color: #000;
       text-align: center;
     }
     
@@ -414,7 +431,7 @@
 
     #top-artists-list {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
       -webkit-overflow-scrolling: touch;
@@ -423,16 +440,15 @@
     }
     #top-artists-list::-webkit-scrollbar { display: none; }
     .top-artist-item {
-      flex: 0 0 120px;
-      width: 120px;
-      height: 150px;
-      border-radius: 10px;
+      flex: 0 0 104px;
+      width: 104px;
+      height: 132px;
+      border-radius: 4px;
       overflow: hidden;
       position: relative;
       scroll-snap-align: start;
       background: #1a1a1a;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-      transition: background-color 0.4s ease;
+      border: 1px solid #232323;
     }
     .top-artist-img-wrap {
       position: absolute;
@@ -448,7 +464,7 @@
     .top-artist-img-fallback {
       width: 100%;
       height: 100%;
-      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      background: #232323;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -459,11 +475,11 @@
     .top-artist-overlay {
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      padding: 8px 10px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      padding: 8px;
+      background: linear-gradient(to bottom, rgba(35,35,35,0.02) 62%, rgba(35,35,35,0.2) 100%);
     }
     .top-artist-name {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: #fff;
       white-space: nowrap;
@@ -472,23 +488,24 @@
       line-height: 1.2;
     }
     .top-artist-count {
-      font-size: 11px;
-      color: rgba(255,255,255,0.75);
-      margin-top: 1px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.85);
+      font-weight: 400;
     }
 
     .show-card-layout {
       display: flex;
-      align-items: stretch;
-      min-height: 90px;
+      align-items: start;
+      gap: 16px;
     }
     .show-card-img-wrap {
       position: relative;
-      width: 90px;
+      width: 88px;
+      height: 88px;
       flex-shrink: 0;
       overflow: hidden;
-      border-radius: 0;
-      margin: -16px 14px -16px -16px;
+      border-radius: 4px 0 0 4px;
+      margin: -16px 16px -16px -16px;
     }
     .show-card-img-wrap img {
       width: 100%;
@@ -499,7 +516,7 @@
     .show-card-fallback {
       width: 100%;
       height: 100%;
-      background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+      background: #3a3a3a;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -510,28 +527,22 @@
     .show-card-content {
       flex: 1;
       min-width: 0;
-      padding: 2px 0;
+      padding: 0;
       position: relative;
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
-    .show-card[data-theme="light"] .concert-artist,
-    .show-card[data-theme="light"] .concert-venue,
-    .show-card[data-theme="light"] .concert-venue svg { color: #000; stroke: #000; }
-    .show-card[data-theme="light"] .concert-date { color: #000; }
-    .show-card[data-theme="light"] .delete-btn,
-    .show-card[data-theme="light"] .upcoming-remove-btn { color: rgba(0,0,0,0.35); }
-    .show-card[data-theme="light"] .delete-btn:hover,
-    .show-card[data-theme="light"] .upcoming-remove-btn:hover { color: #000; }
-    .show-card[data-theme="light"] .setlist-link { color: #000; }
-    .show-card[data-theme="dark"] .concert-artist,
-    .show-card[data-theme="dark"] .concert-venue,
-    .show-card[data-theme="dark"] .concert-venue svg { color: #fff; stroke: #fff; }
-    .show-card[data-theme="dark"] .concert-date { color: #fff; }
-    .show-card[data-theme="dark"] .delete-btn,
-    .show-card[data-theme="dark"] .upcoming-remove-btn { color: #fff; }
-    .show-card[data-theme="dark"] .delete-btn:hover,
-    .show-card[data-theme="dark"] .upcoming-remove-btn:hover { color: #fff; }
-    .show-card[data-theme="dark"] .setlist-link { color: #fff; }
+    .show-card .concert-artist,
+    .show-card .concert-venue,
+    .show-card .concert-venue svg { color: #fff; stroke: #fff; }
+    .show-card .concert-date { color: #fff; }
+    .show-card .delete-btn,
+    .show-card .upcoming-remove-btn { color: rgba(255,255,255,0.5); }
+    .show-card .delete-btn:hover,
+    .show-card .upcoming-remove-btn:hover { color: #fff; }
+    .show-card .setlist-link { color: #fff; }
 
     .profile-divider {
       height: 1px;
@@ -540,17 +551,13 @@
     }
 
     .show-card {
-      background: rgba(255, 255, 255, 0.15);
+      background: #232323;
       border-radius: 4px;
       padding: 16px;
       margin-bottom: 12px;
-      box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.08),
-        0 1px 4px rgba(0, 0, 0, 0.04);
       border: none;
       position: relative;
       overflow: hidden;
-      transition: background-color 0.4s ease;
     }
     .show-card .delete-btn,
     .show-card .upcoming-remove-btn {
@@ -561,16 +568,17 @@
     }
     .show-card .delete-btn:hover,
     .show-card .upcoming-remove-btn:hover { color: #000; }
-    .show-card .concert-artist { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-    .show-card .concert-date { font-size: 13px; color: #000; font-weight: 500; margin-bottom: 6px; }
+    .show-card .concert-artist { font-size: 14px; font-weight: 700; }
+    .show-card .concert-date { font-size: 12px; color: #fff; font-weight: 400; }
     .show-card .concert-venue {
-      font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 4px; margin-bottom: 6px;
+      font-size: 12px; color: #fff; display: flex; align-items: center; gap: 4px;
     }
     .show-card .concert-venue svg { flex-shrink: 0; }
     .show-card .setlist-link {
-      font-size: 13px; font-weight: 500; color: #000; text-decoration: none;
+      font-size: 12px; font-weight: 500; color: #fff; text-decoration: none;
       display: inline-flex; align-items: center; gap: 4px;
     }
+    .show-card .setlist-link svg { stroke: #fff; }
     .show-card .setlist-link:hover { text-decoration: underline; }
 
     .add-past-shows-btn {
@@ -579,28 +587,22 @@
       justify-content: center;
       gap: 8px;
       width: 100%;
-      padding: 14px;
-      margin-top: 16px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(32px) saturate(180%);
-      -webkit-backdrop-filter: blur(32px) saturate(180%);
-      border: 1px dashed rgba(0, 0, 0, 0.25);
-      border-radius: var(--card-radius);
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      border-radius: 4px;
       font-family: inherit;
       font-size: 14px;
       font-weight: 600;
-      color: var(--gradient-end);
+      color: #000;
       cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.05),
-        0 1px 4px rgba(0, 0, 0, 0.03),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
     }
-    .add-past-shows-btn svg { stroke: var(--gradient-end); }
+    .add-past-shows-btn svg { stroke: #000; }
     .add-past-shows-btn:hover {
       background: rgba(0, 0, 0, 0.04);
-      border-color: var(--gradient-end);
     }
 
     .past-shows-sheet {
@@ -1628,9 +1630,9 @@
 
     /* Settings gear */
     .profile-settings-btn {
-      position: absolute; top: -4px; right: -4px; z-index: 10;
-      background: none; border: none; cursor: pointer; padding: 12px;
-      color: #000; opacity: 0.6; transition: opacity 0.15s;
+      position: absolute; top: 0; right: -4px; z-index: 10;
+      background: none; border: none; cursor: pointer; padding: 8px;
+      color: #000; opacity: 0.7; transition: opacity 0.15s;
     }
     .profile-settings-btn:hover { opacity: 1; }
     .profile-settings-btn svg { display: block; }
@@ -1920,6 +1922,7 @@
       <strong>Use this URL so login works:</strong> <a href="http://127.0.0.1:3000/app" id="correctUrl">http://127.0.0.1:3000/app</a>
     </div>
 
+    <div class="home-border-frame">
     <div id="profile-header-anchor" class="profile-header-anchor" style="position:relative">
       <button class="profile-settings-btn" id="openSettingsBtn" aria-label="Settings">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -1945,6 +1948,59 @@
       </div>
     </div>
 
+    <div class="home-section">
+      <div class="section-header">
+        <h2 class="section-title">Top Artists</h2>
+        <a href="#" class="see-all-link" id="see-all-artists">See All</a>
+      </div>
+      <div id="top-artists-list">
+        <div class="empty-state">Check in to shows to see your top artists.</div>
+      </div>
+    </div>
+
+    <div class="home-section">
+      <div class="section-header">
+        <h2 class="section-title">Badges</h2>
+        <span class="count" id="profile-badge-count">0 of 32</span>
+      </div>
+      <div class="badge-grid" id="profileBadges">
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/star.svg" alt="First Show"></div><div class="label">First Show</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/beer.svg" alt="Bar Fly"></div><div class="label">Bar Fly</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lighter.svg" alt="Encore"></div><div class="label">Encore</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/van.svg" alt="On Tour"></div><div class="label">On Tour</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/pizza.svg" alt="NYC Local"></div><div class="label">NYC Local</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/record.svg" alt="Legend"></div><div class="label">Legend</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lightning.svg" alt="Electric"></div><div class="label">Electric</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/eyes.svg" alt="Superfan"></div><div class="label">Superfan</div></div>
+      </div>
+      <a href="#" class="see-all-badges">See all 32 badges</a>
+    </div>
+
+    <div class="home-section" id="profile-upcoming-section">
+      <div class="section-header" id="profile-upcoming-header">
+        <h2 class="section-title">Upcoming Shows</h2>
+        <span class="count" id="profile-upcoming-count">0 shows</span>
+      </div>
+      <div id="profile-upcoming"></div>
+    </div>
+
+    <div class="home-section">
+      <div class="section-header" id="profile-shows-header">
+        <h2 class="section-title">My Shows</h2>
+        <span class="count" id="profile-shows-count">0 shows</span>
+      </div>
+      <div id="profile-shows">
+        <div class="empty-state">
+          <a href="#" onclick="switchTab('add'); openSpotifySheet(); return false;">Find concerts from Spotify</a> or check in from the + tab.
+        </div>
+      </div>
+      <button type="button" class="add-past-shows-btn" onclick="openPastShowsSheet()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Past Shows
+      </button>
+    </div>
+    </div>
+
     <div id="profile-sticky-header" class="profile-sticky-header" aria-hidden="true">
       <div class="sticky-avatar"><svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="4" fill="#d4d2cc"/><circle cx="40" cy="30" r="14" fill="#fff"/><ellipse cx="40" cy="66" rx="24" ry="18" fill="#fff"/></svg></div>
       <div class="sticky-stats-row">
@@ -1957,56 +2013,6 @@
         <div class="sticky-stat"><div class="value" id="sticky-stat-cities">0</div><div class="label">Cities</div></div>
       </div>
     </div>
-
-    <div class="section-header">
-      <h2 class="section-title">Top Artists</h2>
-      <a href="#" class="see-all-link" id="see-all-artists">See All</a>
-    </div>
-    <div id="top-artists-list">
-      <div class="empty-state">Check in to shows to see your top artists.</div>
-    </div>
-
-    <div class="profile-divider"></div>
-
-    <div class="section-header">
-      <h2 class="section-title">Top Badges</h2>
-      <span class="count" id="profile-badge-count">0 of 32</span>
-    </div>
-    <div class="badge-grid" id="profileBadges">
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/star.svg" alt="First Show"></div><div class="label">First Show</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/beer.svg" alt="Bar Fly"></div><div class="label">Bar Fly</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lighter.svg" alt="Encore"></div><div class="label">Encore</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/van.svg" alt="On Tour"></div><div class="label">On Tour</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/pizza.svg" alt="NYC Local"></div><div class="label">NYC Local</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/record.svg" alt="Legend"></div><div class="label">Legend</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lightning.svg" alt="Electric"></div><div class="label">Electric</div></div>
-      <div class="badge-item locked"><div class="icon"><img src="/assets/badges/eyes.svg" alt="Superfan"></div><div class="label">Superfan</div></div>
-    </div>
-    <a href="#" class="see-all-badges">See all 32 badges</a>
-
-    <div class="profile-divider"></div>
-
-    <div class="section-header" id="profile-upcoming-header">
-      <h2 class="section-title">Upcoming shows</h2>
-      <span class="count" id="profile-upcoming-count">0 shows</span>
-    </div>
-    <div id="profile-upcoming"></div>
-
-    <div class="profile-divider"></div>
-
-    <div class="section-header" id="profile-shows-header">
-      <h2 class="section-title">My Shows</h2>
-      <span class="count" id="profile-shows-count">0 shows</span>
-    </div>
-    <div id="profile-shows">
-      <div class="empty-state">
-        <a href="#" onclick="switchTab('add'); openSpotifySheet(); return false;">Find concerts from Spotify</a> or check in from the + tab.
-      </div>
-    </div>
-    <button type="button" class="add-past-shows-btn" onclick="openPastShowsSheet()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Add Past Shows
-    </button>
   </section>
 
   <section id="tab-search" class="tab-content">
@@ -3061,27 +3067,9 @@
         else { img.addEventListener('load', apply); }
       });
     }
-    function colorizeShowCards() {
-      colorizeCards('.show-card', '.show-card-img-wrap img');
-    }
-    function colorizeTopArtists() {
-      colorizeCards('.top-artist-item', '.top-artist-img-wrap img');
-    }
-    function colorizeProfileWash() {
-      var avatarImg = document.querySelector('#profileAvatar img');
-      var wash = document.getElementById('profileColorWash');
-      if (!avatarImg || !wash) return;
-      var apply = function() {
-        getDominantColor(avatarImg, function(r, g, b) {
-          if (r === null) return;
-          var c = r + ',' + g + ',' + b;
-          wash.style.background =
-            'linear-gradient(to bottom, rgba(' + c + ',0.5) 0%, rgba(' + c + ',0.2) 40%, rgba(' + c + ',0) 65%), var(--bg)';
-        });
-      };
-      if (avatarImg.complete && avatarImg.naturalWidth > 0) { apply(); }
-      else { avatarImg.addEventListener('load', apply); }
-    }
+    function colorizeShowCards() { /* disabled — cards are always #232323 now */ }
+    function colorizeTopArtists() { /* disabled — B&W image filter handles styling */ }
+    function colorizeProfileWash() { /* disabled — no color wash in new design */ }
 
     function renderProfileUpcomingShows() {
       var list = getGoingShows();
@@ -3112,7 +3100,7 @@
         html += '</div></div></div>';
       });
       container.innerHTML = html;
-      colorizeCards('#profile-upcoming .show-card', '.show-card-img-wrap img');
+      /* colorize disabled — cards are always #232323 now */
       container.querySelectorAll('[data-upcoming-id]').forEach(function(card) {
         var btn = card.querySelector('.upcoming-remove-btn');
         if (btn) btn.addEventListener('click', function() {
