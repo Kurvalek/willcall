@@ -1636,9 +1636,8 @@ app.get('/api/users/:id/shows', async (req, res) => {
     const attended = [];
     const upcoming = [];
     (data || []).forEach(row => {
-      const item = { ...row.show_data, _dbId: row.id, _showKey: row.show_key };
-      if (row.type === 'attended') attended.push(item);
-      else upcoming.push(item);
+      if (row.type === 'attended') attended.push(row.show_data);
+      else upcoming.push(row.show_data);
     });
     res.json({ attended, upcoming });
   } catch (err) {

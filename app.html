@@ -2596,10 +2596,23 @@
           }
         }
         if (!session) return false;
-        // Load profile from Supabase for returning users
+
+        // Check if a different user was logged in locally — clear stale data
+        var currentUid = session.user.id;
+        var lastUid = localStorage.getItem('willcall_uid');
+        if (lastUid && lastUid !== currentUid) {
+          localStorage.removeItem('willcall_attended_shows');
+          localStorage.removeItem('willcall_going_shows');
+          localStorage.removeItem('willcall_profile');
+          localStorage.removeItem('willcall_profile_color');
+          localStorage.removeItem('willcall_avatar');
+        }
+        localStorage.setItem('willcall_uid', currentUid);
+
+        // Always load profile from Supabase (DB is source of truth)
         try {
           var email = session.user.email;
-          if (email && !localStorage.getItem('willcall_profile')) {
+          if (email) {
             var { data: profile } = await supabaseClient.from('profiles').select('display_name, username, profile_color, avatar_url').eq('email', email).maybeSingle();
             if (profile) {
               localStorage.setItem('willcall_profile', JSON.stringify({ name: profile.display_name || '', email: email, username: profile.username || '', profileColor: profile.profile_color || '' }));
@@ -2720,7 +2733,21 @@
           if (error) { showFieldError('onbOtpError', error.message); resetOtpInput(); return; }
 
           if (_isSignIn) {
-            // Returning user — load their profile and skip onboarding
+            // Returning user — clear any stale local data, then load from DB
+            try {
+              var { data: { user: signInUser } } = await sb.auth.getUser();
+              if (signInUser) {
+                var lastUid = localStorage.getItem('willcall_uid');
+                if (lastUid && lastUid !== signInUser.id) {
+                  localStorage.removeItem('willcall_attended_shows');
+                  localStorage.removeItem('willcall_going_shows');
+                  localStorage.removeItem('willcall_profile');
+                  localStorage.removeItem('willcall_profile_color');
+                  localStorage.removeItem('willcall_avatar');
+                }
+                localStorage.setItem('willcall_uid', signInUser.id);
+              }
+            } catch(e) {}
             try {
               var { data: profile } = await sb.from('profiles').select('display_name, username, profile_color, avatar_url').eq('email', onbData.email).maybeSingle();
               if (profile) {
@@ -2917,11 +2944,12 @@
         if (typeof renderProfileShows === 'function') renderProfileShows();
         if (typeof backfillArtistImages === 'function') backfillArtistImages();
 
-        // Sync any shows added during onboarding to server
+        // Store uid and sync shows added during onboarding to server
         (async function() {
           try {
             var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
             if (!uid) return;
+            localStorage.setItem('willcall_uid', uid);
             var toUpload = [];
             getAttendedShows().forEach(function(s) {
               toUpload.push({ type: 'attended', show_data: s, show_key: showId(s) });
@@ -2930,7 +2958,7 @@
               toUpload.push({ type: 'upcoming', show_data: s, show_key: s.id || showId(s) });
             });
             if (toUpload.length > 0) {
-              fetch(window.location.origin + '/api/users/' + uid + '/shows/bulk', {
+              await fetch(window.location.origin + '/api/users/' + uid + '/shows/bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ shows: toUpload })
@@ -3171,14 +3199,16 @@
           profile.profileColor = color;
           localStorage.setItem('willcall_profile', JSON.stringify(profile));
         }
-        var uid = typeof getCurrentUserId === 'function' ? getCurrentUserId() : null;
-        if (uid) {
-          fetch('/api/users/' + uid + '/profile-color', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ color: color })
-          }).catch(function() {});
-        }
+        (async function() {
+          var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
+          if (uid) {
+            fetch('/api/users/' + uid + '/profile-color', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ color: color })
+            }).catch(function() {});
+          }
+        })();
       });
 
       window._renderColorSwatches = renderSwatches;
@@ -3307,61 +3337,23 @@
         var serverAttended = data.attended || [];
         var serverUpcoming = data.upcoming || [];
 
-        var localAttended = getAttendedShows();
-        var localUpcoming = getGoingShows();
+        // Strip any metadata that may have leaked into show_data
+        function cleanShow(s) {
+          var c = Object.assign({}, s);
+          delete c._dbId;
+          delete c._showKey;
+          return c;
+        }
+        serverAttended = serverAttended.map(cleanShow);
+        serverUpcoming = serverUpcoming.map(cleanShow);
 
-        // Build key sets from server data
-        var serverAttendedKeys = {};
-        serverAttended.forEach(function(s) { serverAttendedKeys[showId(s)] = true; });
-        var serverUpcomingKeys = {};
-        serverUpcoming.forEach(function(s) {
-          var key = s.id || showId(s);
-          serverUpcomingKeys[key] = true;
-        });
-
-        // Find local-only shows to push to server
-        var toUpload = [];
-        localAttended.forEach(function(s) {
-          var key = showId(s);
-          if (!serverAttendedKeys[key]) {
-            toUpload.push({ type: 'attended', show_data: s, show_key: key });
-          }
-        });
-        localUpcoming.forEach(function(s) {
-          var key = s.id || showId(s);
-          if (!serverUpcomingKeys[key]) {
-            toUpload.push({ type: 'upcoming', show_data: s, show_key: key });
-          }
-        });
-
-        // Merge server shows into local (add server-only shows)
-        var localAttendedKeys = {};
-        localAttended.forEach(function(s) { localAttendedKeys[showId(s)] = true; });
-        serverAttended.forEach(function(s) {
-          if (!localAttendedKeys[showId(s)]) localAttended.push(s);
-        });
-
-        var localUpcomingKeys = {};
-        localUpcoming.forEach(function(s) { localUpcomingKeys[s.id || showId(s)] = true; });
-        serverUpcoming.forEach(function(s) {
-          var key = s.id || showId(s);
-          if (!localUpcomingKeys[key]) localUpcoming.push(s);
-        });
-
-        localStorage.setItem(ATTENDED_KEY, JSON.stringify(localAttended));
-        localStorage.setItem(GOING_KEY, JSON.stringify(localUpcoming));
+        // DB is source of truth — replace local with server data
+        localStorage.setItem(ATTENDED_KEY, JSON.stringify(serverAttended));
+        localStorage.setItem(GOING_KEY, JSON.stringify(serverUpcoming));
 
         if (typeof renderProfileShows === 'function') renderProfileShows();
         if (typeof renderProfileUpcomingShows === 'function') renderProfileUpcomingShows();
-
-        // Upload local-only shows to server in the background
-        if (toUpload.length > 0) {
-          fetch(window.location.origin + '/api/users/' + uid + '/shows/bulk', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ shows: toUpload })
-          });
-        }
+        if (typeof backfillArtistImages === 'function') backfillArtistImages();
       } catch(e) { console.warn('loadAndSyncShows error:', e); }
     }
     window._loadAndSyncShows = loadAndSyncShows;
@@ -3880,23 +3872,13 @@
         window.history.replaceState({}, document.title, window.location.pathname);
         openSpotifySheet();
       }
-      if (!localStorage.getItem('willcall_cleared_dummy')) {
-        localStorage.removeItem('willcall_attended_shows');
-        localStorage.removeItem('willcall_going_shows');
-        localStorage.removeItem('willcall_img_v2');
-        localStorage.setItem('willcall_cleared_dummy', '1');
-      }
-      if (!localStorage.getItem('willcall_img_v3')) {
-        var imgList = getAttendedShows();
-        imgList.forEach(function(s) { s.artistImage = null; });
-        localStorage.setItem(ATTENDED_KEY, JSON.stringify(imgList));
-        localStorage.setItem('willcall_img_v3', '1');
-      }
+      // Render from local cache first (fast), then DB sync will override
       renderProfileShows();
       renderProfileUpcomingShows();
       backfillArtistImages();
       colorizeProfileWash();
 
+      // Load authoritative data from DB and replace local cache
       if (typeof window._loadAndSyncShows === 'function') window._loadAndSyncShows();
 
       var savedAvatar = localStorage.getItem('willcall_avatar');
