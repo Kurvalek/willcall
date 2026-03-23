@@ -497,6 +497,8 @@
       display: flex;
       align-items: start;
       gap: 16px;
+      flex: 1;
+      min-width: 0;
     }
     .show-card-img-wrap {
       position: relative;
@@ -505,7 +507,7 @@
       flex-shrink: 0;
       overflow: hidden;
       border-radius: 4px 0 0 4px;
-      margin: -16px 16px -16px -16px;
+      margin: -16px 0 -16px -16px;
     }
     .show-card-img-wrap img {
       width: 100%;
@@ -538,11 +540,6 @@
     .show-card .concert-venue,
     .show-card .concert-venue svg { color: #fff; stroke: #fff; }
     .show-card .concert-date { color: #fff; }
-    .show-card .delete-btn,
-    .show-card .upcoming-remove-btn { color: rgba(255,255,255,0.5); }
-    .show-card .delete-btn:hover,
-    .show-card .upcoming-remove-btn:hover { color: #fff; }
-    .show-card .setlist-link { color: #fff; }
 
     .profile-divider {
       height: 1px;
@@ -551,34 +548,86 @@
     }
 
     .show-card {
-      background: #232323;
       border-radius: 4px;
-      padding: 16px;
       margin-bottom: 12px;
       border: none;
       position: relative;
       overflow: hidden;
     }
-    .show-card .delete-btn,
-    .show-card .upcoming-remove-btn {
-      position: absolute; top: 16px; right: 16px; z-index: 5;
-      background: none; border: none; cursor: pointer;
-      color: #000; font-size: 16px; padding: 8px;
-      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    .show-card.search-event-card {
+      background: #232323;
+      padding: 16px;
     }
-    .show-card .delete-btn:hover,
-    .show-card .upcoming-remove-btn:hover { color: #000; }
-    .show-card .concert-artist { font-size: 14px; font-weight: 700; }
+    .show-card-inner {
+      display: flex;
+      position: relative;
+      width: 200%;
+      transition: transform 0.3s ease;
+    }
+    .show-card.open .show-card-inner {
+      transform: translateX(-50%);
+    }
+    .show-card-default {
+      width: 50%;
+      flex-shrink: 0;
+      background: #232323;
+      border-radius: 4px;
+      padding: 16px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .show-card-actions {
+      width: 50%;
+      flex-shrink: 0;
+      background: rgba(35, 35, 35, 0.2);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+    }
+    .card-dots {
+      background: none; border: none; cursor: pointer; padding: 8px 4px;
+      display: flex; flex-direction: column; gap: 3px; align-items: center;
+      flex-shrink: 0;
+    }
+    .card-dots span {
+      display: block; width: 3px; height: 3px; border-radius: 50%;
+    }
+    .show-card-default .card-dots span { background: rgba(255,255,255,0.5); }
+    .show-card-actions .card-dots span { background: #232323; }
+    .show-card-default .card-dots { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); z-index: 5; }
+    .show-card-actions .card-dots { flex-shrink: 0; }
+    .card-dots:hover span { background: #fff; }
+    .show-card-actions .card-dots:hover span { background: #000; }
+    .card-actions-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-action-btn {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 12px 0;
+      background: none; border: none; cursor: pointer;
+      font-family: inherit; font-size: 12px; font-weight: 600; color: #232323;
+    }
+    .card-action-btn svg { width: 18px; height: 18px; }
+    .card-action-divider {
+      width: 1px; height: 48px; background: rgba(35,35,35,0.3); flex-shrink: 0;
+    }
+    .show-card .concert-artist { font-size: 14px; font-weight: 700; color: #fff; }
     .show-card .concert-date { font-size: 12px; color: #fff; font-weight: 400; }
     .show-card .concert-venue {
       font-size: 12px; color: #fff; display: flex; align-items: center; gap: 4px;
     }
-    .show-card .concert-venue svg { flex-shrink: 0; }
+    .show-card .concert-venue svg { flex-shrink: 0; stroke: #fff; }
     .show-card .setlist-link {
       font-size: 12px; font-weight: 500; color: #fff; text-decoration: none;
       display: inline-flex; align-items: center; gap: 4px;
     }
-    .show-card .setlist-link svg { stroke: #fff; }
     .show-card .setlist-link:hover { text-decoration: underline; }
 
     .add-past-shows-btn {
@@ -3028,6 +3077,11 @@
     var PIN_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
     var LINK_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
     var TRASH_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+    var DOTS_HTML = '<button type="button" class="card-dots" aria-label="More options"><span></span><span></span><span></span></button>';
+    var TICKET_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>';
+    var SETLIST_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
+    var REMOVE_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+    var CANTGO_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
 
     function srgbToLinear(c) { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
     function relativeLuminance(r, g, b) {
@@ -3090,25 +3144,27 @@
         var imgHtml = ev.imageUrl
           ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
           : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
-        html += '<div class="show-card profile-upcoming-card" data-upcoming-id="' + ev.id + '">';
-        html += '<button type="button" class="upcoming-remove-btn" title="Remove from upcoming">' + TRASH_SVG + '</button>';
+        var ticketUrl = ev.url || '';
+        html += '<div class="show-card profile-upcoming-card" data-upcoming-id="' + ev.id + '" data-card-type="upcoming" data-ticket-url="' + ticketUrl + '">';
+        html += '<div class="show-card-inner">';
+        html += '<div class="show-card-default">';
         html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
         html += '<div class="concert-artist">' + artist + '</div>';
         html += '<div class="concert-date">' + date + '</div>';
         html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
-        if (ev.url) html += '<a href="' + ev.url + '" target="_blank" rel="noopener" class="setlist-link">Get tickets ' + LINK_SVG + '</a>';
-        html += '</div></div></div>';
+        html += '</div></div>';
+        html += DOTS_HTML;
+        html += '</div>';
+        html += '<div class="show-card-actions">';
+        html += DOTS_HTML;
+        html += '<div class="card-actions-body">';
+        html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
+        html += '<div class="card-action-divider"></div>';
+        html += '<button type="button" class="card-action-btn" data-action="cantgo">' + CANTGO_SVG + "Can't Go</button>";
+        html += '</div></div>';
+        html += '</div></div>';
       });
       container.innerHTML = html;
-      /* colorize disabled — cards are always #232323 now */
-      container.querySelectorAll('[data-upcoming-id]').forEach(function(card) {
-        var btn = card.querySelector('.upcoming-remove-btn');
-        if (btn) btn.addEventListener('click', function() {
-          removeGoingShow(card.dataset.upcomingId);
-          renderProfileUpcomingShows();
-          renderSearchGoingList();
-        });
-      });
     }
 
     function renderProfileShows() {
@@ -3198,39 +3254,117 @@
           } else {
             imgWrapHtml = '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
           }
-          html += '<div class="show-card" data-show-idx="' + realIdx + '">';
-          html += '<button type="button" class="delete-btn" title="Remove show">' + TRASH_SVG + '</button>';
+          html += '<div class="show-card" data-show-idx="' + realIdx + '" data-card-type="past">';
+          html += '<div class="show-card-inner">';
+          html += '<div class="show-card-default">';
           html += '<div class="show-card-layout">';
           html += imgWrapHtml;
           html += '<div class="show-card-content">';
           html += '<div class="concert-artist">' + (s.artist || '') + '</div>';
           html += '<div class="concert-date">' + formatDate(s.eventDate) + '</div>';
           html += '<div class="concert-venue">' + PIN_SVG + ' ' + (s.venue || '') + '</div>';
-          if (s.setlist && s.setlist.length > 0) {
-            html += '<a href="#" class="setlist-link" data-show-idx="' + realIdx + '">Setlist (' + s.setlist.length + ' songs) ' + LINK_SVG + '</a>';
-          } else if (s.setlistUrl) {
-            html += '<a href="' + s.setlistUrl + '" target="_blank" class="setlist-link">Setlist ' + LINK_SVG + '</a>';
-          }
-          html += '</div></div></div>';
+          html += '</div></div>';
+          html += DOTS_HTML;
+          html += '</div>';
+          html += '<div class="show-card-actions">';
+          html += DOTS_HTML;
+          html += '<div class="card-actions-body">';
+          html += '<button type="button" class="card-action-btn" data-action="setlist" data-show-idx="' + realIdx + '">' + SETLIST_SVG + 'View Setlist</button>';
+          html += '<div class="card-action-divider"></div>';
+          html += '<button type="button" class="card-action-btn" data-action="remove" data-show-idx="' + realIdx + '">' + REMOVE_SVG + 'Remove</button>';
+          html += '</div></div>';
+          html += '</div></div>';
         });
         container.innerHTML = html;
         colorizeShowCards();
       }
     }
 
-    document.getElementById('profile-shows').addEventListener('click', function(ev) {
-      var btn = ev.target.closest('.delete-btn');
-      if (!btn) return;
-      var card = btn.closest('.show-card');
-      if (!card) return;
-      var idx = parseInt(card.getAttribute('data-show-idx'), 10);
-      var list = getAttendedShows();
-      if (idx >= 0 && idx < list.length) {
-        list.splice(idx, 1);
-        localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
-        renderProfileShows();
+    function toggleCardOpen(card) {
+      var wasOpen = card.classList.contains('open');
+      document.querySelectorAll('.show-card.open').forEach(function(c) { c.classList.remove('open'); });
+      if (!wasOpen) card.classList.add('open');
+    }
+
+    function initCardSwipe(container) {
+      var startX = 0, startY = 0, currentCard = null, swiping = false;
+      container.addEventListener('touchstart', function(e) {
+        var card = e.target.closest('.show-card');
+        if (!card) return;
+        currentCard = card;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        swiping = false;
+      }, { passive: true });
+      container.addEventListener('touchmove', function(e) {
+        if (!currentCard) return;
+        var dx = e.touches[0].clientX - startX;
+        var dy = e.touches[0].clientY - startY;
+        if (!swiping && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) swiping = true;
+      }, { passive: true });
+      container.addEventListener('touchend', function(e) {
+        if (!currentCard || !swiping) { currentCard = null; return; }
+        var dx = e.changedTouches[0].clientX - startX;
+        if (dx < -40) {
+          document.querySelectorAll('.show-card.open').forEach(function(c) { c.classList.remove('open'); });
+          currentCard.classList.add('open');
+        } else if (dx > 40) {
+          currentCard.classList.remove('open');
+        }
+        currentCard = null;
+        swiping = false;
+      }, { passive: true });
+    }
+
+    function handleCardActions(ev) {
+      var dots = ev.target.closest('.card-dots');
+      if (dots) {
+        var card = dots.closest('.show-card');
+        if (card) toggleCardOpen(card);
+        return;
       }
-    });
+
+      var actionBtn = ev.target.closest('.card-action-btn');
+      if (!actionBtn) return;
+      var card = actionBtn.closest('.show-card');
+      var action = actionBtn.dataset.action;
+
+      if (action === 'remove') {
+        var idx = parseInt(actionBtn.dataset.showIdx, 10);
+        var list = getAttendedShows();
+        if (idx >= 0 && idx < list.length) {
+          list.splice(idx, 1);
+          localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
+          renderProfileShows();
+        }
+      } else if (action === 'setlist') {
+        var idx = parseInt(actionBtn.dataset.showIdx, 10);
+        var list = getAttendedShows();
+        if (idx >= 0 && idx < list.length) {
+          openSetlistDetail(list[idx]);
+        }
+        if (card) card.classList.remove('open');
+      } else if (action === 'tickets') {
+        var url = card ? card.dataset.ticketUrl : '';
+        if (url) window.open(url, '_blank');
+        if (card) card.classList.remove('open');
+      } else if (action === 'cantgo') {
+        var upId = card ? card.dataset.upcomingId : null;
+        if (upId) {
+          removeGoingShow(upId);
+          renderProfileUpcomingShows();
+          renderSearchGoingList();
+        }
+      }
+    }
+
+    var profileShowsEl = document.getElementById('profile-shows');
+    profileShowsEl.addEventListener('click', handleCardActions);
+    initCardSwipe(profileShowsEl);
+
+    var profileUpcomingEl = document.getElementById('profile-upcoming');
+    profileUpcomingEl.addEventListener('click', handleCardActions);
+    initCardSwipe(profileUpcomingEl);
 
     document.getElementById('see-all-artists').addEventListener('click', function(e) {
       e.preventDefault();
@@ -3790,7 +3924,6 @@
         html += '</div></div></div>';
       });
       el.innerHTML = html;
-      colorizeCards('#search-going-list .show-card', '.show-card-img-wrap img');
       el.querySelectorAll('[data-going-id]').forEach(function(card) {
         var btn = card.querySelector('.im-going-btn');
         if (btn) btn.addEventListener('click', function() {
@@ -3854,7 +3987,6 @@
           html += '</div></div></div>';
         });
         el.innerHTML = html;
-        colorizeCards('#search-nearby-shows .show-card', '.show-card-img-wrap img');
         el.querySelectorAll('.im-going-btn[data-event-id]').forEach(function(btn) {
           btn.addEventListener('click', function() {
             var id = btn.dataset.eventId;
@@ -4808,19 +4940,7 @@
       }, { once: true });
     }
 
-    document.getElementById('profile-shows').addEventListener('click', function(ev) {
-      var link = ev.target.closest('.setlist-link[data-show-idx]');
-      if (!link) return;
-      ev.preventDefault();
-      var idx = parseInt(link.dataset.showIdx, 10);
-      var list = getAttendedShows();
-      if (idx >= 0 && idx < list.length) {
-        var card = link.closest('.show-card');
-        var cardBg = card ? card.style.backgroundColor : null;
-        var cardTheme = card ? card.getAttribute('data-theme') : null;
-        openSetlistDetail(list[idx], cardBg, cardTheme);
-      }
-    });
+    /* setlist and remove actions are now handled by handleCardActions above */
 
     function openCheckIn() {
       openCheckInSheet();
