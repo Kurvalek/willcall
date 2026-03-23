@@ -1405,32 +1405,45 @@
     /* Welcome screen */
     .onb-welcome-body {
       flex: 1; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; text-align: center; padding: 0 32px 0;
+      padding: 0 52px; padding-top: 100px;
     }
-    .onb-welcome-logo {
-      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 64px; font-weight: 800;
-      color: #000; letter-spacing: -1px; margin-bottom: 16px;
+    .onb-welcome-logo-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 24px;
+      padding-bottom: 80px;
     }
-    .onb-welcome-tagline { font-size: 16px; font-weight: 500; color: #000; margin-bottom: 80px; }
+    .onb-welcome-logo-wrap img {
+      width: 290px; height: auto;
+    }
+    .onb-welcome-tagline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 16px; font-weight: 500; color: #000; text-align: center;
+    }
+    .onb-welcome-btns {
+      display: flex; flex-direction: column; gap: 17px; width: 100%;
+    }
+    .onb-join-btn {
+      width: 100%; height: 45px; border-radius: 4px; border: none;
+      background: #000; color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 600;
+      cursor: pointer;
+    }
+    .onb-join-btn:active { transform: scale(0.97); }
+    .onb-login-btn {
+      width: 100%; height: 45px; border-radius: 4px; border: none;
+      background: rgba(35, 35, 35, 0.2); color: #1a1a1a;
+      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 600;
+      cursor: pointer;
+    }
+    .onb-login-btn:active { transform: scale(0.97); }
     .onb-progress-bar {
       width: 200px; height: 10px; border-radius: 4px;
-      background: #e3e1da; margin-bottom: 80px; overflow: hidden; position: relative;
+      background: #e3e1da; overflow: hidden; position: relative;
+      display: none;
     }
     .onb-progress-fill {
       height: 100%; border-radius: 4px; transition: width 0.4s ease;
       background: #000;
     }
-    .onb-continue-btn {
-      width: 150px; height: 45px; border-radius: 8px; border: none;
-      background: #000; color: #fff;
-      font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 600;
-      cursor: pointer;
-    }
-    .onb-continue-btn:active { transform: scale(0.96); }
-    .onb-welcome-signin {
-      margin-top: 46px; font-size: 16px; font-weight: 400; color: #000;
-    }
-    .onb-welcome-signin a { color: #000; font-weight: 600; text-decoration: underline; cursor: pointer; }
     .onb-welcome-terms {
       margin-top: auto; padding-bottom: 20px; font-size: 12px; color: #595959; text-align: center;
     }
@@ -1823,14 +1836,18 @@
     <!-- Step 0: Welcome -->
     <div id="onbStep0" class="onb-step active">
       <div class="onb-welcome-body">
-        <div class="onb-welcome-logo">willcall</div>
-        <p class="onb-welcome-tagline">Track your shows. Share your story.</p>
+        <div class="onb-welcome-logo-wrap">
+          <img src="/assets/willcall-logo.svg" alt="willcall">
+          <p class="onb-welcome-tagline">Track your shows. Share your story.</p>
+        </div>
+        <div class="onb-welcome-btns">
+          <button type="button" class="onb-join-btn" id="onbContinueBtn">Join</button>
+          <button type="button" class="onb-login-btn" id="onbSignInLink">Log In</button>
+        </div>
         <div class="onb-progress-bar">
           <div class="onb-progress-fill" id="onbProgressFill" style="width:17%"></div>
         </div>
-        <button type="button" class="onb-continue-btn" id="onbContinueBtn">CONTINUE</button>
-        <p class="onb-welcome-signin">Already have an account? <a id="onbSignInLink">Sign in.</a></p>
-        <p class="onb-welcome-terms">By tapping "Let's Go" you are accepting <a href="/terms">the terms</a>.</p>
+        <p class="onb-welcome-terms">By continuing you are accepting <a href="/terms">our terms</a>.</p>
       </div>
     </div>
 
@@ -2602,6 +2619,7 @@
           }
         } catch (e) { console.warn('Profile load on auth check:', e); }
         hideOnboarding();
+        if (typeof window._loadAndSyncShows === 'function') window._loadAndSyncShows();
         return true;
       }
 
@@ -2725,7 +2743,7 @@
               }
             } catch (e) { console.warn('Could not load profile:', e); }
             hideOnboarding();
-            if (typeof renderProfileShows === 'function') renderProfileShows();
+            if (typeof window._loadAndSyncShows === 'function') window._loadAndSyncShows();
             if (typeof backfillArtistImages === 'function') backfillArtistImages();
             return;
           }
@@ -2898,6 +2916,28 @@
 
         if (typeof renderProfileShows === 'function') renderProfileShows();
         if (typeof backfillArtistImages === 'function') backfillArtistImages();
+
+        // Sync any shows added during onboarding to server
+        (async function() {
+          try {
+            var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
+            if (!uid) return;
+            var toUpload = [];
+            getAttendedShows().forEach(function(s) {
+              toUpload.push({ type: 'attended', show_data: s, show_key: showId(s) });
+            });
+            getGoingShows().forEach(function(s) {
+              toUpload.push({ type: 'upcoming', show_data: s, show_key: s.id || showId(s) });
+            });
+            if (toUpload.length > 0) {
+              fetch(window.location.origin + '/api/users/' + uid + '/shows/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ shows: toUpload })
+              });
+            }
+          } catch(e) { console.warn('Onboarding sync error:', e); }
+        })();
 
         localStorage.setItem('willcall_needs_photo', '1');
         showPhotoPrompt();
@@ -3198,10 +3238,13 @@
       if (list.some(function(e) { return e.id === ev.id; })) return;
       list.push(ev);
       localStorage.setItem(GOING_KEY, JSON.stringify(list));
+      syncShowToServer('upcoming', ev, ev.id || showId(ev));
     }
     function removeGoingShow(eventId) {
+      var removed = getGoingShows().find(function(e) { return e.id === eventId; });
       var list = getGoingShows().filter(function(e) { return e.id !== eventId; });
       localStorage.setItem(GOING_KEY, JSON.stringify(list));
+      if (removed) deleteShowFromServer('upcoming', removed.id || showId(removed));
     }
     function showId(c) {
       var a = (c.artist && typeof c.artist === 'object') ? c.artist.name : (c.artist || c._sourceArtist || '');
@@ -3214,6 +3257,115 @@
       var id = showId(c);
       return list.some(function(s) { return showId(s) === id; });
     }
+
+    function syncShowToServer(type, showData, showKey) {
+      (async function() {
+        try {
+          var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
+          if (!uid) return;
+          fetch(window.location.origin + '/api/users/' + uid + '/shows', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: type, show_data: showData, show_key: showKey })
+          });
+        } catch(e) { console.warn('Show sync error:', e); }
+      })();
+    }
+    function deleteShowFromServer(type, showKey) {
+      (async function() {
+        try {
+          var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
+          if (!uid) return;
+          fetch(window.location.origin + '/api/users/' + uid + '/shows', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: type, show_key: showKey })
+          });
+        } catch(e) { console.warn('Show delete error:', e); }
+      })();
+    }
+    function bulkSyncShowsToServer(showsArr) {
+      (async function() {
+        try {
+          var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
+          if (!uid) return;
+          fetch(window.location.origin + '/api/users/' + uid + '/shows/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ shows: showsArr })
+          });
+        } catch(e) { console.warn('Bulk sync error:', e); }
+      })();
+    }
+    async function loadAndSyncShows() {
+      var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
+      if (!uid) return;
+      try {
+        var res = await fetch(window.location.origin + '/api/users/' + uid + '/shows');
+        if (!res.ok) return;
+        var data = await res.json();
+        var serverAttended = data.attended || [];
+        var serverUpcoming = data.upcoming || [];
+
+        var localAttended = getAttendedShows();
+        var localUpcoming = getGoingShows();
+
+        // Build key sets from server data
+        var serverAttendedKeys = {};
+        serverAttended.forEach(function(s) { serverAttendedKeys[showId(s)] = true; });
+        var serverUpcomingKeys = {};
+        serverUpcoming.forEach(function(s) {
+          var key = s.id || showId(s);
+          serverUpcomingKeys[key] = true;
+        });
+
+        // Find local-only shows to push to server
+        var toUpload = [];
+        localAttended.forEach(function(s) {
+          var key = showId(s);
+          if (!serverAttendedKeys[key]) {
+            toUpload.push({ type: 'attended', show_data: s, show_key: key });
+          }
+        });
+        localUpcoming.forEach(function(s) {
+          var key = s.id || showId(s);
+          if (!serverUpcomingKeys[key]) {
+            toUpload.push({ type: 'upcoming', show_data: s, show_key: key });
+          }
+        });
+
+        // Merge server shows into local (add server-only shows)
+        var localAttendedKeys = {};
+        localAttended.forEach(function(s) { localAttendedKeys[showId(s)] = true; });
+        serverAttended.forEach(function(s) {
+          if (!localAttendedKeys[showId(s)]) localAttended.push(s);
+        });
+
+        var localUpcomingKeys = {};
+        localUpcoming.forEach(function(s) { localUpcomingKeys[s.id || showId(s)] = true; });
+        serverUpcoming.forEach(function(s) {
+          var key = s.id || showId(s);
+          if (!localUpcomingKeys[key]) localUpcoming.push(s);
+        });
+
+        localStorage.setItem(ATTENDED_KEY, JSON.stringify(localAttended));
+        localStorage.setItem(GOING_KEY, JSON.stringify(localUpcoming));
+
+        if (typeof renderProfileShows === 'function') renderProfileShows();
+        if (typeof renderProfileUpcomingShows === 'function') renderProfileUpcomingShows();
+
+        // Upload local-only shows to server in the background
+        if (toUpload.length > 0) {
+          fetch(window.location.origin + '/api/users/' + uid + '/shows/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ shows: toUpload })
+          });
+        }
+      } catch(e) { console.warn('loadAndSyncShows error:', e); }
+    }
+    window._loadAndSyncShows = loadAndSyncShows;
+
     var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     function formatDate(raw) {
       if (!raw) return '';
@@ -3256,6 +3408,7 @@
       if (c.url) entry.setlistUrl = c.url;
       list.push(entry);
       localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
+      syncShowToServer('attended', entry, showId(entry));
       renderProfileShows();
     }
     var PIN_SVG = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>';
@@ -3517,6 +3670,8 @@
         var idx = parseInt(actionBtn.dataset.showIdx, 10);
         var list = getAttendedShows();
         if (idx >= 0 && idx < list.length) {
+          var removed = list[idx];
+          deleteShowFromServer('attended', showId(removed));
           list.splice(idx, 1);
           localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
           renderProfileShows();
@@ -3741,6 +3896,8 @@
       renderProfileUpcomingShows();
       backfillArtistImages();
       colorizeProfileWash();
+
+      if (typeof window._loadAndSyncShows === 'function') window._loadAndSyncShows();
 
       var savedAvatar = localStorage.getItem('willcall_avatar');
       if (savedAvatar) {
@@ -5012,6 +5169,7 @@
       var list = getAttendedShows();
       list.push(entry);
       localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
+      syncShowToServer('attended', entry, showId(entry));
       renderProfileShows();
 
       document.getElementById('checkInForm').style.display = 'none';

@@ -1618,6 +1618,107 @@ app.post('/api/users/:id/avatar', async (req, res) => {
   }
 });
 
+// ── User shows (attended + upcoming) ──
+
+app.get('/api/users/:id/shows', async (req, res) => {
+  if (!supabase) return res.json({ attended: [], upcoming: [] });
+  const userId = req.params.id;
+  try {
+    const { data, error } = await supabase
+      .from('user_shows')
+      .select('id, type, show_data, show_key, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('user_shows select error:', error.message);
+      return res.json({ attended: [], upcoming: [] });
+    }
+    const attended = [];
+    const upcoming = [];
+    (data || []).forEach(row => {
+      const item = { ...row.show_data, _dbId: row.id, _showKey: row.show_key };
+      if (row.type === 'attended') attended.push(item);
+      else upcoming.push(item);
+    });
+    res.json({ attended, upcoming });
+  } catch (err) {
+    console.warn('user_shows error:', err.message);
+    res.json({ attended: [], upcoming: [] });
+  }
+});
+
+app.post('/api/users/:id/shows', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  const userId = req.params.id;
+  const { type, show_data, show_key } = req.body || {};
+  if (!type || !show_data) return res.status(400).json({ error: 'type and show_data required' });
+  try {
+    const { data, error } = await supabase
+      .from('user_shows')
+      .upsert({
+        user_id: userId,
+        type,
+        show_data,
+        show_key: show_key || '',
+        created_at: new Date().toISOString()
+      }, { onConflict: 'user_id,type,show_key' })
+      .select('id')
+      .maybeSingle();
+    if (error) {
+      console.warn('user_shows insert error:', error.message);
+      return res.json({ ok: true });
+    }
+    res.json({ ok: true, id: data?.id });
+  } catch (err) {
+    console.warn('user_shows insert exception:', err.message);
+    res.json({ ok: true });
+  }
+});
+
+app.delete('/api/users/:id/shows', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  const userId = req.params.id;
+  const { show_key, type } = req.body || {};
+  if (!show_key || !type) return res.status(400).json({ error: 'show_key and type required' });
+  try {
+    const { error } = await supabase
+      .from('user_shows')
+      .delete()
+      .eq('user_id', userId)
+      .eq('type', type)
+      .eq('show_key', show_key);
+    if (error) console.warn('user_shows delete error:', error.message);
+    res.json({ ok: true });
+  } catch (err) {
+    console.warn('user_shows delete exception:', err.message);
+    res.json({ ok: true });
+  }
+});
+
+app.post('/api/users/:id/shows/bulk', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  const userId = req.params.id;
+  const { shows } = req.body || {};
+  if (!Array.isArray(shows) || shows.length === 0) return res.json({ ok: true, inserted: 0 });
+  try {
+    const rows = shows.map(s => ({
+      user_id: userId,
+      type: s.type,
+      show_data: s.show_data,
+      show_key: s.show_key || '',
+      created_at: s.created_at || new Date().toISOString()
+    }));
+    const { error } = await supabase
+      .from('user_shows')
+      .upsert(rows, { onConflict: 'user_id,type,show_key', ignoreDuplicates: true });
+    if (error) console.warn('user_shows bulk error:', error.message);
+    res.json({ ok: true, inserted: rows.length });
+  } catch (err) {
+    console.warn('user_shows bulk exception:', err.message);
+    res.json({ ok: true, inserted: 0 });
+  }
+});
+
 // Search users in Supabase profiles
 app.get('/api/users/search', async (req, res) => {
   if (!supabase) return res.json({ users: [] });
