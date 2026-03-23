@@ -257,6 +257,8 @@
       flex-shrink: 0;
       overflow: hidden;
       will-change: transform;
+      cursor: pointer;
+      position: relative;
     }
     .profile-avatar img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(1.3) brightness(0.95); }
     .show-card-img-wrap img,
@@ -1738,10 +1740,14 @@
       padding: 32px 20px 24px;
     }
     .up-avatar {
-      width: 80px; height: 80px; border-radius: 50%; background: #1a1a1a;
+      width: 80px; height: 80px; border-radius: 0; background: #1a1a1a;
       color: #fff; display: flex; align-items: center; justify-content: center;
       font-size: 28px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif;
-      margin-bottom: 12px;
+      margin-bottom: 12px; overflow: hidden; border: 1px solid #000;
+    }
+    .up-avatar img {
+      width: 100%; height: 100%; object-fit: cover;
+      filter: grayscale(100%) contrast(1.3) brightness(0.95);
     }
     .up-name {
       font-size: 22px; font-weight: 700; color: #000;
@@ -2354,6 +2360,8 @@
     </button>
   </div>
 
+  <input type="file" id="avatarFileInput" accept="image/*" style="display:none">
+
   <script>
     // Shared location manager
     var WillcallLocations = (function() {
@@ -2575,7 +2583,7 @@
         try {
           var email = session.user.email;
           if (email && !localStorage.getItem('willcall_profile')) {
-            var { data: profile } = await supabaseClient.from('profiles').select('display_name, username, profile_color').eq('email', email).maybeSingle();
+            var { data: profile } = await supabaseClient.from('profiles').select('display_name, username, profile_color, avatar_url').eq('email', email).maybeSingle();
             if (profile) {
               localStorage.setItem('willcall_profile', JSON.stringify({ name: profile.display_name || '', email: email, username: profile.username || '', profileColor: profile.profile_color || '' }));
               var profileName = document.getElementById('profileName');
@@ -2585,6 +2593,10 @@
               if (profile.profile_color) {
                 localStorage.setItem('willcall_profile_color', profile.profile_color);
                 if (typeof window._applyProfileColor === 'function') window._applyProfileColor(profile.profile_color);
+              }
+              if (profile.avatar_url) {
+                localStorage.setItem('willcall_avatar', profile.avatar_url);
+                if (typeof setAvatarImage === 'function') setAvatarImage(profile.avatar_url);
               }
             }
           }
@@ -2692,7 +2704,7 @@
           if (_isSignIn) {
             // Returning user — load their profile and skip onboarding
             try {
-              var { data: profile } = await sb.from('profiles').select('display_name, username, profile_color').eq('email', onbData.email).maybeSingle();
+              var { data: profile } = await sb.from('profiles').select('display_name, username, profile_color, avatar_url').eq('email', onbData.email).maybeSingle();
               if (profile) {
                 onbData.name = profile.display_name || '';
                 onbData.username = profile.username || '';
@@ -2705,6 +2717,10 @@
                 if (profile.profile_color) {
                   localStorage.setItem('willcall_profile_color', profile.profile_color);
                   if (typeof window._applyProfileColor === 'function') window._applyProfileColor(profile.profile_color);
+                }
+                if (profile.avatar_url) {
+                  localStorage.setItem('willcall_avatar', profile.avatar_url);
+                  if (typeof setAvatarImage === 'function') setAvatarImage(profile.avatar_url);
                 }
               }
             } catch (e) { console.warn('Could not load profile:', e); }
@@ -2889,6 +2905,92 @@
         hideOnboarding();
       }
 
+      function resizeImage(file, maxSize, callback) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var img = new Image();
+          img.onload = function() {
+            var canvas = document.createElement('canvas');
+            var w = img.width, h = img.height;
+            if (w > h) { if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; } }
+            else { if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; } }
+            canvas.width = w;
+            canvas.height = h;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            callback(canvas.toDataURL('image/jpeg', 0.8));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function setAvatarImage(dataUrl) {
+        var avatar = document.getElementById('profileAvatar');
+        if (!avatar) return;
+        var existing = avatar.querySelector('img');
+        if (existing) {
+          existing.src = dataUrl;
+        } else {
+          avatar.innerHTML = '';
+          var img = document.createElement('img');
+          img.src = dataUrl;
+          img.alt = 'Profile photo';
+          avatar.appendChild(img);
+        }
+        avatar.style.position = 'relative';
+        avatar.style.cursor = 'pointer';
+        var overlay = avatar.querySelector('.photo-prompt-overlay');
+        if (overlay) overlay.remove();
+
+        var stickyAvatar = document.querySelector('#profile-sticky-header .sticky-avatar');
+        if (stickyAvatar) {
+          var sExisting = stickyAvatar.querySelector('img');
+          if (sExisting) {
+            sExisting.src = dataUrl;
+          } else {
+            stickyAvatar.innerHTML = '';
+            var sImg = document.createElement('img');
+            sImg.src = dataUrl;
+            sImg.alt = 'Profile photo';
+            stickyAvatar.appendChild(sImg);
+          }
+        }
+      }
+
+      function handleAvatarUpload(file) {
+        resizeImage(file, 300, function(dataUrl) {
+          setAvatarImage(dataUrl);
+          localStorage.setItem('willcall_avatar', dataUrl);
+          // Persist to server
+          (async function() {
+            try {
+              var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
+              if (uid) {
+                fetch(window.location.origin + '/api/users/' + uid + '/avatar', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ avatar_url: dataUrl })
+                });
+              }
+            } catch(e) { console.warn('Avatar save error:', e); }
+          })();
+          localStorage.removeItem('willcall_needs_photo');
+        });
+      }
+
+      var avatarFileInput = document.getElementById('avatarFileInput');
+      avatarFileInput.addEventListener('change', function() {
+        if (avatarFileInput.files && avatarFileInput.files[0]) {
+          handleAvatarUpload(avatarFileInput.files[0]);
+          avatarFileInput.value = '';
+        }
+      });
+
+      function triggerAvatarPicker() {
+        avatarFileInput.click();
+      }
+
       function showPhotoPrompt() {
         var avatar = document.getElementById('profileAvatar');
         if (!avatar || avatar.querySelector('.photo-prompt-overlay')) return;
@@ -2896,9 +2998,19 @@
         var ov = document.createElement('div');
         ov.className = 'photo-prompt-overlay';
         ov.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add photo</span>';
-        ov.addEventListener('click', function() { alert('Photo upload coming soon!'); });
+        ov.addEventListener('click', function(e) { e.stopPropagation(); triggerAvatarPicker(); });
         avatar.appendChild(ov);
       }
+
+      // Tap avatar to change photo (when already has a photo)
+      document.getElementById('profileAvatar').addEventListener('click', function() {
+        if (!this.querySelector('.photo-prompt-overlay')) {
+          triggerAvatarPicker();
+        }
+      });
+
+      window._setAvatarImage = setAvatarImage;
+      window._showPhotoPrompt = showPhotoPrompt;
 
       // Init
       (async function() {
@@ -3630,18 +3742,11 @@
       backfillArtistImages();
       colorizeProfileWash();
 
-      if (localStorage.getItem('willcall_needs_photo') === '1') {
-        var avatar = document.getElementById('profileAvatar');
-        if (avatar && !avatar.querySelector('.photo-prompt-overlay')) {
-          avatar.style.position = 'relative';
-          var overlay = document.createElement('div');
-          overlay.className = 'photo-prompt-overlay';
-          overlay.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Add photo</span>';
-          overlay.addEventListener('click', function() {
-            alert('Photo upload coming soon!');
-          });
-          avatar.appendChild(overlay);
-        }
+      var savedAvatar = localStorage.getItem('willcall_avatar');
+      if (savedAvatar) {
+        if (typeof window._setAvatarImage === 'function') window._setAvatarImage(savedAvatar);
+      } else if (localStorage.getItem('willcall_needs_photo') === '1') {
+        if (typeof window._showPhotoPrompt === 'function') window._showPhotoPrompt();
       }
 
       var savedProfile = null;
@@ -4453,7 +4558,12 @@
 
         document.getElementById('upName').textContent = name;
         document.getElementById('upHandle').textContent = p.username ? '@' + p.username : '';
-        document.getElementById('upAvatar').textContent = initials;
+        var upAvatarEl = document.getElementById('upAvatar');
+        if (p.avatar_url) {
+          upAvatarEl.innerHTML = '<img src="' + p.avatar_url + '" alt="' + name + '">';
+        } else {
+          upAvatarEl.textContent = initials;
+        }
         document.getElementById('upSheetTitle').textContent = p.username ? '@' + p.username : 'Profile';
         document.getElementById('upStatFollowers').textContent = data.followerCount;
         document.getElementById('upStatFollowing').textContent = data.followingCount;

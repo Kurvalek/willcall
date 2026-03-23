@@ -18,7 +18,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 app.use(cookieParser());
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(function(req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   next();
@@ -1556,7 +1556,7 @@ app.get('/api/users/:id/profile', async (req, res) => {
   const userId = req.params.id;
   try {
     const [profileRes, followersRes, followingRes] = await Promise.all([
-      supabase.from('profiles').select('id, display_name, username, profile_color').eq('id', userId).maybeSingle(),
+      supabase.from('profiles').select('id, display_name, username, profile_color, avatar_url').eq('id', userId).maybeSingle(),
       supabase.from('follows').select('follower_id').eq('following_id', userId),
       supabase.from('follows').select('following_id').eq('follower_id', userId)
     ]);
@@ -1593,6 +1593,27 @@ app.post('/api/users/:id/profile-color', async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     console.warn('profile-color error:', err.message);
+    res.json({ ok: true });
+  }
+});
+
+// Update avatar
+app.post('/api/users/:id/avatar', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  const userId = req.params.id;
+  const avatarUrl = (req.body && req.body.avatar_url) || '';
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', userId);
+    if (error) {
+      console.warn('avatar update error:', error.message);
+      return res.json({ ok: true });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.warn('avatar error:', err.message);
     res.json({ ok: true });
   }
 });
