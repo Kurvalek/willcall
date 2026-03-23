@@ -1152,8 +1152,7 @@
       justify-content: space-around;
       padding: 12px 24px;
       padding-bottom: calc(12px + var(--safe-bottom));
-      background: #f9f8f4;
-      border-top: 1px solid rgba(0,0,0,0.08);
+      background: #232323;
       z-index: 900;
     }
     .tab-bar-pill {
@@ -1166,19 +1165,19 @@
       width: 48px;
       height: 48px;
       cursor: pointer;
-      color: rgba(0,0,0,0.35);
+      color: rgba(255,255,255,0.45);
       transition: color 0.15s ease;
     }
-    .tab-bar .tab:hover { color: rgba(0,0,0,0.6); }
-    .tab-bar .tab.active { color: #000; }
+    .tab-bar .tab:hover { color: rgba(255,255,255,0.7); }
+    .tab-bar .tab.active { color: #fff; }
     .tab-bar .tab svg { display: block; stroke: currentColor; }
-    .tab-bar .tab.active svg { stroke: #000; stroke-width: 2.5; }
+    .tab-bar .tab.active svg { stroke: #fff; stroke-width: 2.5; }
     .tab-bar .tab.active > div { transform: scale(1.05); }
     .tab-add-btn {
-      width: 48px;
-      height: 48px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      background: #232323;
+      background: #fff;
       border: none;
       display: flex;
       align-items: center;
@@ -1193,9 +1192,9 @@
       opacity: 0.85;
     }
     .tab-add-btn svg {
-      width: 20px;
-      height: 20px;
-      stroke: #fff;
+      width: 18px;
+      height: 18px;
+      stroke: #232323;
     }
     @keyframes add-btn-liquid {
       0%   { transform: scale(1); border-radius: 50%; filter: brightness(1); }
@@ -2338,7 +2337,7 @@
         <div id="lottie-crowd" style="width:28px;height:28px;"></div>
       </div>
       <div class="tab-add-btn" id="tabAddBtn" title="Add">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </div>
     </div>
   </nav>
@@ -2985,10 +2984,8 @@
       }
 
       function applyProfileColor(color) {
-        document.body.style.background = color;
-        document.documentElement.style.background = color;
-        var tabBar = document.querySelector('.tab-bar');
-        if (tabBar) tabBar.style.background = color;
+        var homeTab = document.getElementById('tab-home');
+        if (homeTab) homeTab.style.background = color;
       }
 
       function renderSwatches() {
@@ -3865,8 +3862,8 @@
       });
     });
 
-    var ACTIVE_FILTER = 'brightness(0) saturate(100%)';
-    var INACTIVE_FILTER = 'brightness(0) saturate(100%)';
+    var ACTIVE_FILTER = 'brightness(0) saturate(100%) invert(1)';
+    var INACTIVE_FILTER = 'brightness(0) saturate(100%) invert(1) opacity(0.45)';
 
     function initLottieTab(id, path, isActiveByDefault) {
       var anim = lottie.loadAnimation({
