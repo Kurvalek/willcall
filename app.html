@@ -193,18 +193,35 @@
     .load-more:hover { background: var(--wc-gray-100); color: var(--wc-text-primary); }
 
     .search-bar {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid var(--wc-gray-200);
-      border-radius: var(--wc-radius);
+      flex: 1;
+      padding: 14px 0 15px;
+      border: none;
+      border-bottom: 1px solid transparent;
+      border-radius: 0;
       font-family: inherit;
       font-size: 16px;
-      margin-bottom: 20px;
-    }
-    .search-bar:focus {
+      background: transparent;
+      color: var(--wc-text-primary);
       outline: none;
-      border-color: var(--wc-black);
+      caret-color: var(--wc-black);
+      transition: border-color 0.15s ease;
     }
+    .search-bar::placeholder { color: var(--wc-gray-400); }
+    .search-bar:hover:not(:focus) { border-bottom-color: var(--wc-gray-300); }
+    .search-bar:focus { border-bottom-color: var(--wc-black); }
+    .search-bar:not(:placeholder-shown) { border-bottom-color: var(--wc-gray-300); }
+    .search-bar-wrap {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+    }
+    .search-bar-btn {
+      padding: 12px 24px; background: var(--wc-black); color: #fff;
+      border: none; border-radius: var(--wc-radius);
+      font-family: var(--wc-font-body); font-size: 14px; font-weight: 600;
+      cursor: pointer; flex-shrink: 0;
+      transition: background 0.15s ease;
+    }
+    .search-bar-btn:hover { background: var(--wc-near-black); }
+    .search-bar-btn:active { opacity: 0.7; transform: scale(0.98); }
 
     .stats-grid {
       display: grid;
@@ -727,40 +744,41 @@
       flex: 1; overflow-y: auto; padding: 20px; position: relative; z-index: 1;
     }
     .past-shows-search-box {
-      display: flex; gap: 10px; margin-bottom: 20px;
+      display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
     }
     .past-shows-search-box input {
       flex: 1;
-      padding: 12px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: var(--wc-radius);
+      padding: 14px 0 15px;
+      border: none;
+      border-bottom: 1px solid transparent;
+      border-radius: 0;
       font-family: inherit;
-      font-size: 15px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(32px) saturate(180%);
-      -webkit-backdrop-filter: blur(32px) saturate(180%);
-      box-shadow: inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
+      font-size: 16px;
+      background: transparent;
       color: var(--wc-text-primary);
-    }
-    .past-shows-search-box input:focus {
       outline: none;
-      border-color: var(--wc-black);
+      caret-color: var(--wc-black);
+      transition: border-color 0.15s ease;
     }
-    .past-shows-search-box input::placeholder { color: var(--wc-text-muted); }
+    .past-shows-search-box input:hover:not(:focus) { border-bottom-color: var(--wc-gray-300); }
+    .past-shows-search-box input:focus { border-bottom-color: var(--wc-black); }
+    .past-shows-search-box input:not(:placeholder-shown) { border-bottom-color: var(--wc-gray-300); }
+    .past-shows-search-box input::placeholder { color: var(--wc-gray-400); }
     .past-shows-search-btn {
-      padding: 12px 20px;
-      background: linear-gradient(135deg, var(--wc-black), var(--wc-black));
+      padding: 12px 24px;
+      background: var(--wc-black);
       color: #fff;
       border: none;
       border-radius: var(--wc-radius);
-      font-family: inherit;
+      font-family: var(--wc-font-body);
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       flex-shrink: 0;
-      transition: opacity 0.15s;
+      transition: background 0.15s ease;
     }
-    .past-shows-search-btn:hover { opacity: 0.9; }
+    .past-shows-search-btn:hover { background: var(--wc-near-black); }
+    .past-shows-search-btn:active { opacity: 0.7; transform: scale(0.98); }
     .past-shows-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .past-shows-hints {
@@ -882,14 +900,17 @@
       cursor: default;
     }
 
-    .checkin-form-fields { display: flex; flex-direction: column; gap: 10px; }
+    .checkin-form-fields { display: flex; flex-direction: column; gap: 0; }
     .checkin-form-input {
-      width: 100%; padding: 12px 14px; font-family: var(--wc-font-body);
-      font-size: 15px; border: 1px solid rgba(0,0,0,0.1); border-radius: var(--wc-radius);
-      background: rgba(255,255,255,0.15); color: var(--wc-text-primary); outline: none;
+      width: 100%; padding: 14px 0 15px; font-family: var(--wc-font-body);
+      font-size: 16px; border: none; border-bottom: 1px solid transparent; border-radius: 0;
+      background: transparent; color: var(--wc-text-primary); outline: none;
+      caret-color: var(--wc-black); transition: border-color 0.15s ease;
     }
-    .checkin-form-input:focus { border-color: rgba(0,0,0,0.25); }
-    .checkin-form-input::placeholder { color: #999; }
+    .checkin-form-input:hover:not(:focus) { border-bottom-color: var(--wc-gray-300); }
+    .checkin-form-input:focus { border-bottom-color: var(--wc-black); }
+    .checkin-form-input:not(:placeholder-shown) { border-bottom-color: var(--wc-gray-300); }
+    .checkin-form-input::placeholder { color: var(--wc-gray-400); }
 
     .checkin-event-card {
       display: flex; align-items: center; gap: 12px;
@@ -1460,11 +1481,17 @@
     }
     .onb-text-input {
       font-family: var(--wc-font-body); font-size: 24px; font-weight: 600;
-      color: var(--wc-text-primary); text-align: center; border: none; background: transparent;
-      outline: none; padding: 6px 6px; margin-top: 16px; caret-color: var(--wc-text-primary);
+      color: var(--wc-text-primary); text-align: center;
+      border: none; border-bottom: 1px solid transparent; border-radius: 0;
+      background: transparent; outline: none;
+      padding: 14px 6px 15px; margin-top: 16px; caret-color: var(--wc-black);
       width: auto; min-width: 120px; max-width: 90%;
+      transition: border-color 0.15s ease;
     }
-    .onb-text-input::placeholder { color: #8e8c8c; font-weight: 600; }
+    .onb-text-input:hover:not(:focus) { border-bottom-color: var(--wc-gray-300); }
+    .onb-text-input:focus { border-bottom-color: var(--wc-black); }
+    .onb-text-input:not(:placeholder-shown) { border-bottom-color: var(--wc-gray-300); }
+    .onb-text-input::placeholder { color: var(--wc-gray-400); font-weight: 600; }
     .onb-helper {
       font-size: 12px; font-weight: 400; color: #595959; text-align: center;
       position: absolute; bottom: 24px; left: 16px; right: 16px;
@@ -1484,9 +1511,14 @@
     .onb-otp-input {
       font-family: var(--wc-font-body); font-size: 24px; font-weight: 600;
       color: var(--wc-text-primary); letter-spacing: 6px; text-align: center; margin-top: 20px;
-      border: none; background: transparent; outline: none; caret-color: var(--wc-text-primary);
-      width: 220px; padding: 6px 0;
+      border: none; border-bottom: 1px solid transparent; border-radius: 0;
+      background: transparent; outline: none; caret-color: var(--wc-black);
+      width: 220px; padding: 14px 0 15px;
+      transition: border-color 0.15s ease;
     }
+    .onb-otp-input:hover:not(:focus) { border-bottom-color: var(--wc-gray-300); }
+    .onb-otp-input:focus { border-bottom-color: var(--wc-black); }
+    .onb-otp-input:not(:placeholder-shown) { border-bottom-color: var(--wc-gray-300); }
     .onb-countdown {
       font-size: 12px; color: #595959; text-align: center;
       position: absolute; bottom: 24px; left: 16px; right: 16px;
@@ -1629,17 +1661,20 @@
     }
 
     .loc-form {
-      background: #fff; border: 1px solid #E5E2DB; border-radius: var(--wc-radius);
-      padding: 16px; display: flex; flex-direction: column; gap: 12px;
+      background: transparent; border: none; border-radius: 0;
+      padding: 0; display: flex; flex-direction: column; gap: 0;
     }
     .loc-form-row { display: flex; align-items: center; gap: 8px; }
     .loc-form-input {
-      font-family: var(--wc-font-body); font-size: 15px; font-weight: 500;
-      color: var(--wc-text-primary); border: 1px solid #E5E2DB; border-radius: var(--wc-radius);
-      padding: 10px 12px; background: #fff; outline: none; width: 100%;
+      font-family: var(--wc-font-body); font-size: 16px; font-weight: 400;
+      color: var(--wc-text-primary); border: none; border-bottom: 1px solid transparent; border-radius: 0;
+      padding: 14px 0 15px; background: transparent; outline: none; width: 100%;
+      caret-color: var(--wc-black); transition: border-color 0.15s ease;
     }
-    .loc-form-input:focus { border-color: #999; }
-    .loc-form-input::placeholder { color: #8e8c8c; }
+    .loc-form-input:hover:not(:focus) { border-bottom-color: var(--wc-gray-300); }
+    .loc-form-input:focus { border-bottom-color: var(--wc-black); }
+    .loc-form-input:not(:placeholder-shown) { border-bottom-color: var(--wc-gray-300); }
+    .loc-form-input::placeholder { color: var(--wc-gray-400); }
     .loc-form-input.year { width: 72px; text-align: center; flex-shrink: 0; }
     .loc-form-dash { color: var(--wc-text-primary); font-size: 16px; flex-shrink: 0; }
     .loc-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
@@ -2085,7 +2120,10 @@
   </section>
 
   <section id="tab-search" class="tab-content">
-    <input type="text" class="search-bar" id="search-input" placeholder="Search artists, venues, people...">
+    <div class="search-bar-wrap">
+      <input type="text" class="search-bar" id="search-input" placeholder="Search artists, venues, people...">
+      <button type="button" class="search-bar-btn" id="search-bar-btn">Search</button>
+    </div>
     <div id="search-results" class="search-results hidden"></div>
 
     <div id="search-explore">
@@ -4160,6 +4198,9 @@
 
     searchInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') doSearch(this.value.trim());
+    });
+    document.getElementById('search-bar-btn').addEventListener('click', function() {
+      doSearch(searchInput.value.trim());
     });
 
     async function doSearch(query) {
