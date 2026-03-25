@@ -4364,7 +4364,6 @@
           var imgHtml = ev.imageUrl
             ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
             : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
-          var going = isGoing(ev.id);
           var ticketUrl = ev.url || '';
           html += '<div class="show-card" data-event-id="' + ev.id + '" data-card-type="search-nearby" data-ticket-url="' + ticketUrl + '">';
           html += '<div class="show-card-inner">';
@@ -4381,11 +4380,7 @@
           html += '<div class="card-actions-body">';
           html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
           html += '<div class="card-action-divider"></div>';
-          if (going) {
-            html += '<button type="button" class="card-action-btn" data-action="cantgo">' + CANTGO_SVG + "Can't Go</button>";
-          } else {
-            html += '<button type="button" class="card-action-btn" data-action="going">' + GOING_SVG + "I'm Going</button>";
-          }
+          html += '<button type="button" class="card-action-btn" data-action="going">' + GOING_SVG + "I'm Going</button>";
           html += '</div></div>';
           html += '</div></div>';
         });
