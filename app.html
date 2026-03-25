@@ -2725,7 +2725,21 @@
           }
 
           var { error } = await sb.auth.signInWithOtp({ email: email });
-          if (error) { showFieldError('onbEmailError', error.message); return; }
+          if (error) {
+            var rateMatch = error.message.match(/after (\d+) second/);
+            if (rateMatch) {
+              var waitSec = parseInt(rateMatch[1], 10);
+              showFieldError('onbEmailError', 'Too many attempts. Please wait ' + waitSec + 's before trying again.');
+              var emailBtn = _isSignIn ? document.getElementById('onbSignInLink') : document.getElementById('onbContinueBtn');
+              if (emailBtn) { emailBtn.disabled = true; emailBtn.style.opacity = '0.5'; }
+              setTimeout(function() {
+                showFieldError('onbEmailError', '');
+                if (emailBtn) { emailBtn.disabled = false; emailBtn.style.opacity = ''; }
+              }, waitSec * 1000);
+              return;
+            }
+            showFieldError('onbEmailError', error.message); return;
+          }
         } catch (e) { showFieldError('onbEmailError', e.message || 'Failed to send code'); return; }
 
         var otpMsg = document.getElementById('onbOtpMessage');
