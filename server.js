@@ -24,6 +24,8 @@ app.use(function(req, res, next) {
   next();
 });
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.get('/components.css', (req, res) => res.sendFile(path.join(__dirname, 'components.css')));
+app.get('/components.js', (req, res) => res.sendFile(path.join(__dirname, 'components.js')));
 
 // Session middleware for OAuth
 app.use(session({

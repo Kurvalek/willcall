@@ -1,0 +1,1030 @@
+/* ============================================================
+   willcall — Component Library
+   Source: Figma design system jZtDnaWiMojrTzcHC1ikCv
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   BUTTONS
+   Variants: --primary, --ghost, --add, --text
+   Sizes:    --sm, --lg, --full
+   States:   :hover, :active, :disabled, [aria-busy="true"]
+   ------------------------------------------------------------ */
+
+.wc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--wc-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 12px 24px;
+  border-radius: var(--wc-radius);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.wc-btn:active:not(:disabled) {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+.wc-btn:disabled,
+.wc-btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.wc-btn[aria-busy="true"] {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Primary — solid black */
+.wc-btn--primary {
+  background: var(--wc-black);
+  color: var(--wc-white);
+}
+
+.wc-btn--primary:hover:not(:disabled) {
+  background: var(--wc-near-black);
+}
+
+.wc-btn--primary:disabled {
+  background: var(--wc-gray-300);
+  color: var(--wc-gray-600);
+}
+
+/* Ghost — outlined */
+.wc-btn--ghost {
+  background: transparent;
+  color: var(--wc-black);
+  border: 1px solid var(--wc-black);
+  font-weight: 500;
+  padding: 10px 20px;
+}
+
+.wc-btn--ghost:hover:not(:disabled) {
+  background: var(--wc-black);
+  color: var(--wc-white);
+}
+
+.wc-btn--ghost:disabled {
+  border-color: var(--wc-gray-300);
+  color: var(--wc-gray-400);
+}
+
+/* Add — subtle fill */
+.wc-btn--add {
+  background: rgba(26, 26, 26, 0.08);
+  color: var(--wc-gray-600);
+  font-size: 16px;
+  font-weight: 500;
+  padding: 16px;
+  width: 100%;
+}
+
+.wc-btn--add:hover:not(:disabled) {
+  background: rgba(26, 26, 26, 0.14);
+}
+
+.wc-btn--add:disabled {
+  background: rgba(26, 26, 26, 0.04);
+  color: var(--wc-gray-400);
+}
+
+/* Text — link-style */
+.wc-btn--text {
+  background: none;
+  color: var(--wc-gray-600);
+  font-weight: 400;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.wc-btn--text:hover:not(:disabled) {
+  color: var(--wc-black);
+}
+
+.wc-btn--text:disabled {
+  color: var(--wc-gray-400);
+  text-decoration: none;
+}
+
+/* Size modifiers */
+.wc-btn--sm {
+  font-size: 12px;
+  padding: 8px 16px;
+}
+
+.wc-btn--lg {
+  font-size: 16px;
+  padding: 14px 28px;
+}
+
+.wc-btn--full {
+  width: 100%;
+}
+
+/* Icon inside button */
+.wc-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.wc-btn--lg svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Loading spinner inside button */
+.wc-btn__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: wc-spin 0.6s linear infinite;
+}
+
+@keyframes wc-spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* ------------------------------------------------------------
+   INPUTS — Invisible Field
+   States: default, hover, focus, filled, error, disabled
+   ------------------------------------------------------------ */
+
+.wc-input {
+  display: block;
+  width: 100%;
+  font-family: var(--wc-font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--wc-text-primary);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  padding: 14px 0 15px;
+  caret-color: var(--wc-black);
+  outline: none;
+  transition: border-color 0.15s ease;
+  -webkit-appearance: none;
+}
+
+.wc-input::placeholder {
+  color: var(--wc-gray-400);
+}
+
+.wc-input:hover:not(:focus):not(:disabled) {
+  border-bottom-color: var(--wc-gray-300);
+}
+
+.wc-input:focus {
+  border-bottom-color: var(--wc-black);
+}
+
+.wc-input:not(:placeholder-shown) {
+  border-bottom-color: var(--wc-gray-300);
+}
+
+.wc-input:disabled {
+  border-bottom-color: transparent;
+  color: var(--wc-gray-600);
+  cursor: not-allowed;
+}
+
+.wc-input--error {
+  border-bottom-color: var(--wc-error) !important;
+}
+
+/* Input wrapper for label + error message */
+.wc-field {
+  position: relative;
+}
+
+.wc-field__error {
+  font-size: 12px;
+  color: var(--wc-error);
+  margin-top: 4px;
+}
+
+/* Search input paired with button */
+.wc-search-pair {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.wc-search-pair .wc-input {
+  flex: 1;
+}
+
+
+/* ------------------------------------------------------------
+   CARDS
+   Base card surface with semi-transparent white
+   ------------------------------------------------------------ */
+
+.wc-card {
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border-card);
+  border-radius: var(--wc-radius);
+  padding: 16px;
+}
+
+.wc-card--flush {
+  padding: 0;
+}
+
+.wc-card--interactive {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.wc-card--interactive:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.wc-card--interactive:active {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+
+/* ------------------------------------------------------------
+   SHOW LIST ITEM
+   Horizontal layout: thumbnail + text info
+   ------------------------------------------------------------ */
+
+.wc-show {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border-card);
+  border-radius: var(--wc-radius);
+  padding: 12px;
+}
+
+.wc-show__thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--wc-radius);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--wc-near-black);
+}
+
+.wc-show__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(100%) contrast(1.3) brightness(0.95);
+}
+
+.wc-show__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wc-show__artist {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--wc-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wc-show__date {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--wc-text-muted);
+  font-family: var(--wc-font-mono);
+}
+
+.wc-show__venue {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--wc-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wc-show__actions {
+  flex-shrink: 0;
+}
+
+
+/* ------------------------------------------------------------
+   STATS BAR
+   Horizontal row of stat cells
+   ------------------------------------------------------------ */
+
+.wc-stats {
+  display: flex;
+  align-items: center;
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border-card);
+  border-radius: var(--wc-radius);
+  padding: 12px 8px;
+}
+
+.wc-stats__cell {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.wc-stats__value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--wc-text-primary);
+  line-height: 1.1;
+  font-family: var(--wc-font-mono);
+}
+
+.wc-stats__label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--wc-text-muted);
+  text-transform: lowercase;
+  font-family: var(--wc-font-mono);
+}
+
+.wc-stats__divider {
+  width: 1px;
+  height: 40px;
+  background: var(--wc-gray-200);
+  flex-shrink: 0;
+}
+
+
+/* ------------------------------------------------------------
+   AVATARS — always square, 4px radius
+   Sizes: default (44px), --sm (32px), --lg (72px), --upload (64px)
+   ------------------------------------------------------------ */
+
+.wc-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--wc-radius);
+  background: var(--wc-near-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.wc-avatar__initials {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wc-white);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.wc-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(100%) contrast(1.3) brightness(0.95);
+}
+
+.wc-avatar--sm {
+  width: 32px;
+  height: 32px;
+}
+
+.wc-avatar--sm .wc-avatar__initials {
+  font-size: 11px;
+}
+
+.wc-avatar--lg {
+  width: 72px;
+  height: 72px;
+}
+
+.wc-avatar--lg .wc-avatar__initials {
+  font-size: 20px;
+}
+
+.wc-avatar--upload {
+  width: 64px;
+  height: 64px;
+  background: var(--wc-gray-200);
+  border: 2px dashed var(--wc-gray-300);
+  cursor: pointer;
+}
+
+.wc-avatar--upload:hover {
+  border-color: var(--wc-gray-400);
+}
+
+.wc-avatar--upload svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--wc-gray-400);
+}
+
+/* Clickable avatar for photo upload */
+.wc-avatar--editable {
+  cursor: pointer;
+}
+
+
+/* ------------------------------------------------------------
+   TAGS / CHIPS
+   ------------------------------------------------------------ */
+
+.wc-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border);
+  border-radius: var(--wc-radius);
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--wc-gray-600);
+  cursor: default;
+  transition: background 0.15s ease;
+}
+
+.wc-tag--interactive {
+  cursor: pointer;
+}
+
+.wc-tag--interactive:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.wc-tag--active {
+  background: var(--wc-black);
+  color: var(--wc-white);
+  border-color: var(--wc-black);
+}
+
+.wc-tag svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+
+/* ------------------------------------------------------------
+   TABS — Segmented Control
+   ------------------------------------------------------------ */
+
+.wc-tabs {
+  display: flex;
+  background: var(--wc-bg-card);
+  border: 1px solid var(--wc-border-card);
+  border-radius: var(--wc-radius);
+  padding: 3px;
+  gap: 2px;
+}
+
+.wc-tabs__tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  font-family: var(--wc-font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wc-gray-600);
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wc-tabs__tab:hover:not([aria-selected="true"]) {
+  color: var(--wc-text-primary);
+}
+
+.wc-tabs__tab[aria-selected="true"] {
+  background: var(--wc-white);
+  color: var(--wc-text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+
+/* ------------------------------------------------------------
+   BOTTOM NAVIGATION
+   Fixed, edge-to-edge, 4 items
+   ------------------------------------------------------------ */
+
+.wc-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 12px 24px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  background: var(--wc-white);
+  border-top: 1px solid var(--wc-border);
+  z-index: 900;
+}
+
+.wc-nav__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--wc-gray-400);
+  transition: color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wc-nav__item:hover {
+  color: var(--wc-gray-600);
+}
+
+.wc-nav__item[aria-selected="true"],
+.wc-nav__item.active {
+  color: var(--wc-black);
+}
+
+.wc-nav__item svg {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  fill: none;
+}
+
+/* Add button in nav — solid black square */
+.wc-nav__add {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--wc-radius);
+  background: var(--wc-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wc-nav__add:hover {
+  background: var(--wc-near-black);
+}
+
+.wc-nav__add:active {
+  opacity: 0.7;
+  transform: scale(0.95);
+}
+
+.wc-nav__add svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--wc-white);
+  stroke-width: 2;
+  fill: none;
+}
+
+
+/* ------------------------------------------------------------
+   FAB ACTION MENU
+   Floating menu opened by the add button
+   ------------------------------------------------------------ */
+
+.wc-fab-menu {
+  position: absolute;
+  background: var(--wc-white);
+  border-radius: var(--wc-radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 950;
+}
+
+.wc-fab-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--wc-font-body);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wc-fab-menu__item:hover .wc-fab-menu__label {
+  color: var(--wc-black);
+}
+
+.wc-fab-menu__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--wc-radius);
+  background: var(--wc-gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wc-fab-menu__icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: var(--wc-text-primary);
+  stroke-width: 1.75;
+  fill: none;
+}
+
+.wc-fab-menu__label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--wc-text-primary);
+  transition: color 0.15s ease;
+}
+
+
+/* ------------------------------------------------------------
+   COLOR SWATCHES — Profile color picker
+   ------------------------------------------------------------ */
+
+.wc-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.wc-swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--wc-radius);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wc-swatch:hover {
+  transform: scale(1.08);
+}
+
+.wc-swatch[aria-selected="true"],
+.wc-swatch.active {
+  border-color: var(--wc-black);
+}
+
+
+/* ------------------------------------------------------------
+   SECTION HEADER
+   Title + optional count/action on the right
+   ------------------------------------------------------------ */
+
+.wc-section {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.wc-section__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--wc-text-primary);
+  line-height: 1.3;
+}
+
+.wc-section__count {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wc-text-muted);
+  font-family: var(--wc-font-mono);
+}
+
+.wc-section__action {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--wc-gray-600);
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+
+/* ------------------------------------------------------------
+   TYPOGRAPHY UTILITY CLASSES
+   ------------------------------------------------------------ */
+
+.wc-text-3xl { font-size: 30px; font-weight: 800; line-height: 1.2; }
+.wc-text-2xl { font-size: 24px; font-weight: 800; line-height: 1.1; }
+.wc-text-xl  { font-size: 20px; font-weight: 700; line-height: 1.3; }
+.wc-text-lg  { font-size: 18px; font-weight: 700; line-height: 1.4; }
+.wc-text-base { font-size: 16px; font-weight: 400; line-height: 1.5; }
+.wc-text-sm  { font-size: 14px; font-weight: 600; line-height: 1.4; }
+.wc-text-xs  { font-size: 12px; font-weight: 400; line-height: 1.4; }
+
+.wc-text-primary   { color: var(--wc-text-primary); }
+.wc-text-secondary  { color: var(--wc-text-secondary); }
+.wc-text-muted      { color: var(--wc-text-muted); }
+
+.wc-font-mono { font-family: var(--wc-font-mono); }
+.wc-font-body { font-family: var(--wc-font-body); }
+
+
+/* ------------------------------------------------------------
+   SPACING UTILITY CLASSES
+   ------------------------------------------------------------ */
+
+.wc-gap-1  { gap: 4px; }
+.wc-gap-2  { gap: 8px; }
+.wc-gap-3  { gap: 12px; }
+.wc-gap-4  { gap: 16px; }
+.wc-gap-5  { gap: 24px; }
+.wc-gap-6  { gap: 32px; }
+
+.wc-mb-1 { margin-bottom: 4px; }
+.wc-mb-2 { margin-bottom: 8px; }
+.wc-mb-3 { margin-bottom: 12px; }
+.wc-mb-4 { margin-bottom: 16px; }
+.wc-mb-5 { margin-bottom: 24px; }
+.wc-mb-6 { margin-bottom: 32px; }
+
+.wc-mt-1 { margin-top: 4px; }
+.wc-mt-2 { margin-top: 8px; }
+.wc-mt-3 { margin-top: 12px; }
+.wc-mt-4 { margin-top: 16px; }
+.wc-mt-5 { margin-top: 24px; }
+.wc-mt-6 { margin-top: 32px; }
+
+.wc-p-3  { padding: 12px; }
+.wc-p-4  { padding: 16px; }
+.wc-p-5  { padding: 24px; }
+
+.wc-px-4 { padding-left: 16px; padding-right: 16px; }
+.wc-px-5 { padding-left: 24px; padding-right: 24px; }
+.wc-py-3 { padding-top: 12px; padding-bottom: 12px; }
+.wc-py-4 { padding-top: 16px; padding-bottom: 16px; }
+
+
+/* ------------------------------------------------------------
+   LAYOUT HELPERS
+   ------------------------------------------------------------ */
+
+.wc-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.wc-row {
+  display: flex;
+  align-items: center;
+}
+
+.wc-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wc-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wc-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ------------------------------------------------------------
+   LIST — Vertical list of items with optional dividers
+   ------------------------------------------------------------ */
+
+.wc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wc-list--divided {
+  gap: 0;
+}
+
+.wc-list--divided > * + * {
+  border-top: 1px solid var(--wc-border-card);
+}
+
+
+/* ------------------------------------------------------------
+   EMPTY STATE
+   ------------------------------------------------------------ */
+
+.wc-empty {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.wc-empty__icon {
+  margin-bottom: 12px;
+}
+
+.wc-empty__icon svg {
+  width: 40px;
+  height: 40px;
+  stroke: var(--wc-gray-300);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.wc-empty__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--wc-text-primary);
+  margin-bottom: 4px;
+}
+
+.wc-empty__desc {
+  font-size: 14px;
+  color: var(--wc-text-muted);
+  line-height: 1.5;
+}
+
+
+/* ------------------------------------------------------------
+   BADGE — small status indicator
+   ------------------------------------------------------------ */
+
+.wc-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--wc-radius);
+  font-family: var(--wc-font-mono);
+}
+
+.wc-badge--default {
+  background: var(--wc-gray-100);
+  color: var(--wc-gray-600);
+}
+
+.wc-badge--dark {
+  background: var(--wc-black);
+  color: var(--wc-white);
+}
+
+.wc-badge--success {
+  background: #E8F5E9;
+  color: var(--wc-success);
+}
+
+
+/* ------------------------------------------------------------
+   SHEET / MODAL — Bottom sheet overlay
+   ------------------------------------------------------------ */
+
+.wc-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.wc-sheet-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.wc-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  width: 100%;
+  max-width: 430px;
+  max-height: 90vh;
+  background: var(--wc-bg);
+  border-radius: var(--wc-radius) var(--wc-radius) 0 0;
+  z-index: 1000;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+}
+
+.wc-sheet.open {
+  transform: translateX(-50%) translateY(0);
+}
+
+.wc-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--wc-gray-200);
+  position: sticky;
+  top: 0;
+  background: var(--wc-bg);
+  z-index: 1;
+}
+
+.wc-sheet__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--wc-text-primary);
+}
+
+.wc-sheet__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--wc-text-primary);
+}
+
+.wc-sheet__close svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.wc-sheet__body {
+  padding: 20px;
+}
+
+
+/* ------------------------------------------------------------
+   SPINNER — Loading indicator
+   ------------------------------------------------------------ */
+
+.wc-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--wc-gray-200);
+  border-top-color: var(--wc-black);
+  border-radius: 50%;
+  animation: wc-spin 0.8s linear infinite;
+}
+
+.wc-spinner--sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.wc-spinner--lg {
+  width: 36px;
+  height: 36px;
+}
+
+.wc-spinner--white {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: var(--wc-white);
+}
