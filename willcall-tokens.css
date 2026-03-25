@@ -1,0 +1,50 @@
+/* ============================================================
+   willcall Design Tokens — CSS Custom Properties
+   Source of truth: Figma file jZtDnaWiMojrTzcHC1ikCv
+   Import this in globals.css or layout.tsx
+   ============================================================ */
+
+:root {
+  /* ---- Base Palette (from Figma variables) ---- */
+  --wc-black: #1F1E1D;
+  --wc-near-black: #2C2928;
+  --wc-gray-600: #5C5955;
+  --wc-gray-400: #A8A49C;
+  --wc-gray-300: #D1CEC7;
+  --wc-gray-200: #E5E2DB;
+  --wc-gray-100: #F0EDE7;
+  --wc-cream: #F5F3EE;
+  --wc-white: #FFFFFF;
+
+  /* ---- Profile Colors ---- */
+  --wc-profile-cream: #F5F3EE;
+  --wc-profile-yellow: #EEE9B1;
+  --wc-profile-pink: #FC98BC;
+  --wc-profile-lavender: #D5D6EB;
+  --wc-profile-orange: #FC6C2E;
+  --wc-profile-blue: #7ABFE8;
+  --wc-profile-gray: #A5A49F;
+  --wc-profile-green: #A8C9AA;
+
+  /* ---- Semantic ---- */
+  --wc-bg: var(--wc-cream);
+  --wc-bg-card: rgba(255, 255, 255, 0.8);
+  --wc-bg-input: rgba(255, 255, 255, 0.6);
+  --wc-text-primary: var(--wc-black);
+  --wc-text-secondary: var(--wc-gray-600);
+  --wc-text-muted: var(--wc-gray-400);
+  --wc-border: rgba(0, 0, 0, 0.08);
+  --wc-border-card: rgba(0, 0, 0, 0.06);
+
+  /* ---- Functional ---- */
+  --wc-error: #FC6C2E;
+  --wc-success: #4CAF50;
+
+  /* ---- Typography ---- */
+  --wc-font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --wc-font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --wc-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* ---- The One Radius ---- */
+  --wc-radius: 4px;
+}
