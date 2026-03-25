@@ -538,19 +538,19 @@
 
     .show-card-layout {
       display: flex;
-      align-items: start;
-      gap: 16px;
+      align-items: stretch;
+      gap: 12px;
       flex: 1;
       min-width: 0;
     }
     .show-card-img-wrap {
       position: relative;
-      width: 88px;
-      height: 88px;
+      width: 72px;
       flex-shrink: 0;
       overflow: hidden;
       border-radius: 4px 0 0 4px;
       margin: -16px 0 -16px -16px;
+      align-self: stretch;
     }
     .show-card-img-wrap img {
       width: 100%;
@@ -577,7 +577,9 @@
       z-index: 1;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      justify-content: center;
+      gap: 2px;
+      overflow: hidden;
     }
     .show-card .concert-artist,
     .show-card .concert-venue,
@@ -658,10 +660,14 @@
     .card-action-divider {
       width: 1px; height: 48px; background: rgba(44,41,40,0.3); flex-shrink: 0;
     }
-    .show-card .concert-artist { font-size: 14px; font-weight: 700; color: #fff; }
+    .show-card .concert-artist {
+      font-size: 14px; font-weight: 700; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
     .show-card .concert-date { font-size: 12px; color: #fff; font-weight: 400; }
     .show-card .concert-venue {
       font-size: 12px; color: #fff; display: flex; align-items: center; gap: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .show-card .concert-venue svg { flex-shrink: 0; stroke: #fff; }
     .show-card .setlist-link {
