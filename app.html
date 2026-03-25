@@ -597,10 +597,7 @@
       position: relative;
       overflow: hidden;
     }
-    .show-card.search-event-card {
-      background: var(--wc-near-black);
-      padding: 16px;
-    }
+    
     .show-card-inner {
       display: flex;
       position: relative;
@@ -1308,15 +1305,8 @@
       display: flex; flex-direction: column; gap: 12px; min-height: 0;
     }
     .search-going-list:empty::before { content: 'No shows yet. Mark shows as "I\'m going" below.'; font-size: 14px; color: var(--wc-text-muted); padding: 16px; border: 1px dashed var(--wc-gray-300); border-radius: var(--wc-radius); background: rgba(255,255,255,0.3); }
-    .search-event-card { position: relative; padding-right: 100px; }
-    .search-event-card .im-going-btn {
-      position: absolute; top: 12px; right: 12px; z-index: 2;
-      padding: 6px 12px; font-size: 12px; font-weight: 600;
-      background: linear-gradient(135deg, var(--wc-black), var(--wc-black));
-      color: #fff; border: none; border-radius: var(--wc-radius); cursor: pointer;
-    }
-    .im-going-btn:hover { opacity: 0.9; }
-    .im-going-btn.going { background: #1F1E1D; cursor: default; }
+    .search-going-list .show-card,
+    #search-nearby-shows .show-card { margin-bottom: 0; }
 
     .spotify-connect-card {
       background: rgba(255, 255, 255, 0.15);
@@ -3461,6 +3451,7 @@
     var SETLIST_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C2928" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>';
     var REMOVE_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C2928" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
     var CANTGO_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C2928" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+    var GOING_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C2928" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 
     function srgbToLinear(c) { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
     function relativeLuminance(r, g, b) {
@@ -3730,12 +3721,35 @@
         if (url) window.open(url, '_blank');
         if (card) card.classList.remove('open');
       } else if (action === 'cantgo') {
-        var upId = card ? card.dataset.upcomingId : null;
-        if (upId) {
-          removeGoingShow(upId);
-          renderProfileUpcomingShows();
-          renderSearchGoingList();
+        var cardType = card ? card.dataset.cardType : '';
+        if (cardType === 'search-going' || cardType === 'search-nearby') {
+          var goingId = card.dataset.goingId || card.dataset.eventId;
+          if (goingId) {
+            removeGoingShow(goingId);
+            renderSearchGoingList();
+            renderSearchNearbyShows();
+            renderProfileUpcomingShows();
+          }
+        } else {
+          var upId = card ? card.dataset.upcomingId : null;
+          if (upId) {
+            removeGoingShow(upId);
+            renderProfileUpcomingShows();
+            renderSearchGoingList();
+          }
         }
+      } else if (action === 'going') {
+        var evId = card ? card.dataset.eventId : null;
+        if (evId) {
+          var ev = searchNearbyEvents.find(function(e) { return e.id === evId; });
+          if (ev) {
+            addGoingShow(ev);
+            renderSearchGoingList();
+            renderSearchNearbyShows();
+            renderProfileUpcomingShows();
+          }
+        }
+        if (card) card.classList.remove('open');
       }
     }
 
@@ -3746,6 +3760,12 @@
     var profileUpcomingEl = document.getElementById('profile-upcoming');
     profileUpcomingEl.addEventListener('click', handleCardActions);
     initCardSwipe(profileUpcomingEl);
+
+    var searchGoingEl = document.getElementById('search-going-list');
+    if (searchGoingEl) { searchGoingEl.addEventListener('click', handleCardActions); initCardSwipe(searchGoingEl); }
+
+    var searchNearbyEl = document.getElementById('search-nearby-shows');
+    if (searchNearbyEl) { searchNearbyEl.addEventListener('click', handleCardActions); initCardSwipe(searchNearbyEl); }
 
     document.getElementById('see-all-artists').addEventListener('click', function(e) {
       e.preventDefault();
@@ -4277,30 +4297,31 @@
         var artist = ev.artist && ev.artist.name ? ev.artist.name : ev.name || 'Unknown';
         var date = formatDate(ev.eventDate);
         var venue = ev.venue && ev.venue.name ? ev.venue.name : '—';
-        var city = ev.venue && ev.venue.city ? ev.venue.city.name : '';
-        var country = ev.venue && ev.venue.city && ev.venue.city.country ? ev.venue.city.country.name : '';
         var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
         var imgHtml = ev.imageUrl
           ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
           : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
-        html += '<div class="show-card search-event-card" data-going-id="' + ev.id + '">';
-        html += '<button type="button" class="im-going-btn going">✓ I\'m going</button>';
+        var ticketUrl = ev.url || '';
+        html += '<div class="show-card" data-going-id="' + ev.id + '" data-card-type="search-going" data-ticket-url="' + ticketUrl + '">';
+        html += '<div class="show-card-inner">';
+        html += '<div class="show-card-default">';
         html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
         html += '<div class="concert-artist">' + artist + '</div>';
         html += '<div class="concert-date">' + date + '</div>';
         html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
-        if (ev.url) html += '<a href="' + ev.url + '" target="_blank" rel="noopener" class="setlist-link">Get tickets ' + LINK_SVG + '</a>';
-        html += '</div></div></div>';
+        html += '</div></div>';
+        html += DOTS_HTML;
+        html += '</div>';
+        html += '<div class="show-card-actions">';
+        html += DOTS_HTML;
+        html += '<div class="card-actions-body">';
+        html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
+        html += '<div class="card-action-divider"></div>';
+        html += '<button type="button" class="card-action-btn" data-action="cantgo">' + CANTGO_SVG + "Can't Go</button>";
+        html += '</div></div>';
+        html += '</div></div>';
       });
       el.innerHTML = html;
-      el.querySelectorAll('[data-going-id]').forEach(function(card) {
-        var btn = card.querySelector('.im-going-btn');
-        if (btn) btn.addEventListener('click', function() {
-          removeGoingShow(card.dataset.goingId);
-          renderSearchGoingList();
-          renderSearchNearbyShows();
-        });
-      });
     }
 
     async function renderSearchNearbyShows() {
@@ -4339,37 +4360,36 @@
           var artist = ev.artist && ev.artist.name ? ev.artist.name : ev.name || 'Unknown';
           var date = formatDate(ev.eventDate);
           var venue = ev.venue && ev.venue.name ? ev.venue.name : '—';
-          var city = ev.venue && ev.venue.city ? ev.venue.city.name : '';
-          var country = ev.venue && ev.venue.city && ev.venue.city.country ? ev.venue.city.country.name : '';
           var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
           var imgHtml = ev.imageUrl
             ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
             : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
           var going = isGoing(ev.id);
-          html += '<div class="show-card search-event-card" data-event-id="' + ev.id + '">';
-          html += '<button type="button" class="im-going-btn' + (going ? ' going' : '') + '" data-event-id="' + ev.id + '">' + (going ? '✓ I\'m going' : 'I\'m going') + '</button>';
+          var ticketUrl = ev.url || '';
+          html += '<div class="show-card" data-event-id="' + ev.id + '" data-card-type="search-nearby" data-ticket-url="' + ticketUrl + '">';
+          html += '<div class="show-card-inner">';
+          html += '<div class="show-card-default">';
           html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
           html += '<div class="concert-artist">' + artist + '</div>';
           html += '<div class="concert-date">' + date + '</div>';
           html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
-          if (ev.url) html += '<a href="' + ev.url + '" target="_blank" rel="noopener" class="setlist-link">Get tickets ' + LINK_SVG + '</a>';
-          html += '</div></div></div>';
+          html += '</div></div>';
+          html += DOTS_HTML;
+          html += '</div>';
+          html += '<div class="show-card-actions">';
+          html += DOTS_HTML;
+          html += '<div class="card-actions-body">';
+          html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
+          html += '<div class="card-action-divider"></div>';
+          if (going) {
+            html += '<button type="button" class="card-action-btn" data-action="cantgo">' + CANTGO_SVG + "Can't Go</button>";
+          } else {
+            html += '<button type="button" class="card-action-btn" data-action="going">' + GOING_SVG + "I'm Going</button>";
+          }
+          html += '</div></div>';
+          html += '</div></div>';
         });
         el.innerHTML = html;
-        el.querySelectorAll('.im-going-btn[data-event-id]').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            var id = btn.dataset.eventId;
-            var ev = searchNearbyEvents.find(function(e) { return e.id === id; });
-            if (!ev) return;
-            if (isGoing(id)) {
-              removeGoingShow(id);
-            } else {
-              addGoingShow(ev);
-            }
-            renderSearchGoingList();
-            renderSearchNearbyShows();
-          });
-        });
       } catch (err) {
         var msg = err.message || 'Unknown error';
         if (msg === 'Failed to fetch' || msg.indexOf('fetch') !== -1) {
