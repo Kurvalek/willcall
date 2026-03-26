@@ -668,7 +668,10 @@
       gap: 8px; padding: 12px 0;
       background: none; border: none; cursor: pointer;
       font-family: inherit; font-size: 12px; font-weight: 600; color: var(--wc-near-black);
+      border-radius: var(--wc-radius); transition: background 0.15s ease;
     }
+    .card-action-btn:hover { background: rgba(0, 0, 0, 0.06); }
+    .card-action-btn:active { background: rgba(0, 0, 0, 0.1); }
     .card-action-btn svg { width: 18px; height: 18px; }
     .card-action-divider {
       width: 1px; height: 48px; background: rgba(44,41,40,0.3); flex-shrink: 0;
@@ -1419,8 +1422,18 @@
 
     .onb-body {
       flex: 1; display: flex; flex-direction: column; align-items: center;
-      padding: 0 16px; overflow-y: auto;
+      padding: 0 16px; overflow-y: auto; position: relative;
     }
+    .onb-next-btn {
+      position: absolute; bottom: 40px; right: 20px;
+      background: var(--wc-black); color: #fff; border: none;
+      border-radius: var(--wc-radius); padding: 12px 28px;
+      font-family: var(--wc-font-body); font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: background 0.15s ease, transform 0.1s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .onb-next-btn:hover { background: var(--wc-near-black); }
+    .onb-next-btn:active { transform: scale(0.96); }
 
     /* Welcome screen */
     .onb-welcome-body {
@@ -1917,6 +1930,7 @@
           <p id="onbEmailError" class="onb-error"></p>
           <p class="onb-helper">We'll use your email to create your account.</p>
         </div>
+        <button type="button" class="onb-next-btn" id="onbEmailNextBtn">Next</button>
       </div>
     </div>
 
@@ -1934,6 +1948,7 @@
           <p id="onbOtpError" class="onb-error"></p>
           <p class="onb-countdown" id="onbCountdown">You can request a new code in <span id="onbCountdownSec">60</span> seconds<br>or <a id="onbChangeEmail">change your email.</a></p>
         </div>
+        <button type="button" class="onb-next-btn" id="onbOtpNextBtn">Next</button>
       </div>
     </div>
 
@@ -2731,6 +2746,9 @@
       emailInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') sendOtp();
       });
+      document.getElementById('onbEmailNextBtn').addEventListener('click', function() {
+        sendOtp();
+      });
 
       async function sendOtp() {
         var email = emailInput.value.trim();
@@ -2800,6 +2818,11 @@
         var val = otpInput.value.replace(/\D/g, '').slice(0, 8);
         otpInput.value = val;
         if (val.length === 8) verifyOtp(val);
+      });
+      document.getElementById('onbOtpNextBtn').addEventListener('click', function() {
+        var val = otpInput.value.replace(/\D/g, '').slice(0, 8);
+        if (val.length >= 6) verifyOtp(val);
+        else showFieldError('onbOtpError', 'Please enter the full code');
       });
 
       otpInput.addEventListener('paste', function(e) {
