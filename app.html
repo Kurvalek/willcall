@@ -1313,7 +1313,45 @@
 
     .search-results { margin-top: 16px; }
     .search-results.hidden { display: none; }
-    .search-location-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .search-location-line {
+      font-size: 14px; color: var(--wc-text-muted); margin-bottom: 8px; line-height: 1.6;
+    }
+    .search-location-btn {
+      font-weight: 600; color: var(--wc-text-primary); cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .search-location-btn:hover { opacity: 0.7; }
+    .location-sheet-overlay {
+      position: fixed; inset: 0; z-index: 1100;
+    }
+    .location-sheet-backdrop {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.3);
+    }
+    .location-sheet {
+      position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px;
+      background: var(--wc-bg); border-radius: var(--wc-radius) var(--wc-radius) 0 0;
+      padding: 12px 20px 32px; max-height: 60vh; overflow-y: auto;
+    }
+    .location-sheet-handle {
+      width: 36px; height: 4px; background: var(--wc-gray-300); border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+    .location-sheet-title {
+      font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--wc-text-primary);
+    }
+    .location-sheet-option {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 0; border-bottom: 1px solid var(--wc-gray-200);
+      cursor: pointer; font-size: 15px; color: var(--wc-text-primary);
+      transition: color 0.15s;
+    }
+    .location-sheet-option:last-child { border-bottom: none; }
+    .location-sheet-option:hover { color: var(--wc-near-black); }
+    .location-sheet-option.active { font-weight: 600; }
+    .location-sheet-option .loc-check {
+      width: 20px; text-align: center; font-size: 14px;
+    }
     .search-going-list, #search-nearby-shows {
       display: flex; flex-direction: column; gap: 12px; min-height: 0;
     }
@@ -2108,43 +2146,37 @@
     <div id="search-results" class="search-results hidden"></div>
 
     <div id="search-explore">
-      <div class="search-location-row" style="margin-bottom: 16px;">
-        <label for="search-city-select" style="font-size: 13px; font-weight: 500; color: var(--wc-text-muted); margin-right: 8px;">Shows near</label>
-        <select id="search-city-select" style="flex: 1; max-width: 200px; padding: 8px 12px; border: 1px solid rgba(0,0,0,0.15); border-radius: var(--wc-radius); font-size: 14px; font-family: inherit; background: rgba(255,255,255,0.15); appearance: none; -webkit-appearance: none; background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23666%22 stroke-width=%222%22><polyline points=%226 9 12 15 18 9%22/></svg>'); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px;">
-          <option value="">Select a location</option>
-        </select>
+      <div class="search-location-line" id="searchLocationLine">
+        Look for shows in <span class="search-location-btn" id="searchLocationBtn">✦ my current location ✦</span>
       </div>
 
-      <h2 class="section-title" style="margin-top: 24px;">I'm going</h2>
+      <div class="section-header" style="margin-top: 32px;">
+        <h2 class="section-title">I'm going</h2>
+        <span class="count" id="search-going-count"></span>
+      </div>
       <div id="search-going-list" class="search-going-list"></div>
 
-      <h2 class="section-title" style="margin-top: 24px;">Upcoming shows near you</h2>
+      <div class="section-header" style="margin-top: 32px;">
+        <h2 class="section-title">Upcoming shows near you</h2>
+      </div>
       <div id="search-nearby-shows"></div>
 
-      <h2 class="section-title" style="margin-top: 24px;">Trending artists this week</h2>
-      <div class="horizontal-scroll">
-        <div class="artist-chip"><div class="avatar">TS</div><span class="name">Taylor Swift</span></div>
-        <div class="artist-chip"><div class="avatar">PB</div><span class="name">Phoebe Bridgers</span></div>
-        <div class="artist-chip"><div class="avatar">BM</div><span class="name">Billie Eilish</span></div>
-        <div class="artist-chip"><div class="avatar">OV</div><span class="name">Olivia Rodrigo</span></div>
-        <div class="artist-chip"><div class="avatar">HW</div><span class="name">Harry Styles</span></div>
-      </div>
-
-      <h2 class="section-title" style="margin-top: 24px;">Popular venues</h2>
-      <div class="horizontal-scroll">
-        <span class="venue-chip">Madison Square Garden</span>
-        <span class="venue-chip">Radio City</span>
-        <span class="venue-chip">Brooklyn Steel</span>
-        <span class="venue-chip">Terminal 5</span>
-      </div>
-
-      <h2 class="section-title" style="margin-top: 24px;">People on willcall</h2>
+      <h2 class="section-title" style="margin-top: 32px;">People on willcall</h2>
       <div class="past-shows-search-box" style="margin-bottom:12px">
         <input type="text" id="people-search-input" placeholder="Search by name or username...">
         <button type="button" class="past-shows-search-btn" id="people-search-btn">Search</button>
       </div>
       <div id="search-people-results" style="display:none"></div>
       <div id="search-people-suggestions"></div>
+    </div>
+
+    <div id="locationSheet" class="location-sheet-overlay" style="display:none">
+      <div class="location-sheet-backdrop"></div>
+      <div class="location-sheet">
+        <div class="location-sheet-handle"></div>
+        <div class="location-sheet-title">Select location</div>
+        <div class="location-sheet-options" id="locationSheetOptions"></div>
+      </div>
     </div>
   </section>
 
@@ -4428,6 +4460,8 @@
       var el = document.getElementById('search-going-list');
       if (!el) return;
       var list = getGoingShows();
+      var countEl = document.getElementById('search-going-count');
+      if (countEl) countEl.textContent = list.length > 0 ? list.length + ' show' + (list.length !== 1 ? 's' : '') : '';
       if (list.length === 0) {
         el.innerHTML = '';
         return;
@@ -4535,36 +4569,44 @@
       }
     }
 
-    function populateCityDropdown() {
-      var select = document.getElementById('search-city-select');
-      if (!select) return;
-      var locs = WillcallLocations.getAll();
-      var current = searchCity;
-      var html = '';
-      if (locs.length > 0) {
-        locs.forEach(function(loc) {
-          var city = loc.city || '';
-          if (!city) return;
-          var selected = city.toLowerCase() === current.toLowerCase() ? ' selected' : '';
-          html += '<option value="' + city + '"' + selected + '>' + city + '</option>';
-        });
-      }
-      html += '<option value="__current__">📍 Use my current location</option>';
-      select.innerHTML = html;
-      if (locs.length === 0) {
-        select.insertAdjacentHTML('afterbegin', '<option value="" disabled selected>No saved locations</option>');
-      }
+    function updateLocationLabel() {
+      var btn = document.getElementById('searchLocationBtn');
+      if (btn) btn.textContent = '✦ ' + (searchCity || 'my current location') + ' ✦';
     }
 
-    document.getElementById('search-city-select').addEventListener('change', function() {
-      var val = this.value;
-      if (val === '__current__') {
-        if (!navigator.geolocation) {
-          alert('Geolocation is not supported by your browser.');
-          populateCityDropdown();
-          return;
-        }
-        this.querySelector('[value="__current__"]').textContent = '📍 Locating...';
+    function openLocationSheet() {
+      var sheet = document.getElementById('locationSheet');
+      var optionsEl = document.getElementById('locationSheetOptions');
+      if (!sheet || !optionsEl) return;
+      var locs = WillcallLocations.getAll();
+      var html = '';
+      html += '<div class="location-sheet-option" data-loc="__current__"><span class="loc-check"></span>Use my current location</div>';
+      locs.forEach(function(loc) {
+        var city = loc.city || '';
+        if (!city) return;
+        var active = city.toLowerCase() === searchCity.toLowerCase() ? ' active' : '';
+        var check = active ? '✓' : '';
+        html += '<div class="location-sheet-option' + active + '" data-loc="' + city + '"><span class="loc-check">' + check + '</span>' + city + '</div>';
+      });
+      optionsEl.innerHTML = html;
+      sheet.style.display = '';
+    }
+
+    function closeLocationSheet() {
+      var sheet = document.getElementById('locationSheet');
+      if (sheet) sheet.style.display = 'none';
+    }
+
+    document.getElementById('searchLocationBtn').addEventListener('click', openLocationSheet);
+
+    document.getElementById('locationSheet').addEventListener('click', function(ev) {
+      if (ev.target.closest('.location-sheet-backdrop')) { closeLocationSheet(); return; }
+      var opt = ev.target.closest('.location-sheet-option');
+      if (!opt) return;
+      var loc = opt.dataset.loc;
+      if (loc === '__current__') {
+        if (!navigator.geolocation) { alert('Geolocation not supported.'); closeLocationSheet(); return; }
+        opt.querySelector('.loc-check').textContent = '...';
         navigator.geolocation.getCurrentPosition(
           function(pos) {
             fetch('https://nominatim.openstreetmap.org/reverse?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&format=json')
@@ -4572,41 +4614,26 @@
               .then(function(data) {
                 var city = (data.address && (data.address.city || data.address.town || data.address.village)) || 'Unknown';
                 searchCity = city;
-                populateCityDropdown();
-                var sel = document.getElementById('search-city-select');
-                var found = false;
-                for (var i = 0; i < sel.options.length; i++) {
-                  if (sel.options[i].value.toLowerCase() === city.toLowerCase()) {
-                    sel.selectedIndex = i; found = true; break;
-                  }
-                }
-                if (!found) {
-                  sel.insertAdjacentHTML('afterbegin', '<option value="' + city + '" selected>' + city + ' (current)</option>');
-                }
+                updateLocationLabel();
+                closeLocationSheet();
                 renderSearchNearbyShows();
               })
-              .catch(function() {
-                alert('Could not determine your city.');
-                populateCityDropdown();
-              });
+              .catch(function() { alert('Could not determine city.'); closeLocationSheet(); });
           },
-          function() {
-            alert('Location access denied.');
-            populateCityDropdown();
-          }
+          function() { alert('Location access denied.'); closeLocationSheet(); }
         );
         return;
       }
-      if (val) {
-        searchCity = val;
-        renderSearchNearbyShows();
-      }
+      searchCity = loc;
+      updateLocationLabel();
+      closeLocationSheet();
+      renderSearchNearbyShows();
     });
 
-    populateCityDropdown();
+    updateLocationLabel();
 
     document.querySelector('[data-tab="search"]').addEventListener('click', function() {
-      populateCityDropdown();
+      updateLocationLabel();
       renderSearchNearbyShows();
       renderSearchGoingList();
     });
