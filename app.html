@@ -4785,8 +4785,6 @@
       toggleFollow(btn.dataset.userId);
     });
 
-    updateFriendsSearchVisibility();
-
     document.getElementById('search-people-suggestions').addEventListener('click', function(ev) {
       var btn = ev.target.closest('.friend-action-btn');
       if (!btn) return;
