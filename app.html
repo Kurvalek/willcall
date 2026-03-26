@@ -2422,6 +2422,33 @@
 
       function saveAll(locs) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(locs));
+        syncToServer(locs);
+      }
+
+      function syncToServer(locs) {
+        (async function() {
+          try {
+            var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
+            if (!uid) return;
+            await fetch(window.location.origin + '/api/users/' + uid + '/locations', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ locations: locs })
+            });
+          } catch(e) { console.warn('Location sync failed:', e); }
+        })();
+      }
+
+      async function loadFromServer() {
+        try {
+          var uid = typeof getCurrentUserId === 'function' ? await getCurrentUserId() : null;
+          if (!uid) return;
+          var res = await fetch(window.location.origin + '/api/users/' + uid + '/locations');
+          var data = await res.json();
+          if (data.locations && data.locations.length > 0) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.locations));
+          }
+        } catch(e) { console.warn('Location load failed:', e); }
       }
 
       function add(city, yearFrom, yearTo) {
@@ -2515,7 +2542,7 @@
         });
       }
 
-      return { getAll: getAll, saveAll: saveAll, add: add, remove: remove, renderList: renderList };
+      return { getAll: getAll, saveAll: saveAll, add: add, remove: remove, renderList: renderList, loadFromServer: loadFromServer };
     })();
 
     (function() {
@@ -2643,9 +2670,16 @@
         // Always load profile from Supabase (DB is source of truth)
         try {
           var email = session.user.email;
+          var profile = null;
           if (email) {
-            var { data: profile } = await supabaseClient.from('profiles').select('display_name, username, profile_color, avatar_url').eq('email', email).maybeSingle();
-            if (profile) {
+            var res1 = await supabaseClient.from('profiles').select('display_name, username, profile_color, avatar_url').eq('email', email).maybeSingle();
+            profile = res1.data;
+          }
+          if (!profile) {
+            var res2 = await supabaseClient.from('profiles').select('display_name, username, profile_color, avatar_url').eq('id', currentUid).maybeSingle();
+            profile = res2.data;
+          }
+          if (profile) {
               localStorage.setItem('willcall_profile', JSON.stringify({ name: profile.display_name || '', email: email, username: profile.username || '', profileColor: profile.profile_color || '' }));
               var profileName = document.getElementById('profileName');
               var profileHandle = document.getElementById('profileHandle');
@@ -2662,8 +2696,19 @@
             }
           }
         } catch (e) { console.warn('Profile load on auth check:', e); }
+        // Fallback: ensure profile name/handle are populated from localStorage
+        try {
+          var sp = JSON.parse(localStorage.getItem('willcall_profile'));
+          if (sp) {
+            var pn = document.getElementById('profileName');
+            var ph = document.getElementById('profileHandle');
+            if (pn && !pn.textContent && sp.name) pn.textContent = sp.name;
+            if (ph && !ph.textContent && sp.username) ph.textContent = '@' + sp.username;
+          }
+        } catch(e) {}
         hideOnboarding();
         if (typeof window._loadAndSyncShows === 'function') window._loadAndSyncShows();
+        WillcallLocations.loadFromServer();
         return true;
       }
 
@@ -2794,7 +2839,12 @@
               }
             } catch(e) {}
             try {
-              var { data: profile } = await sb.from('profiles').select('display_name, username, profile_color, avatar_url').eq('email', onbData.email).maybeSingle();
+              var profileRes = await sb.from('profiles').select('display_name, username, profile_color, avatar_url').eq('email', onbData.email).maybeSingle();
+              var profile = profileRes.data;
+              if (!profile) {
+                var profileRes2 = await sb.from('profiles').select('display_name, username, profile_color, avatar_url').eq('id', signInUser ? signInUser.id : '').maybeSingle();
+                profile = profileRes2.data;
+              }
               if (profile) {
                 onbData.name = profile.display_name || '';
                 onbData.username = profile.username || '';
@@ -2816,6 +2866,7 @@
             } catch (e) { console.warn('Could not load profile:', e); }
             hideOnboarding();
             if (typeof window._loadAndSyncShows === 'function') window._loadAndSyncShows();
+            WillcallLocations.loadFromServer();
             if (typeof backfillArtistImages === 'function') backfillArtistImages();
             return;
           }
@@ -4506,11 +4557,10 @@
       var isMutual = isFollowing && !!_followerIds[user.id];
       var btnClass = isFollowing ? 'friend-action-btn following' : 'friend-action-btn follow';
       var btnText = isFollowing ? 'In your crowd' : 'Join their crowd';
-      var mutualBadge = isMutual ? '<span class="mutual-badge" title="You\'re in each other\'s crowd">🤝</span>' : '';
       return '<div class="friend-card" data-user-id="' + user.id + '">' +
         '<div class="friend-avatar" style="background:#1F1E1D">' + initials + '</div>' +
         '<div class="friend-info">' +
-          '<div class="friend-name">' + name + mutualBadge + '</div>' +
+          '<div class="friend-name">' + name + '</div>' +
           (handle ? '<div class="friend-handle">' + handle + '</div>' : '') +
         '</div>' +
         '<button class="' + btnClass + '" data-user-id="' + user.id + '">' + btnText + '</button>' +

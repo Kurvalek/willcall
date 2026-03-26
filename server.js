@@ -1599,6 +1599,30 @@ app.post('/api/users/:id/profile-color', async (req, res) => {
   }
 });
 
+// Get user locations
+app.get('/api/users/:id/locations', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  try {
+    const { data } = await supabase.from('profiles').select('locations').eq('id', req.params.id).maybeSingle();
+    res.json({ locations: (data && data.locations) || [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Save user locations
+app.post('/api/users/:id/locations', async (req, res) => {
+  if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
+  const locations = req.body && req.body.locations;
+  if (!Array.isArray(locations)) return res.status(400).json({ error: 'locations must be an array' });
+  try {
+    await supabase.from('profiles').update({ locations: locations }).eq('id', req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Update avatar
 app.post('/api/users/:id/avatar', async (req, res) => {
   if (!supabase) return res.status(500).json({ error: 'Supabase not configured' });
