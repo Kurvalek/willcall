@@ -1393,11 +1393,12 @@
 
     .landing-overlay {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-      width: 100%; max-width: 430px; height: 100%;
+      width: 100%; max-width: 430px; height: 100%; height: 100dvh;
       background: var(--wc-bg); z-index: 1000;
       display: flex; flex-direction: column;
       padding-top: var(--safe-top);
       transition: opacity 0.35s, visibility 0.35s;
+      overflow: hidden;
     }
     .landing-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
@@ -1414,10 +1415,8 @@
       min-width: 48px; text-align: left;
     }
     .onb-header-btn.right { text-align: right; }
-    .onb-header-logo {
-      font-family: var(--wc-font-body); font-size: 22px; font-weight: 800;
-      color: var(--wc-text-primary); letter-spacing: -0.5px;
-    }
+    .onb-header-logo { display: flex; align-items: center; }
+    .onb-header-logo img { height: 20px; width: auto; }
     .onb-header-spacer { min-width: 48px; }
 
     .onb-body {
@@ -1425,7 +1424,7 @@
       padding: 0 16px; overflow-y: auto; position: relative;
     }
     .onb-next-btn {
-      position: absolute; bottom: 40px; right: 20px;
+      align-self: center; margin-top: 24px;
       background: var(--wc-black); color: #fff; border: none;
       border-radius: var(--wc-radius); padding: 12px 28px;
       font-family: var(--wc-font-body); font-size: 16px; font-weight: 600;
@@ -1903,7 +1902,7 @@
     <div id="onbStep1" class="onb-step">
       <div class="onb-header">
         <button class="onb-header-btn" id="onbBackToWelcome">Back</button>
-        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
         <div class="onb-header-spacer"></div>
       </div>
       <div class="onb-body">
@@ -1919,7 +1918,7 @@
     <div id="onbStep2" class="onb-step">
       <div class="onb-header">
         <button class="onb-header-btn" id="onbBackToName">Back</button>
-        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
         <div class="onb-header-spacer"></div>
       </div>
       <div class="onb-body">
@@ -1929,8 +1928,8 @@
           <input type="email" id="onbEmailInput" class="onb-text-input" placeholder="you@email.com" autocomplete="email">
           <p id="onbEmailError" class="onb-error"></p>
           <p class="onb-helper">We'll use your email to create your account.</p>
+          <button type="button" class="onb-next-btn" id="onbEmailNextBtn">Next</button>
         </div>
-        <button type="button" class="onb-next-btn" id="onbEmailNextBtn">Next</button>
       </div>
     </div>
 
@@ -1938,7 +1937,7 @@
     <div id="onbStep3" class="onb-step">
       <div class="onb-header">
         <button class="onb-header-btn" id="onbBackToEmail">Back</button>
-        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
         <div class="onb-header-spacer"></div>
       </div>
       <div class="onb-body">
@@ -1947,8 +1946,8 @@
           <input type="tel" id="onbOtpInput" class="onb-otp-input" maxlength="8" inputmode="numeric" autocomplete="one-time-code">
           <p id="onbOtpError" class="onb-error"></p>
           <p class="onb-countdown" id="onbCountdown">You can request a new code in <span id="onbCountdownSec">60</span> seconds<br>or <a id="onbChangeEmail">change your email.</a></p>
+          <button type="button" class="onb-next-btn" id="onbOtpNextBtn">Next</button>
         </div>
-        <button type="button" class="onb-next-btn" id="onbOtpNextBtn">Next</button>
       </div>
     </div>
 
@@ -1956,7 +1955,7 @@
     <div id="onbStep4" class="onb-step">
       <div class="onb-header">
         <button class="onb-header-btn" id="onbBackToOtp">Back</button>
-        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
         <div class="onb-header-spacer"></div>
       </div>
       <div class="onb-body">
@@ -1974,7 +1973,7 @@
     <div id="onbStep5" class="onb-step">
       <div class="onb-header">
         <button class="onb-header-btn" id="onbBackToUsername">Back</button>
-        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
         <button class="onb-header-btn right" id="onbSkipLocation">Skip</button>
       </div>
       <div class="onb-body">
@@ -1991,7 +1990,7 @@
     <div id="onbStep6" class="onb-step">
       <div class="onb-header">
         <button class="onb-header-btn" id="onbBackToLocation">Back</button>
-        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
         <button class="onb-header-btn right" id="onbSkipSpotify">Skip</button>
       </div>
       <div class="onb-body">
@@ -2007,7 +2006,7 @@
     <div id="onbStep7" class="onb-step">
       <div class="onb-header">
         <div class="onb-header-spacer"></div>
-        <div class="onb-header-logo">willcall</div>
+        <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
         <div class="onb-header-spacer"></div>
       </div>
       <div class="onb-body">
@@ -2563,6 +2562,7 @@
     (function() {
       // Set to false to require Supabase email OTP login again
       var AUTH_DISABLED = false;
+      document.body.style.overflow = 'hidden';
 
       var overlay = document.getElementById('landingOverlay');
       var steps = [
@@ -2621,6 +2621,7 @@
 
       function hideOnboarding() {
         if (overlay) overlay.classList.add('hidden');
+        document.body.style.overflow = '';
         sessionStorage.setItem('willcallSeenLanding', '1');
         if (typeof loadConnections === 'function') loadConnections();
         if (typeof loadSuggestedPeople === 'function') loadSuggestedPeople();
@@ -2783,11 +2784,11 @@
             if (rateMatch) {
               var waitSec = parseInt(rateMatch[1], 10);
               showFieldError('onbEmailError', 'Too many attempts. Please wait ' + waitSec + 's before trying again.');
-              var emailInput = document.getElementById('onbEmailInput');
-              if (emailInput) { emailInput.disabled = true; }
+              var emailEl = document.getElementById('onbEmailInput');
+              if (emailEl) { emailEl.disabled = true; }
               setTimeout(function() {
                 showFieldError('onbEmailError', '');
-                if (emailInput) { emailInput.disabled = false; emailInput.focus(); }
+                if (emailEl) { emailEl.disabled = false; emailEl.focus(); }
               }, waitSec * 1000);
               return;
             }
