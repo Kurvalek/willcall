@@ -1558,7 +1558,7 @@ app.get('/api/users/:id/profile', async (req, res) => {
   const userId = req.params.id;
   try {
     const [profileRes, followersRes, followingRes] = await Promise.all([
-      supabase.from('profiles').select('id, display_name, username, avatar_url').eq('id', userId).maybeSingle(),
+      supabase.from('profiles').select('id, display_name, username, avatar_url, profile_color').eq('id', userId).maybeSingle(),
       supabase.from('follows').select('follower_id').eq('following_id', userId),
       supabase.from('follows').select('following_id').eq('follower_id', userId)
     ]);

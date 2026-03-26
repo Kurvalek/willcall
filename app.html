@@ -2702,19 +2702,23 @@
           var email = session.user.email;
           var profile = null;
           if (email) {
-            var res1 = await supabaseClient.from('profiles').select('display_name, username, avatar_url').eq('email', email).maybeSingle();
+            var res1 = await supabaseClient.from('profiles').select('display_name, username, avatar_url, profile_color').eq('email', email).maybeSingle();
             profile = res1.data;
           }
           if (!profile) {
-            var res2 = await supabaseClient.from('profiles').select('display_name, username, avatar_url').eq('id', currentUid).maybeSingle();
+            var res2 = await supabaseClient.from('profiles').select('display_name, username, avatar_url, profile_color').eq('id', currentUid).maybeSingle();
             profile = res2.data;
           }
           if (profile) {
-              localStorage.setItem('willcall_profile', JSON.stringify({ name: profile.display_name || '', email: email, username: profile.username || '' }));
+              localStorage.setItem('willcall_profile', JSON.stringify({ name: profile.display_name || '', email: email, username: profile.username || '', profileColor: profile.profile_color || '' }));
               var profileName = document.getElementById('profileName');
               var profileHandle = document.getElementById('profileHandle');
               if (profileName) profileName.textContent = profile.display_name || '';
               if (profileHandle) profileHandle.textContent = profile.username ? '@' + profile.username : '';
+              if (profile.profile_color) {
+                localStorage.setItem('willcall_profile_color', profile.profile_color);
+                if (typeof window._applyProfileColor === 'function') window._applyProfileColor(profile.profile_color);
+              }
               if (profile.avatar_url) {
                 localStorage.setItem('willcall_avatar', profile.avatar_url);
                 if (typeof setAvatarImage === 'function') setAvatarImage(profile.avatar_url);
@@ -2872,10 +2876,10 @@
               }
             } catch(e) {}
             try {
-              var profileRes = await sb.from('profiles').select('display_name, username, avatar_url').eq('email', onbData.email).maybeSingle();
+              var profileRes = await sb.from('profiles').select('display_name, username, avatar_url, profile_color').eq('email', onbData.email).maybeSingle();
               var profile = profileRes.data;
               if (!profile) {
-                var profileRes2 = await sb.from('profiles').select('display_name, username, avatar_url').eq('id', signInUser ? signInUser.id : '').maybeSingle();
+                var profileRes2 = await sb.from('profiles').select('display_name, username, avatar_url, profile_color').eq('id', signInUser ? signInUser.id : '').maybeSingle();
                 profile = profileRes2.data;
               }
               if (profile) {
@@ -2887,6 +2891,10 @@
                 var profileHandle = document.getElementById('profileHandle');
                 if (profileName) profileName.textContent = onbData.name;
                 if (profileHandle) profileHandle.textContent = onbData.username ? '@' + onbData.username : '';
+                if (profile.profile_color) {
+                  localStorage.setItem('willcall_profile_color', profile.profile_color);
+                  if (typeof window._applyProfileColor === 'function') window._applyProfileColor(profile.profile_color);
+                }
                 if (profile.avatar_url) {
                   localStorage.setItem('willcall_avatar', profile.avatar_url);
                   if (typeof setAvatarImage === 'function') setAvatarImage(profile.avatar_url);
@@ -4874,6 +4882,8 @@
         if (p.avatar_url) {
           avatarEl.innerHTML = '<img src="' + p.avatar_url + '" alt="' + name + '">';
         }
+        var sheetBody = document.querySelector('.user-profile-sheet-body');
+        if (sheetBody) sheetBody.style.background = p.profile_color || '#F5F3EE';
 
         // Fetch their shows
         var attended = [];
@@ -4955,6 +4965,8 @@
     function closeUserProfile() {
       upSheet.classList.remove('open');
       _upSheetUserId = null;
+      var sheetBody = document.querySelector('.user-profile-sheet-body');
+      if (sheetBody) sheetBody.style.background = '';
     }
 
     function updateUpFollowBtn() {
