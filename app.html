@@ -485,7 +485,7 @@
     }
     .see-all-link:hover { text-decoration: underline; }
 
-    #top-artists-list {
+    #top-artists-list, .top-artists-scroll {
       display: flex;
       gap: 8px;
       overflow-x: auto;
@@ -494,7 +494,7 @@
       padding-bottom: 4px;
       scrollbar-width: none;
     }
-    #top-artists-list::-webkit-scrollbar { display: none; }
+    #top-artists-list::-webkit-scrollbar, .top-artists-scroll::-webkit-scrollbar { display: none; }
     .top-artist-item {
       flex: 0 0 104px;
       width: 104px;
@@ -1795,96 +1795,29 @@
     .user-profile-sheet-body {
       flex: 1; overflow-y: auto; padding: 0;
     }
-    .up-hero {
-      display: flex; flex-direction: column; align-items: center;
-      padding: 32px 20px 24px;
-    }
-    .up-avatar {
-      width: 80px; height: 80px; border-radius: 0; background: #1F1E1D;
-      color: #fff; display: flex; align-items: center; justify-content: center;
-      font-size: 28px; font-weight: 700; font-family: var(--wc-font-body);
-      margin-bottom: 12px; overflow: hidden; border: 1px solid var(--wc-black);
-    }
-    .up-avatar img {
-      width: 100%; height: 100%; object-fit: cover;
-      filter: grayscale(100%) contrast(1.3) brightness(0.95);
-    }
-    .up-name {
-      font-size: 22px; font-weight: 700; color: var(--wc-text-primary);
-      font-family: var(--wc-font-body);
-    }
-    .up-handle {
-      font-size: 14px; color: #888; margin-top: 2px;
-      font-family: var(--wc-font-body);
-    }
-    .up-stats {
-      display: flex; gap: 32px; margin-top: 20px;
-    }
-    .up-stat {
-      display: flex; flex-direction: column; align-items: center;
-    }
-    .up-stat .value {
-      font-size: 20px; font-weight: 700; color: var(--wc-text-primary);
-      font-family: var(--wc-font-body);
-    }
-    .up-stat .label {
-      font-size: 12px; color: #888; margin-top: 2px;
-      font-family: var(--wc-font-body);
-    }
     .up-follow-btn {
-      margin-top: 20px; padding: 10px 40px;
+      position: absolute; top: 0; right: 0; z-index: 5;
+      padding: 8px 20px;
       border-radius: var(--wc-radius); font-family: var(--wc-font-body);
-      font-size: 15px; font-weight: 600; cursor: pointer;
-      border: 1.5px solid #1F1E1D; transition: all 0.15s;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 1.5px solid var(--wc-black); transition: all 0.15s;
     }
     .up-follow-btn.follow {
-      background: #1F1E1D; color: #fff;
+      background: var(--wc-black); color: #fff;
     }
     .up-follow-btn.follow:hover { opacity: 0.9; }
     .up-follow-btn.following {
-      background: transparent; color: #1F1E1D;
+      background: transparent; color: var(--wc-black);
     }
     .up-follow-btn.following:hover {
       background: #fdf0f0; border-color: #c00; color: #c00;
     }
-    .up-section {
-      padding: 0 20px 24px;
-    }
-    .up-section-title {
-      font-size: 16px; font-weight: 700; color: var(--wc-text-primary); margin-bottom: 12px;
-      font-family: var(--wc-font-body);
-    }
-    .up-shows-list {
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .up-show-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 12px;
-      background: var(--wc-bg-card); border: 1px solid var(--wc-border-card);
-      border-radius: var(--wc-radius);
-    }
-    .up-show-item .up-show-thumb {
-      width: 44px; height: 44px; border-radius: var(--wc-radius);
-      background: var(--wc-near-black); flex-shrink: 0; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-      color: #fff; font-size: 14px; font-weight: 700;
-    }
-    .up-show-item .up-show-thumb img {
-      width: 100%; height: 100%; object-fit: cover;
-      filter: grayscale(100%) contrast(1.3) brightness(0.95);
-    }
-    .up-show-info { flex: 1; min-width: 0; }
-    .up-show-artist {
-      font-size: 14px; font-weight: 700; color: var(--wc-text-primary);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .up-show-meta {
-      font-size: 12px; color: var(--wc-text-muted);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    .up-frame { position: relative; }
+    .up-frame .profile-avatar.up-no-edit { cursor: default; }
+    .up-frame .show-card .card-dots { display: none; }
+    .up-frame .show-card-default { padding-right: 16px; }
     .up-empty {
-      font-size: 14px; color: #888; text-align: center; padding: 20px 0;
-      font-family: var(--wc-font-body);
+      font-size: 14px; color: var(--wc-text-muted); text-align: center; padding: 20px 0;
     }
 
     .spotify-sheet {
@@ -2371,28 +2304,68 @@
       <span class="title" id="upSheetTitle">Profile</span>
     </div>
     <div class="user-profile-sheet-body">
-      <div class="up-hero">
-        <div class="up-avatar" id="upAvatar">?</div>
-        <div class="up-name" id="upName"></div>
-        <div class="up-handle" id="upHandle"></div>
-        <div class="up-stats">
-          <div class="up-stat"><div class="value" id="upStatShows">0</div><div class="label">Shows</div></div>
-          <div class="up-stat"><div class="value" id="upStatArtists">0</div><div class="label">Artists</div></div>
-          <div class="up-stat"><div class="value" id="upStatFollowers">0</div><div class="label">Crowd</div></div>
+      <div class="home-border-frame up-frame">
+        <div>
+          <button type="button" class="up-follow-btn follow" id="upFollowBtn">Join their crowd</button>
+          <div class="profile-header">
+            <div class="profile-avatar up-no-edit" id="upAvatar"><svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="4" fill="#D1CEC7"/><circle cx="40" cy="30" r="14" fill="#fff"/><ellipse cx="40" cy="66" rx="24" ry="18" fill="#fff"/></svg></div>
+            <div class="profile-info">
+              <div class="profile-name" id="upName"></div>
+              <div class="profile-handle" id="upHandle"></div>
+            </div>
+          </div>
+          <div class="stats-card">
+            <div class="stats-row">
+              <div class="stat"><div class="value" id="upStatShows">0</div><div class="label">Shows</div></div>
+              <div class="stats-divider"></div>
+              <div class="stat"><div class="value" id="upStatArtists">0</div><div class="label">Artists</div></div>
+              <div class="stats-divider"></div>
+              <div class="stat"><div class="value" id="upStatVenues">0</div><div class="label">Venues</div></div>
+              <div class="stats-divider"></div>
+              <div class="stat"><div class="value" id="upStatCities">0</div><div class="label">Cities</div></div>
+            </div>
+          </div>
         </div>
-        <button type="button" class="up-follow-btn follow" id="upFollowBtn">Join their crowd</button>
-      </div>
-      <div class="up-section" id="upShowsSection" style="display:none">
-        <div class="up-section-title">Past Shows</div>
-        <div id="upShowsList" class="up-shows-list"></div>
-      </div>
-      <div class="up-section" id="upUpcomingSection" style="display:none">
-        <div class="up-section-title">Upcoming Shows</div>
-        <div id="upUpcomingList" class="up-shows-list"></div>
-      </div>
-      <div class="up-section" id="upMutualSection" style="display:none">
-        <div class="up-section-title">In each other's crowd</div>
-        <div id="upMutualList"></div>
+
+        <div class="home-section" id="upTopArtistsSection" style="display:none">
+          <div class="section-header">
+            <h2 class="section-title">Top Artists</h2>
+          </div>
+          <div id="upTopArtistsList" class="top-artists-scroll"></div>
+        </div>
+
+        <div class="home-section" id="upBadgesSection">
+          <div class="section-header">
+            <h2 class="section-title">Badges</h2>
+            <span class="count">0 of 32</span>
+          </div>
+          <div class="badge-grid" id="upBadgesGrid">
+            <div class="badge-item locked"><div class="icon"><img src="/assets/badges/star.svg" alt="First Show"></div><div class="label">First Show</div></div>
+            <div class="badge-item locked"><div class="icon"><img src="/assets/badges/beer.svg" alt="Bar Fly"></div><div class="label">Bar Fly</div></div>
+            <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lighter.svg" alt="Encore"></div><div class="label">Encore</div></div>
+            <div class="badge-item locked"><div class="icon"><img src="/assets/badges/van.svg" alt="On Tour"></div><div class="label">On Tour</div></div>
+            <div class="badge-item locked"><div class="icon"><img src="/assets/badges/pizza.svg" alt="NYC Local"></div><div class="label">NYC Local</div></div>
+            <div class="badge-item locked"><div class="icon"><img src="/assets/badges/record.svg" alt="Legend"></div><div class="label">Legend</div></div>
+            <div class="badge-item locked"><div class="icon"><img src="/assets/badges/lightning.svg" alt="Electric"></div><div class="label">Electric</div></div>
+            <div class="badge-item locked"><div class="icon"><img src="/assets/badges/eyes.svg" alt="Superfan"></div><div class="label">Superfan</div></div>
+          </div>
+        </div>
+
+        <div class="home-section" id="upUpcomingSection" style="display:none">
+          <div class="section-header">
+            <h2 class="section-title">Upcoming Shows</h2>
+            <span class="count" id="upUpcomingCount">0 shows</span>
+          </div>
+          <div id="upUpcomingList"></div>
+        </div>
+
+        <div class="home-section" id="upShowsSection" style="display:none">
+          <div class="section-header">
+            <h2 class="section-title">Past Shows</h2>
+            <span class="count" id="upShowsCount">0 shows</span>
+          </div>
+          <div id="upShowsList"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -4845,21 +4818,23 @@
     var _upSheetUserId = null;
     var upSheet = document.getElementById('userProfileSheet');
 
-    function renderUpShowItem(show) {
+    function renderUpShowCard(show) {
       var artist = (show.artist && show.artist.name) || show.name || 'Unknown';
       var date = typeof formatDate === 'function' ? formatDate(show.eventDate) : (show.eventDate || '');
       var venue = (show.venue && show.venue.name) || '';
       var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-      var thumbHtml = show.imageUrl
-        ? '<img src="' + show.imageUrl + '" alt="' + artist + '">'
-        : initials;
-      var meta = [date, venue].filter(Boolean).join(' · ');
-      return '<div class="up-show-item">'
-        + '<div class="up-show-thumb">' + thumbHtml + '</div>'
-        + '<div class="up-show-info">'
-        + '<div class="up-show-artist">' + artist + '</div>'
-        + (meta ? '<div class="up-show-meta">' + meta + '</div>' : '')
-        + '</div></div>';
+      var imgHtml = show.imageUrl
+        ? '<div class="show-card-img-wrap"><img src="' + show.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
+        : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
+      var html = '<div class="show-card">';
+      html += '<div class="show-card-inner"><div class="show-card-default">';
+      html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
+      html += '<div class="concert-artist">' + artist + '</div>';
+      html += '<div class="concert-date">' + date + '</div>';
+      if (venue) html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
+      html += '</div></div>';
+      html += '</div></div></div>';
+      return html;
     }
 
     async function openUserProfile(userId) {
@@ -4867,13 +4842,18 @@
       upSheet.classList.add('open');
       document.getElementById('upName').textContent = 'Loading...';
       document.getElementById('upHandle').textContent = '';
-      document.getElementById('upAvatar').textContent = '?';
-      document.getElementById('upStatShows').textContent = '—';
-      document.getElementById('upStatArtists').textContent = '—';
-      document.getElementById('upStatFollowers').textContent = '—';
-      document.getElementById('upMutualSection').style.display = 'none';
+      var avatarEl = document.getElementById('upAvatar');
+      avatarEl.innerHTML = '<svg width="80" height="80" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="4" fill="#D1CEC7"/><circle cx="40" cy="30" r="14" fill="#fff"/><ellipse cx="40" cy="66" rx="24" ry="18" fill="#fff"/></svg>';
+      document.getElementById('upStatShows').textContent = '0';
+      document.getElementById('upStatArtists').textContent = '0';
+      document.getElementById('upStatVenues').textContent = '0';
+      document.getElementById('upStatCities').textContent = '0';
+      document.getElementById('upTopArtistsSection').style.display = 'none';
       document.getElementById('upShowsSection').style.display = 'none';
       document.getElementById('upUpcomingSection').style.display = 'none';
+      document.getElementById('upShowsList').innerHTML = '';
+      document.getElementById('upUpcomingList').innerHTML = '';
+      document.getElementById('upTopArtistsList').innerHTML = '';
       updateUpFollowBtn();
 
       try {
@@ -4886,14 +4866,10 @@
 
         document.getElementById('upName').textContent = name;
         document.getElementById('upHandle').textContent = p.username ? '@' + p.username : '';
-        var upAvatarEl = document.getElementById('upAvatar');
-        if (p.avatar_url) {
-          upAvatarEl.innerHTML = '<img src="' + p.avatar_url + '" alt="' + name + '">';
-        } else {
-          upAvatarEl.textContent = initials;
-        }
         document.getElementById('upSheetTitle').textContent = p.username ? '@' + p.username : 'Profile';
-        document.getElementById('upStatFollowers').textContent = data.followerCount;
+        if (p.avatar_url) {
+          avatarEl.innerHTML = '<img src="' + p.avatar_url + '" alt="' + name + '">';
+        }
 
         // Fetch their shows
         var attended = [];
@@ -4907,58 +4883,64 @@
           }
         } catch(e) {}
 
+        // Compute stats
         var uniqueArtists = {};
+        var uniqueVenues = {};
+        var uniqueCities = {};
+        var artistCounts = {};
         attended.forEach(function(s) {
           var a = (s.artist && s.artist.name) || s.name || '';
-          if (a) uniqueArtists[a] = true;
+          if (a) { uniqueArtists[a] = true; artistCounts[a] = (artistCounts[a] || 0) + 1; }
+          var v = (s.venue && s.venue.name) || '';
+          if (v) uniqueVenues[v] = true;
+          var c = (s.venue && s.venue.city && s.venue.city.name) || '';
+          if (c) uniqueCities[c] = true;
         });
         document.getElementById('upStatShows').textContent = attended.length;
         document.getElementById('upStatArtists').textContent = Object.keys(uniqueArtists).length;
+        document.getElementById('upStatVenues').textContent = Object.keys(uniqueVenues).length;
+        document.getElementById('upStatCities').textContent = Object.keys(uniqueCities).length;
+
+        // Render top artists
+        var topArtists = Object.keys(artistCounts).sort(function(a, b) { return artistCounts[b] - artistCounts[a]; }).slice(0, 10);
+        if (topArtists.length > 0) {
+          document.getElementById('upTopArtistsSection').style.display = '';
+          var artistImgs = {};
+          attended.forEach(function(s) {
+            var a = (s.artist && s.artist.name) || s.name || '';
+            if (a && s.imageUrl && !artistImgs[a]) artistImgs[a] = s.imageUrl;
+          });
+          var taHtml = '';
+          topArtists.forEach(function(a) {
+            var init = a.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+            var img = artistImgs[a]
+              ? '<div class="top-artist-img-wrap"><img src="' + artistImgs[a] + '" alt="' + a + '" crossorigin="anonymous"></div>'
+              : '<div class="top-artist-img-wrap"><div class="top-artist-img-fallback">' + init + '</div></div>';
+            taHtml += '<div class="top-artist-item">' + img;
+            taHtml += '<div class="top-artist-overlay"><div class="top-artist-name">' + a + '</div>';
+            taHtml += '<div class="top-artist-count">' + artistCounts[a] + ' show' + (artistCounts[a] !== 1 ? 's' : '') + '</div>';
+            taHtml += '</div></div>';
+          });
+          document.getElementById('upTopArtistsList').innerHTML = taHtml;
+        }
 
         // Render past shows
         if (attended.length > 0) {
           document.getElementById('upShowsSection').style.display = '';
+          document.getElementById('upShowsCount').textContent = attended.length + ' show' + (attended.length !== 1 ? 's' : '');
           var showsHtml = '';
-          attended.slice(0, 20).forEach(function(s) { showsHtml += renderUpShowItem(s); });
+          attended.slice(0, 30).forEach(function(s) { showsHtml += renderUpShowCard(s); });
           document.getElementById('upShowsList').innerHTML = showsHtml;
         }
 
         // Render upcoming shows only if mutual follow
-        var uid = await getCurrentUserId();
         var isMutual = !!_followingIds[userId] && !!_followerIds[userId];
         if (isMutual && upcoming.length > 0) {
           document.getElementById('upUpcomingSection').style.display = '';
+          document.getElementById('upUpcomingCount').textContent = upcoming.length + ' show' + (upcoming.length !== 1 ? 's' : '');
           var upHtml = '';
-          upcoming.forEach(function(s) { upHtml += renderUpShowItem(s); });
+          upcoming.forEach(function(s) { upHtml += renderUpShowCard(s); });
           document.getElementById('upUpcomingList').innerHTML = upHtml;
-        }
-
-        // Show mutual connections
-        if (uid && data.followerIds && data.followingIds) {
-          var myFollowing = Object.keys(_followingIds);
-          var theirFollowers = data.followerIds;
-          var theirFollowing = data.followingIds;
-          var allTheirs = [].concat(theirFollowers, theirFollowing);
-          var mutualIds = myFollowing.filter(function(id) {
-            return allTheirs.indexOf(id) !== -1 && id !== uid && id !== userId;
-          });
-          if (mutualIds.length > 0) {
-            document.getElementById('upMutualSection').style.display = '';
-            try {
-              var mRes = await fetch('/api/users/search?q=');
-              var mData = await mRes.json();
-              var allUsers = mData.users || [];
-              var mutualHtml = '';
-              allUsers.forEach(function(u) {
-                if (mutualIds.indexOf(u.id) !== -1) {
-                  mutualHtml += renderUserCard(u, true);
-                }
-              });
-              document.getElementById('upMutualList').innerHTML = mutualHtml || '<div class="up-empty">None yet</div>';
-            } catch(e) {
-              document.getElementById('upMutualList').innerHTML = '<div class="up-empty">Could not load</div>';
-            }
-          }
         }
       } catch (e) {
         console.error('Failed to load user profile:', e);
@@ -5008,13 +4990,6 @@
     friendsSearchResults.addEventListener('click', handleCardClick);
     document.getElementById('search-people-suggestions').addEventListener('click', handleCardClick);
     document.getElementById('search-people-results').addEventListener('click', handleCardClick);
-    document.getElementById('upMutualList').addEventListener('click', function(ev) {
-      var btn = ev.target.closest('.friend-action-btn');
-      if (btn) { toggleFollow(btn.dataset.userId); return; }
-      var card = ev.target.closest('.friend-card');
-      if (card && card.dataset.userId) openUserProfile(card.dataset.userId);
-    });
-
     var _pastSuggestionConcerts = [];
     var _pastSuggestionsLoaded = false;
 
