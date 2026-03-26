@@ -1793,7 +1793,7 @@
       margin-right: 40px;
     }
     .user-profile-sheet-body {
-      flex: 1; overflow-y: auto; padding: 0;
+      flex: 1; overflow-y: auto; padding: 16px 20px 24px;
     }
     .up-follow-btn {
       position: absolute; top: 0; right: 0; z-index: 5;
@@ -1816,6 +1816,10 @@
     .up-frame .profile-avatar.up-no-edit { cursor: default; }
     .up-frame .show-card .card-dots { display: none; }
     .up-frame .show-card-default { padding-right: 16px; }
+    .up-frame #upShowsList,
+    .up-frame #upUpcomingList {
+      display: flex; flex-direction: column; gap: 12px;
+    }
     .up-empty {
       font-size: 14px; color: var(--wc-text-muted); text-align: center; padding: 20px 0;
     }
