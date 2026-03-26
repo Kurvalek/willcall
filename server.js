@@ -1752,7 +1752,7 @@ app.get('/api/users/search', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, username, email')
+      .select('id, display_name, username, email, avatar_url')
       .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
       .limit(20);
     if (error) {
@@ -1771,7 +1771,7 @@ app.get('/api/users', async (req, res) => {
   if (!supabase) return res.json({ users: [] });
   const excludeId = req.query.exclude || '';
   try {
-    let query = supabase.from('profiles').select('id, display_name, username').limit(20);
+    let query = supabase.from('profiles').select('id, display_name, username, avatar_url').limit(20);
     if (excludeId) query = query.neq('id', excludeId);
     const { data, error } = await query;
     if (error) {
@@ -1845,7 +1845,7 @@ app.get('/api/users/:id/connections', async (req, res) => {
     const allIds = [...new Set([...followerIds, ...followingIds])];
     let profiles = [];
     if (allIds.length > 0) {
-      const { data } = await supabase.from('profiles').select('id, display_name, username').in('id', allIds);
+      const { data } = await supabase.from('profiles').select('id, display_name, username, avatar_url').in('id', allIds);
       profiles = data || [];
     }
     const profileMap = {};
