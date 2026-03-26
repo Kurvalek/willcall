@@ -1321,7 +1321,7 @@
     .search-going-list .show-card,
     #search-nearby-shows .show-card { margin-bottom: 0; }
 
-    .spotify-connect-card {
+    .lastfm-connect-card {
       background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(32px) saturate(180%);
       -webkit-backdrop-filter: blur(32px) saturate(180%);
@@ -1335,10 +1335,10 @@
         0 1px 4px rgba(0, 0, 0, 0.03),
         inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
     }
-    .spotify-connect-card .icon { font-size: 40px; margin-bottom: 12px; }
-    .spotify-connect-card .title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
-    .spotify-connect-card .desc { font-size: 14px; color: var(--wc-text-muted); margin-bottom: 16px; line-height: 1.5; }
-    .spotify-connect-btn {
+    .lastfm-connect-card .icon { font-size: 40px; margin-bottom: 12px; }
+    .lastfm-connect-card .title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .lastfm-connect-card .desc { font-size: 14px; color: var(--wc-text-muted); margin-bottom: 16px; line-height: 1.5; }
+    .lastfm-connect-btn {
       display: inline-block;
       padding: 14px 28px;
       background: #1F1E1D;
@@ -1352,23 +1352,23 @@
       text-decoration: none;
       transition: transform 0.15s, box-shadow 0.15s;
     }
-    .spotify-connect-btn:hover {
+    .lastfm-connect-btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
-    .spotify-form-section { display: none; margin-bottom: 24px; }
-    .spotify-form-section.show { display: block; }
-    .spotify-form-section label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
-    .spotify-form-section textarea, .spotify-form-section input, .spotify-form-section select {
+    .lastfm-form-section { display: none; margin-bottom: 24px; }
+    .lastfm-form-section.show { display: block; }
+    .lastfm-form-section label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+    .lastfm-form-section textarea, .lastfm-form-section input, .lastfm-form-section select {
       width: 100%; padding: 10px 12px; border: 2px solid var(--wc-gray-200); border-radius: var(--wc-radius);
       font-family: inherit; font-size: 16px; margin-bottom: 12px;
     }
-    .spotify-form-section .row { display: flex; gap: 12px; }
-    .spotify-form-section .row > * { flex: 1; }
-    .spotify-form-section .hint { font-size: 12px; color: var(--wc-text-muted); margin: -6px 0 12px; }
-    .spotify-connected-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    .spotify-connected-header .badge { background: #1F1E1D; color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 20px; }
+    .lastfm-form-section .row { display: flex; gap: 12px; }
+    .lastfm-form-section .row > * { flex: 1; }
+    .lastfm-form-section .hint { font-size: 12px; color: var(--wc-text-muted); margin: -6px 0 12px; }
+    .lastfm-connected-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .lastfm-connected-header .badge { background: #1F1E1D; color: #fff; font-size: 12px; padding: 4px 10px; border-radius: 20px; }
     .home-loading { text-align: center; padding: 24px; display: none; }
     .home-loading.show { display: block; }
     .home-loading .spinner { border: 3px solid var(--wc-gray-200); border-top-color: var(--wc-text-primary); border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
@@ -1537,14 +1537,14 @@
     }
     .onb-countdown a { color: #595959; text-decoration: underline; cursor: pointer; }
 
-    /* Spotify connect button */
-    .onb-spotify-btn {
+    /* Last.fm next button (onboarding) */
+    .onb-lastfm-btn {
       width: 209px; height: 45px; border-radius: var(--wc-radius); border: none;
       background: var(--wc-black); color: #fff;
       font-family: var(--wc-font-body); font-size: 16px; font-weight: 600;
       cursor: pointer; margin-top: 40px;
     }
-    .onb-spotify-btn:active { transform: scale(0.96); }
+    .onb-lastfm-btn:active { transform: scale(0.96); }
 
     /* Location step */
     .onb-search-btn {
@@ -1580,7 +1580,7 @@
     }
     .loc-add-btn:hover { border-color: #999; background: rgba(0,0,0,0.02); }
 
-    /* Settings — linked accounts (Spotify + future) */
+    /* Settings — linked accounts (Last.fm + future) */
     .settings-connections-section {
       margin-top: 32px;
       padding-top: 28px;
@@ -1827,21 +1827,21 @@
       font-size: 14px; color: var(--wc-text-muted); text-align: center; padding: 20px 0;
     }
 
-    .spotify-sheet {
+    .lastfm-sheet {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
       width: 100%; max-width: 430px; height: 100%;
       background: var(--wc-bg); z-index: 1100;
       display: none; flex-direction: column;
       box-shadow: -4px 0 20px rgba(0,0,0,0.15);
     }
-    .spotify-sheet.open { display: flex; }
-    .spotify-sheet-header {
+    .lastfm-sheet.open { display: flex; }
+    .lastfm-sheet-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 16px 20px; border-bottom: 1px solid var(--wc-gray-200); flex-shrink: 0;
     }
-    .spotify-sheet-header .title { font-size: 18px; font-weight: 700; }
-    .spotify-sheet-header .close { padding: 8px; cursor: pointer; font-size: 20px; color: var(--wc-text-muted); }
-    .spotify-sheet-body { flex: 1; overflow-y: auto; padding: 20px; }
+    .lastfm-sheet-header .title { font-size: 18px; font-weight: 700; }
+    .lastfm-sheet-header .close { padding: 8px; cursor: pointer; font-size: 20px; color: var(--wc-text-muted); }
+    .lastfm-sheet-body { flex: 1; overflow-y: auto; padding: 20px; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1954,18 +1954,21 @@
       </div>
     </div>
 
-    <!-- Step 6: Spotify -->
+    <!-- Step 6: Last.fm -->
     <div id="onbStep6" class="onb-step">
       <div class="onb-header">
         <button class="onb-header-btn" id="onbBackToLocation">Back</button>
         <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
-        <button class="onb-header-btn right" id="onbSkipSpotify">Skip</button>
+        <button class="onb-header-btn right" id="onbSkipLastfm">Skip</button>
       </div>
       <div class="onb-body">
         <div class="onb-step-content">
-          <p class="onb-title" style="font-size:22px">Now let's find some shows!</p>
-          <p class="onb-subtitle" style="max-width:291px">Connect to Spotify so we can see what you listen to.</p>
-          <button type="button" class="onb-spotify-btn" id="onbSpotifyBtn">Connect to Spotify</button>
+          <p class="onb-title" style="font-size:22px">Connect your Last.fm</p>
+          <p class="onb-subtitle" style="max-width:291px">Enter your Last.fm username and we'll match your listening history to shows you may have been to.</p>
+          <input type="text" class="onb-text-input" id="onbLastfmInput" placeholder="Last.fm username" style="width:100%;max-width:280px;padding:12px 14px;border:2px solid var(--wc-gray-200);border-radius:var(--wc-radius);font-family:inherit;font-size:16px;margin-top:24px;text-align:center">
+          <div id="onbLastfmError" style="color:var(--wc-error);font-size:13px;margin-top:8px;display:none"></div>
+          <button type="button" class="onb-lastfm-btn" id="onbLastfmBtn">Next</button>
+          <a href="#" id="onbSkipLastfmLink" style="display:block;margin-top:16px;font-size:14px;color:#595959;text-decoration:none">Skip</a>
         </div>
       </div>
     </div>
@@ -2073,7 +2076,7 @@
       </div>
       <div id="profile-shows">
         <div class="empty-state">
-          <a href="#" onclick="switchTab('add'); openSpotifySheet(); return false;">Find concerts from Spotify</a> or check in from the + tab.
+          <a href="#" onclick="switchTab('add'); openLastfmSheet(); return false;">Find concerts from Last.fm</a> or check in from the + tab.
         </div>
       </div>
       <button type="button" class="add-past-shows-btn" onclick="openPastShowsSheet()">
@@ -2170,9 +2173,9 @@
   <section id="tab-add" class="tab-content">
     <h2 class="section-title" style="margin-bottom: 20px;">Add to your concert journey</h2>
     <div class="add-actions">
-      <button class="add-btn" onclick="openSpotifySheet()">
+      <button class="add-btn" onclick="openLastfmSheet()">
         <span class="icon">🎵</span>
-        <span>Connect Spotify / Find concerts</span>
+        <span>Connect Last.fm / Find concerts</span>
       </button>
       <button class="add-btn" onclick="openCheckIn()">
         <span class="icon">📍</span>
@@ -2189,25 +2192,24 @@
     </div>
   </section>
 
-  <div id="spotifySheet" class="spotify-sheet">
-    <div class="spotify-sheet-header">
-      <span class="title" id="spotifySheetTitle">Spotify</span>
-      <span class="close" onclick="closeSpotifySheet()">✕</span>
+  <div id="lastfmSheet" class="lastfm-sheet">
+    <div class="lastfm-sheet-header">
+      <span class="title" id="lastfmSheetTitle">Last.fm</span>
+      <span class="close" onclick="closeLastfmSheet()">✕</span>
     </div>
-    <div class="spotify-sheet-body">
-      <div id="localhostWarningSheet" class="localhost-warning" style="display: none; margin-bottom: 16px;">
-        <strong>Use this URL so login works:</strong> <a href="http://127.0.0.1:3000/app" id="correctUrlSheet">http://127.0.0.1:3000/app</a>
-      </div>
-      <div id="spotifyConnectCard" class="spotify-connect-card">
+    <div class="lastfm-sheet-body">
+      <div id="lastfmConnectCard" class="lastfm-connect-card">
         <div class="icon">🎵</div>
-        <div class="title">Connect Spotify</div>
-        <div class="desc">Connect your account to discover concerts you may have attended based on your listening history.</div>
-        <a href="#" class="spotify-connect-btn" id="connectSpotifyBtn">Connect Spotify</a>
+        <div class="title">Connect Last.fm</div>
+        <div class="desc">Enter your Last.fm username to discover concerts you may have attended based on your listening history.</div>
+        <input type="text" id="lastfmSheetUsernameInput" placeholder="Last.fm username" style="display:block;width:100%;max-width:280px;margin:0 auto 16px;padding:12px 14px;border:2px solid var(--wc-gray-200);border-radius:var(--wc-radius);font-family:inherit;font-size:16px;text-align:center">
+        <div id="lastfmSheetError" style="color:var(--wc-error);font-size:13px;margin-bottom:12px;display:none"></div>
+        <button type="button" class="lastfm-connect-btn" id="connectLastfmBtn">Connect</button>
       </div>
-      <div id="spotifyFormSection" class="spotify-form-section">
-        <div class="spotify-connected-header">
+      <div id="lastfmFormSection" class="lastfm-form-section">
+        <div class="lastfm-connected-header">
           <h2 class="section-title" style="margin-bottom: 0;">Find concerts you may have attended</h2>
-          <span class="badge">Connected</span>
+          <span class="badge" id="lastfmSheetBadge">Connected</span>
         </div>
         <label for="homeCities">Cities (comma-separated)</label>
         <textarea id="homeCities" rows="2" placeholder="e.g. New York, Brooklyn, Miami"></textarea>
@@ -2221,8 +2223,8 @@
           <option value="10">10 (fast)</option><option value="20" selected>20</option><option value="30">30</option><option value="50">50</option>
         </select>
         <div style="display: flex; gap: 12px; align-items: center; margin-top: 12px; flex-wrap: wrap;">
-          <button type="button" class="spotify-connect-btn" id="homeFindBtn">Find concerts</button>
-          <button type="button" style="padding: 12px 16px; background: transparent; border: 1px solid var(--wc-gray-300); border-radius: var(--wc-radius); font-family: inherit; font-size: 14px; cursor: pointer; color: var(--wc-text-muted);" onclick="disconnectSpotify()">Disconnect</button>
+          <button type="button" class="lastfm-connect-btn" id="homeFindBtn">Find concerts</button>
+          <button type="button" style="padding: 12px 16px; background: transparent; border: 1px solid var(--wc-gray-300); border-radius: var(--wc-radius); font-family: inherit; font-size: 14px; cursor: pointer; color: var(--wc-text-muted);" onclick="disconnectLastfm()">Disconnect</button>
         </div>
       </div>
       <div id="homeLoading" class="home-loading">
@@ -2396,14 +2398,15 @@
       <div class="settings-connections-section" aria-labelledby="settingsConnectionsHeading">
         <p class="settings-section-title" id="settingsConnectionsHeading">My connections</p>
         <p class="settings-section-desc">Link music and other services to personalize willcall. You can connect or disconnect anytime.</p>
-        <div class="settings-connection-card" data-connection="spotify">
+        <div class="settings-connection-card" data-connection="lastfm">
           <div class="settings-connection-info">
-            <div class="settings-connection-name">Spotify</div>
-            <div class="settings-connection-status" id="settingsSpotifyStatus">Checking…</div>
+            <div class="settings-connection-name">Last.fm</div>
+            <div class="settings-connection-status" id="settingsLastfmStatus">Not connected</div>
           </div>
-          <div class="settings-connection-actions">
-            <button type="button" class="settings-connection-btn primary" id="settingsSpotifyConnectBtn">Connect</button>
-            <button type="button" class="settings-connection-btn secondary" id="settingsSpotifyDisconnectBtn" style="display:none">Disconnect</button>
+          <div class="settings-connection-actions" id="settingsLastfmActions">
+            <input type="text" id="settingsLastfmInput" placeholder="Last.fm username" style="padding:8px 12px;border:2px solid var(--wc-gray-200);border-radius:var(--wc-radius);font-family:inherit;font-size:14px;width:160px">
+            <button type="button" class="settings-connection-btn primary" id="settingsLastfmSaveBtn">Save</button>
+            <button type="button" class="settings-connection-btn secondary" id="settingsLastfmDisconnectBtn" style="display:none">Disconnect</button>
           </div>
         </div>
         <p class="settings-connections-soon">More connections coming soon.</p>
@@ -2771,15 +2774,21 @@
         sendOtp();
       });
 
+      var _sendingOtp = false;
       async function sendOtp() {
+        if (_sendingOtp) return;
         var email = emailInput.value.trim();
         if (!email || !email.includes('@')) { showFieldError('onbEmailError', 'Please enter a valid email'); return; }
         showFieldError('onbEmailError', '');
         onbData.email = email;
 
+        var nextBtn = document.getElementById('onbEmailNextBtn');
+        _sendingOtp = true;
+        if (nextBtn) { nextBtn.disabled = true; nextBtn.textContent = ''; nextBtn.innerHTML = '<div class="wc-spinner wc-spinner--sm wc-spinner--white"></div>'; }
+
         try {
           var sb = window._getSupabase();
-          if (!sb) { showFieldError('onbEmailError', _supabaseInitError || 'Auth not ready. Try refreshing.'); return; }
+          if (!sb) { showFieldError('onbEmailError', _supabaseInitError || 'Auth not ready. Try refreshing.'); _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; } return; }
 
           // Check if an account already exists via server-side lookup
           var checkRes = await fetch(window.location.origin + '/api/auth/check-email', {
@@ -2791,10 +2800,12 @@
 
           if (!_isSignIn && checkData.exists) {
             showFieldError('onbEmailError', 'An account with this email already exists. Go back and tap "Sign in" instead.');
+            _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; }
             return;
           }
           if (_isSignIn && !checkData.exists) {
             showFieldError('onbEmailError', 'No account found with this email. Go back and tap "Continue" to create one.');
+            _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; }
             return;
           }
 
@@ -2806,16 +2817,21 @@
               showFieldError('onbEmailError', 'Too many attempts. Please wait ' + waitSec + 's before trying again.');
               var emailEl = document.getElementById('onbEmailInput');
               if (emailEl) { emailEl.disabled = true; }
+              _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; }
               setTimeout(function() {
                 showFieldError('onbEmailError', '');
                 if (emailEl) { emailEl.disabled = false; emailEl.focus(); }
               }, waitSec * 1000);
               return;
             }
-            showFieldError('onbEmailError', error.message); return;
+            showFieldError('onbEmailError', error.message);
+            _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; }
+            return;
           }
-        } catch (e) { showFieldError('onbEmailError', e.message || 'Failed to send code'); return; }
+        } catch (e) { showFieldError('onbEmailError', e.message || 'Failed to send code'); _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; } return; }
 
+        _sendingOtp = false;
+        if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; }
         var otpMsg = document.getElementById('onbOtpMessage');
         if (otpMsg) otpMsg.textContent = 'Enter the code we sent to your email, ' + email + '.';
         goToStep(3);
@@ -2853,13 +2869,18 @@
         otpInput.dispatchEvent(new Event('input'));
       });
 
+      var _verifyingOtp = false;
       async function verifyOtp(code) {
+        if (_verifyingOtp) return;
+        _verifyingOtp = true;
+        var otpNextBtn = document.getElementById('onbOtpNextBtn');
+        if (otpNextBtn) { otpNextBtn.disabled = true; otpNextBtn.textContent = ''; otpNextBtn.innerHTML = '<div class="wc-spinner wc-spinner--sm wc-spinner--white"></div>'; }
         showFieldError('onbOtpError', '');
         try {
           var sb = window._getSupabase();
-          if (!sb) { showFieldError('onbOtpError', _supabaseInitError || 'Auth not ready. Try refreshing.'); return; }
+          if (!sb) { showFieldError('onbOtpError', _supabaseInitError || 'Auth not ready. Try refreshing.'); _verifyingOtp = false; if (otpNextBtn) { otpNextBtn.disabled = false; otpNextBtn.textContent = 'Next'; } return; }
           var { error } = await sb.auth.verifyOtp({ email: onbData.email, token: code, type: 'email' });
-          if (error) { showFieldError('onbOtpError', error.message); resetOtpInput(); return; }
+          if (error) { showFieldError('onbOtpError', error.message); resetOtpInput(); _verifyingOtp = false; if (otpNextBtn) { otpNextBtn.disabled = false; otpNextBtn.textContent = 'Next'; } return; }
 
           if (_isSignIn) {
             // Returning user — clear any stale local data, then load from DB
@@ -2978,12 +2999,38 @@
       document.getElementById('onbSkipLocation').addEventListener('click', function() { goToStep(6); });
       document.getElementById('onbDoneLocBtn').addEventListener('click', function() { goToStep(6); });
 
-      // Step 6: Spotify
+      // Step 6: Last.fm
       document.getElementById('onbBackToLocation').addEventListener('click', function() { goToStep(5); });
-      document.getElementById('onbSkipSpotify').addEventListener('click', function() { finishOnboarding(); });
-      document.getElementById('onbSpotifyBtn').addEventListener('click', function() {
-        sessionStorage.setItem('willcall_onb_state', JSON.stringify(onbData));
-        window.location.href = '/oauth/spotify';
+      document.getElementById('onbSkipLastfm').addEventListener('click', function() { finishOnboarding(); });
+      document.getElementById('onbSkipLastfmLink').addEventListener('click', function(e) { e.preventDefault(); finishOnboarding(); });
+      document.getElementById('onbLastfmBtn').addEventListener('click', function() {
+        var input = document.getElementById('onbLastfmInput');
+        var errEl = document.getElementById('onbLastfmError');
+        var username = input.value.trim();
+        if (!username) { errEl.textContent = 'Please enter a username.'; errEl.style.display = 'block'; return; }
+        errEl.style.display = 'none';
+        var btn = document.getElementById('onbLastfmBtn');
+        btn.disabled = true;
+        btn.textContent = 'Checking…';
+        fetch('/api/lastfm/validate?username=' + encodeURIComponent(username))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            btn.disabled = false;
+            btn.textContent = 'Next';
+            if (data.valid) {
+              localStorage.setItem('willcall_lastfm_username', username);
+              goToStep(7);
+            } else {
+              errEl.textContent = data.error || 'Username not found on Last.fm. Check spelling and try again.';
+              errEl.style.display = 'block';
+            }
+          })
+          .catch(function(e) {
+            btn.disabled = false;
+            btn.textContent = 'Next';
+            errEl.textContent = 'Could not validate username. Try again.';
+            errEl.style.display = 'block';
+          });
       });
 
       // Step 7: Results
@@ -3017,10 +3064,11 @@
           if (l.yearTo && (!yearEnd || parseInt(l.yearTo) > parseInt(yearEnd))) yearEnd = l.yearTo;
         });
 
-        fetch('/api/spotify/concerts-suggestions', {
+        var lastfmUser = localStorage.getItem('willcall_lastfm_username') || '';
+        fetch('/api/lastfm/concerts-suggestions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 30 })
+          body: JSON.stringify({ username: lastfmUser, cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 30 })
         })
           .then(function(r) { return r.json(); })
           .then(function(data) {
@@ -3217,30 +3265,10 @@
 
       // Init
       (async function() {
-        var urlParams = new URLSearchParams(window.location.search);
-        var spotifyReturn = urlParams.get('authenticated') === 'true';
-        var savedOnbState = sessionStorage.getItem('willcall_onb_state');
-
         if (AUTH_DISABLED) {
-          if (spotifyReturn) {
-            window.history.replaceState(null, '', window.location.pathname);
-            sessionStorage.removeItem('willcall_onb_state');
-          }
           hideOnboarding();
           try { await initSupabase(); } catch (e) {}
           return;
-        }
-
-        if (spotifyReturn && savedOnbState) {
-          try { Object.assign(onbData, JSON.parse(savedOnbState)); } catch (e) {}
-          sessionStorage.removeItem('willcall_onb_state');
-          window.history.replaceState(null, '', window.location.pathname);
-          goToStep(7);
-          return;
-        }
-
-        if (spotifyReturn) {
-          window.history.replaceState(null, '', window.location.pathname);
         }
 
         var ok = await initSupabase();
@@ -3696,7 +3724,7 @@
       }
 
       if (list.length === 0) {
-        container.innerHTML = '<div class="empty-state"><a href="#" onclick="switchTab(\'add\'); openSpotifySheet(); return false;">Find concerts from Spotify</a> or check in from the + tab.</div>';
+        container.innerHTML = '<div class="empty-state"><a href="#" onclick="switchTab(\'add\'); openLastfmSheet(); return false;">Find concerts from Last.fm</a> or check in from the + tab.</div>';
       } else {
         var html = '';
         var indexed = list.map(function(s, i) { return { s: s, idx: i }; });
@@ -3879,47 +3907,44 @@
     });
 
     function backfillArtistImages() {
+      var lastfmUser = localStorage.getItem('willcall_lastfm_username');
+      if (!lastfmUser) {
+        console.log('[backfill] No Last.fm username — skipping.');
+        return;
+      }
       var list = getAttendedShows();
       var missing = [];
       list.forEach(function(s) {
         if (s.artist && !s.artistImage && missing.indexOf(s.artist) === -1) missing.push(s.artist);
       });
       if (missing.length === 0) return;
-      console.log('[backfill] Fetching images for', missing.length, 'artists:', missing);
-      fetch('/api/spotify/status')
-        .then(function(r) { return r.json(); })
-        .then(function(status) {
-          if (!status.connected) {
-            console.log('[backfill] Spotify not connected — skipping. Connect Spotify first.');
-            return;
-          }
-          return fetch('/api/spotify/artist-images', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ names: missing })
-          })
-          .then(function(r) {
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            return r.json();
-          })
-          .then(function(data) {
-            if (!data.images) { console.log('[backfill] No images returned'); return; }
-            var found = Object.keys(data.images).length;
-            console.log('[backfill] Got images for', found, '/', missing.length, 'artists');
-            var list = getAttendedShows();
-            var changed = false;
-            list.forEach(function(s) {
-              if (s.artist && !s.artistImage && data.images[s.artist]) {
-                s.artistImage = data.images[s.artist];
-                changed = true;
-              }
-            });
-            if (changed) {
-              localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
-              renderProfileShows();
-              console.log('[backfill] Updated localStorage and re-rendered');
+      console.log('[backfill] Fetching images for', missing.length, 'artists via Last.fm top-artists');
+      fetch('/api/lastfm/top-artists?username=' + encodeURIComponent(lastfmUser))
+        .then(function(r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function(data) {
+          if (!data.artists || !data.artists.length) { console.log('[backfill] No artists returned'); return; }
+          var imageMap = {};
+          data.artists.forEach(function(a) {
+            if (a.name && a.image) imageMap[a.name] = a.image;
+          });
+          var found = Object.keys(imageMap).length;
+          console.log('[backfill] Got images for', found, 'artists');
+          var list = getAttendedShows();
+          var changed = false;
+          list.forEach(function(s) {
+            if (s.artist && !s.artistImage && imageMap[s.artist]) {
+              s.artistImage = imageMap[s.artist];
+              changed = true;
             }
           });
+          if (changed) {
+            localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
+            renderProfileShows();
+            console.log('[backfill] Updated localStorage and re-rendered');
+          }
         })
         .catch(function(e) { console.warn('[backfill] Error:', e); });
     }
@@ -3933,124 +3958,133 @@
       }
     }
 
-    function openSpotifySheet() {
+    function openLastfmSheet() {
       switchTab('add');
-      document.getElementById('spotifySheet').classList.add('open');
-      if (window.location.hostname === 'localhost') {
-        document.getElementById('localhostWarningSheet').style.display = 'block';
-      }
-      refreshSpotifySheetState();
+      document.getElementById('lastfmSheet').classList.add('open');
+      refreshLastfmSheetState();
     }
-    function closeSpotifySheet() {
-      document.getElementById('spotifySheet').classList.remove('open');
+    function closeLastfmSheet() {
+      document.getElementById('lastfmSheet').classList.remove('open');
     }
     function refreshSettingsConnections() {
-      var statusEl = document.getElementById('settingsSpotifyStatus');
-      var connectBtn = document.getElementById('settingsSpotifyConnectBtn');
-      var disconnectBtn = document.getElementById('settingsSpotifyDisconnectBtn');
-      if (!statusEl || !connectBtn || !disconnectBtn) return;
-      statusEl.textContent = 'Checking…';
-      statusEl.classList.remove('connected');
-      fetch('/api/spotify/status').then(function(r) { return r.json(); }).then(function(data) {
-        if (data.connected) {
-          statusEl.textContent = 'Connected';
-          statusEl.classList.add('connected');
-          connectBtn.style.display = 'none';
-          disconnectBtn.style.display = 'inline-block';
-        } else {
-          var msg = 'Not connected';
-          if (data.reason === 'token_invalid') msg = 'Session expired — reconnect';
-          statusEl.textContent = msg;
-          connectBtn.style.display = 'inline-block';
-          disconnectBtn.style.display = 'none';
-        }
-      }).catch(function() {
-        statusEl.textContent = 'Could not check status';
+      var statusEl = document.getElementById('settingsLastfmStatus');
+      var inputEl = document.getElementById('settingsLastfmInput');
+      var saveBtn = document.getElementById('settingsLastfmSaveBtn');
+      var disconnectBtn = document.getElementById('settingsLastfmDisconnectBtn');
+      if (!statusEl) return;
+      var username = localStorage.getItem('willcall_lastfm_username');
+      if (username) {
+        statusEl.textContent = username;
+        statusEl.classList.add('connected');
+        if (inputEl) { inputEl.value = username; inputEl.style.display = 'none'; }
+        if (saveBtn) saveBtn.style.display = 'none';
+        if (disconnectBtn) disconnectBtn.style.display = 'inline-block';
+      } else {
+        statusEl.textContent = 'Not connected';
         statusEl.classList.remove('connected');
-        connectBtn.style.display = 'inline-block';
-        disconnectBtn.style.display = 'none';
-      });
+        if (inputEl) { inputEl.value = ''; inputEl.style.display = ''; }
+        if (saveBtn) saveBtn.style.display = 'inline-block';
+        if (disconnectBtn) disconnectBtn.style.display = 'none';
+      }
     }
 
-    function startSpotifyOAuth() {
-      var base = (window.location.protocol === 'file:' || !window.location.origin) ? 'http://127.0.0.1:3000' : window.location.origin;
-      window.location.href = base + '/oauth/spotify';
+    function refreshLastfmSheetState() {
+      var username = localStorage.getItem('willcall_lastfm_username');
+      if (username) {
+        document.getElementById('lastfmConnectCard').style.display = 'none';
+        document.getElementById('lastfmFormSection').classList.add('show');
+        var badge = document.getElementById('lastfmSheetBadge');
+        if (badge) badge.textContent = username;
+        backfillArtistImages();
+      } else {
+        document.getElementById('lastfmConnectCard').style.display = 'block';
+        document.getElementById('lastfmFormSection').classList.remove('show');
+      }
+      document.getElementById('homeResults').style.display = 'none';
+      refreshSettingsConnections();
     }
 
-    function refreshSpotifySheetState() {
-      fetch('/api/spotify/status').then(function(r) { return r.json(); }).then(function(data) {
-        if (data.connected) {
-          document.getElementById('spotifyConnectCard').style.display = 'none';
-          document.getElementById('spotifyFormSection').classList.add('show');
-          backfillArtistImages();
-        } else {
-          document.getElementById('spotifyConnectCard').style.display = 'block';
-          document.getElementById('spotifyFormSection').classList.remove('show');
-        }
-        document.getElementById('homeResults').style.display = 'none';
-        refreshSettingsConnections();
-      }).catch(function() {
-        document.getElementById('spotifyConnectCard').style.display = 'block';
-        document.getElementById('spotifyFormSection').classList.remove('show');
-        refreshSettingsConnections();
-      });
+    function disconnectLastfm() {
+      localStorage.removeItem('willcall_lastfm_username');
+      document.getElementById('lastfmConnectCard').style.display = 'block';
+      document.getElementById('lastfmFormSection').classList.remove('show');
+      document.getElementById('homeResults').style.display = 'none';
+      var sheetInput = document.getElementById('lastfmSheetUsernameInput');
+      if (sheetInput) sheetInput.value = '';
+      refreshSettingsConnections();
     }
 
-    function disconnectSpotify() {
-      fetch('/api/spotify/disconnect', { method: 'POST' })
-        .then(function() {
-          document.getElementById('spotifyConnectCard').style.display = 'block';
-          document.getElementById('spotifyFormSection').classList.remove('show');
-          document.getElementById('homeResults').style.display = 'none';
-          refreshSettingsConnections();
-        })
-        .catch(function(e) { alert('Could not disconnect: ' + e.message); });
-    }
-
-    document.getElementById('connectSpotifyBtn').addEventListener('click', function(e) {
+    document.getElementById('connectLastfmBtn').addEventListener('click', function(e) {
       e.preventDefault();
-      startSpotifyOAuth();
+      var input = document.getElementById('lastfmSheetUsernameInput');
+      var errEl = document.getElementById('lastfmSheetError');
+      var username = input.value.trim();
+      if (!username) { errEl.textContent = 'Please enter a username.'; errEl.style.display = 'block'; return; }
+      errEl.style.display = 'none';
+      var btn = document.getElementById('connectLastfmBtn');
+      btn.disabled = true;
+      btn.textContent = 'Checking…';
+      fetch('/api/lastfm/validate?username=' + encodeURIComponent(username))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          btn.disabled = false;
+          btn.textContent = 'Connect';
+          if (data.valid) {
+            localStorage.setItem('willcall_lastfm_username', username);
+            refreshLastfmSheetState();
+          } else {
+            errEl.textContent = data.error || 'Username not found on Last.fm. Check spelling and try again.';
+            errEl.style.display = 'block';
+          }
+        })
+        .catch(function() {
+          btn.disabled = false;
+          btn.textContent = 'Connect';
+          errEl.textContent = 'Could not validate username. Try again.';
+          errEl.style.display = 'block';
+        });
     });
-    (function wireSettingsSpotify() {
-      var c = document.getElementById('settingsSpotifyConnectBtn');
-      var d = document.getElementById('settingsSpotifyDisconnectBtn');
-      if (c) c.addEventListener('click', function(e) { e.preventDefault(); startSpotifyOAuth(); });
-      if (d) d.addEventListener('click', function(e) {
+    (function wireSettingsLastfm() {
+      var saveBtn = document.getElementById('settingsLastfmSaveBtn');
+      var disconnectBtn = document.getElementById('settingsLastfmDisconnectBtn');
+      if (saveBtn) saveBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        disconnectSpotify();
+        var input = document.getElementById('settingsLastfmInput');
+        var username = input ? input.value.trim() : '';
+        if (!username) { alert('Please enter a Last.fm username.'); return; }
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Checking…';
+        fetch('/api/lastfm/validate?username=' + encodeURIComponent(username))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+            if (data.valid) {
+              localStorage.setItem('willcall_lastfm_username', username);
+              refreshSettingsConnections();
+              refreshLastfmSheetState();
+            } else {
+              alert(data.error || 'Username not found on Last.fm.');
+            }
+          })
+          .catch(function() {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+            alert('Could not validate username. Try again.');
+          });
+      });
+      if (disconnectBtn) disconnectBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        disconnectLastfm();
       });
     })();
 
-    (function initSpotify() {
-      if (window.location.hostname === 'localhost') {
-        document.getElementById('localhostWarning').style.display = 'block';
-      }
-      var params = new URLSearchParams(window.location.search);
-      if (params.get('error')) {
-        var reason = params.get('reason') || '';
-        var detail = params.get('detail') || '';
-        var msg = 'Spotify login failed.';
-        if (reason === 'cookie_missing') msg = 'Spotify login failed: browser cookies may be blocked. Enable cookies and try again.';
-        else if (reason === 'state_mismatch') msg = 'Spotify login failed: session mismatch. Please try again.';
-        else if (reason === 'token_exchange') msg = 'Spotify login failed: ' + (detail || 'could not exchange token.');
-        else if (reason === 'spotify_denied') msg = 'Spotify login was denied or cancelled.';
-        var warning = document.getElementById('localhostWarning');
-        if (warning) {
-          warning.style.display = 'block';
-          warning.innerHTML = '<strong>Error:</strong> ' + msg;
-        }
-        console.error('Spotify OAuth error:', msg, '| reason:', reason, '| detail:', detail);
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-      if (params.get('authenticated') === 'true') {
-        window.history.replaceState({}, document.title, window.location.pathname);
-        openSpotifySheet();
-      }
-      // Render from local cache first (fast), then DB sync will override
+    (function initLastfm() {
       renderProfileShows();
       renderProfileUpcomingShows();
       backfillArtistImages();
       colorizeProfileWash();
+      refreshSettingsConnections();
 
       // Load authoritative data from DB and replace local cache
       if (typeof window._loadAndSyncShows === 'function') window._loadAndSyncShows();
@@ -4144,7 +4178,7 @@
       var btn = ev.target.closest('.attended-btn');
       if (!btn || btn.classList.contains('done')) return;
       var idx = parseInt(btn.getAttribute('data-idx'), 10);
-      var arr = window._lastSpotifyConcerts;
+      var arr = window._lastConcerts;
       if (arr && arr[idx]) {
         addAttendedShow(arr[idx]);
         btn.textContent = '✓ Attended';
@@ -4165,13 +4199,15 @@
       btn.disabled = true;
       loading.classList.add('show');
       resultsDiv.style.display = 'none';
-      fetch('/api/spotify/concerts-suggestions', {
+      var lastfmUser = localStorage.getItem('willcall_lastfm_username') || '';
+      if (!lastfmUser) { alert('Connect your Last.fm account first.'); return; }
+      fetch('/api/lastfm/concerts-suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: artistLimit })
+        body: JSON.stringify({ username: lastfmUser, cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: artistLimit })
       })
         .then(function(r) {
-          if (!r.ok && r.status === 401) throw new Error('Spotify session expired. Reconnect in Settings → My connections.');
+          if (!r.ok && r.status === 401) throw new Error('Last.fm request failed. Check your username in Settings → My connections.');
           return r.json();
         })
         .then(function(data) {
@@ -4180,7 +4216,7 @@
           btn.disabled = false;
           var html = '<div class="home-results-header"><div class="section-title">Concerts you may have attended</div><div style="font-size:14px;color:var(--wc-text-muted)">' + (data.concerts ? data.concerts.length : 0) + ' show(s) in ' + cities.join(', ') + '</div></div>';
           if (data.concerts && data.concerts.length > 0) {
-            window._lastSpotifyConcerts = data.concerts;
+            window._lastConcerts = data.concerts;
             var byArtist = {};
             data.concerts.forEach(function(c) {
               var a = c.artist && c.artist.name ? c.artist.name : (c._sourceArtist || 'Unknown');
@@ -5039,58 +5075,55 @@
       if (!container) return;
       container.innerHTML = '<div class="suggestions-loading"><div class="spinner" style="width:18px;height:18px;border:2px solid #E5E2DB;border-top-color:#1F1E1D;border-radius:50%;animation:spin 0.8s linear infinite"></div><span>Loading suggestions...</span></div>';
 
-      fetch('/api/spotify/status')
-        .then(function(r) { return r.json(); })
-        .then(function(status) {
-          if (!status.connected) {
+      var lastfmUser = localStorage.getItem('willcall_lastfm_username');
+      if (!lastfmUser) {
+        container.innerHTML = '<div class="suggestions-header"><span class="section-title">Suggested shows</span></div>'
+          + '<div class="suggestions-connect">'
+          + '<p>Connect Last.fm to see shows you may have been to based on your listening history.</p>'
+          + '<button type="button" class="suggestions-connect-btn" id="suggestionsConnectBtn">Connect Last.fm</button>'
+          + '</div>';
+        document.getElementById('suggestionsConnectBtn').addEventListener('click', function() {
+          openLastfmSheet();
+        });
+        return;
+      }
+
+      var locs = WillcallLocations.getAll();
+      var cities = locs.map(function(l) { return l.city; });
+      if (cities.length === 0) cities = ['New York'];
+      var yearStart = null, yearEnd = null;
+      locs.forEach(function(l) {
+        if (l.yearFrom && (!yearStart || parseInt(l.yearFrom) < parseInt(yearStart))) yearStart = l.yearFrom;
+        if (l.yearTo && (!yearEnd || parseInt(l.yearTo) > parseInt(yearEnd))) yearEnd = l.yearTo;
+      });
+
+      fetch('/api/lastfm/concerts-suggestions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: lastfmUser, cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 20 })
+      })
+        .then(function(r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function(data) {
+          if (data.error) {
+            console.error('[past-suggestions] API error:', data.error);
             container.innerHTML = '<div class="suggestions-header"><span class="section-title">Suggested shows</span></div>'
-              + '<div class="suggestions-connect">'
-              + '<p>Connect Spotify to see shows you may have been to based on your listening history.</p>'
-              + '<button type="button" class="suggestions-connect-btn" id="suggestionsConnectBtn">Connect Spotify</button>'
-              + '</div>';
-            document.getElementById('suggestionsConnectBtn').addEventListener('click', function() {
-              window.location.href = '/oauth/spotify';
-            });
+              + '<p style="font-size:13px;color:#999;padding:0 4px">Could not load suggestions. Try again later.</p>';
             return;
           }
-
-          var locs = WillcallLocations.getAll();
-          var cities = locs.map(function(l) { return l.city; });
-          if (cities.length === 0) cities = ['New York'];
-          var yearStart = null, yearEnd = null;
-          locs.forEach(function(l) {
-            if (l.yearFrom && (!yearStart || parseInt(l.yearFrom) < parseInt(yearStart))) yearStart = l.yearFrom;
-            if (l.yearTo && (!yearEnd || parseInt(l.yearTo) > parseInt(yearEnd))) yearEnd = l.yearTo;
+          _pastSuggestionsLoaded = true;
+          _pastSuggestionConcerts = data.concerts || [];
+          var indexed = [];
+          _pastSuggestionConcerts.forEach(function(c, i) {
+            if (!isAttended(c)) indexed.push({ c: c, idx: i });
           });
-
-          return fetch('/api/spotify/concerts-suggestions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 20 })
-          })
-          .then(function(r) {
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            return r.json();
-          })
-          .then(function(data) {
-            if (data.error) {
-              console.error('[past-suggestions] API error:', data.error);
-              container.innerHTML = '<div class="suggestions-header"><span class="section-title">Suggested shows</span></div>'
-                + '<p style="font-size:13px;color:#999;padding:0 4px">' + (data.error.indexOf('expired') >= 0 || data.error.indexOf('401') >= 0 ? 'Spotify session expired. Reconnect in Settings → My connections.' : 'Could not load suggestions. Try again later.') + '</p>';
-              return;
-            }
-            _pastSuggestionsLoaded = true;
-            _pastSuggestionConcerts = data.concerts || [];
-            var indexed = [];
-            _pastSuggestionConcerts.forEach(function(c, i) {
-              if (!isAttended(c)) indexed.push({ c: c, idx: i });
-            });
-            if (indexed.length === 0) {
-              container.innerHTML = '';
-              return;
-            }
-            renderPastSuggestions(container, indexed);
-          });
+          if (indexed.length === 0) {
+            container.innerHTML = '';
+            return;
+          }
+          renderPastSuggestions(container, indexed);
         })
         .catch(function(e) {
           console.error('[past-suggestions] fetch error:', e);
@@ -5102,7 +5135,7 @@
     function renderPastSuggestions(container, items) {
       var INITIAL_COUNT = 5;
       var showing = Math.min(INITIAL_COUNT, items.length);
-      var html = '<div class="suggestions-header"><span class="section-title">Based on your Spotify</span></div>';
+      var html = '<div class="suggestions-header"><span class="section-title">Based on your Last.fm</span></div>';
       for (var i = 0; i < showing; i++) {
         html += buildSuggestionCard(items[i].c, items[i].idx);
       }

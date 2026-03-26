@@ -3,7 +3,7 @@ console.log('API Key loaded:', process.env.ANTHROPIC_API_KEY ? 'YES' : 'NO');
 console.log('Setlist.fm Key loaded:', process.env.SETLISTFM_API_KEY ? 'YES' : 'NO');
 console.log('Ticketmaster loaded:', process.env.TICKETMASTER_API_KEY ? 'YES' : 'NO');
 console.log('Google Client ID loaded:', process.env.GOOGLE_CLIENT_ID ? 'YES' : 'NO');
-console.log('Spotify Client ID loaded:', process.env.SPOTIFY_CLIENT_ID ? 'YES' : 'NO');
+console.log('Last.fm API Key loaded:', process.env.LASTFM_API_KEY ? 'YES' : 'NO');
 console.log('Supabase loaded:', process.env.SUPABASE_URL && process.env.SUPABASE_KEY ? 'YES' : 'NO');
 
 const Anthropic = require('@anthropic-ai/sdk');
@@ -13,7 +13,6 @@ const axios = require('axios');
 const { google } = require('googleapis');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
-const SpotifyWebApi = require('spotify-web-api-node');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
@@ -51,7 +50,6 @@ app.get('/dev', (req, res) => {
         <li><a href="/app">willcall app</a> (main 4-tab app)</li>
         <li><a href="/test">Concert search</a> (natural language + Setlist.fm)</li>
         <li><a href="/gmail-parser">Gmail parser</a> (find concerts from ticket emails)</li>
-        <li><a href="/spotify-concerts">Spotify concerts</a> (concerts you may have seen from your listening)</li>
       </ul>
       <p><small>If you get 404, restart the server: <code>node server.js</code></small></p>
     </body>
@@ -63,14 +61,6 @@ app.get('/test', (req, res) => {
 });
 app.get('/gmail-parser', (req, res) => {
   res.sendFile(path.join(__dirname, 'gmail-parser.html'));
-});
-app.get('/spotify-concerts', (req, res) => {
-  res.sendFile(path.join(__dirname, 'spotify-concerts.html'), (err) => {
-    if (err) {
-      console.error('sendFile /spotify-concerts error:', err.message);
-      res.status(500).send('Error loading page. Check server logs.');
-    }
-  });
 });
 app.get('/api/supabase-config', (req, res) => {
   const url = process.env.SUPABASE_URL;
@@ -601,246 +591,128 @@ app.get('/oauth/callback', async (req, res) => {
   }
 });
 
-// --- Spotify OAuth & Concert Discovery ---
-const spotifyCredentials = {
-  clientId: process.env.SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.SPOTIFY_CLIENT_SECRET
-};
+// ── Last.fm API ──
 
-function getBaseUrl(req) {
-  const proto = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-  const host = req.headers['x-forwarded-host'] || req.get('host');
-  return `${proto}://${host}`;
+const LASTFM_API_KEY = process.env.LASTFM_API_KEY;
+
+async function getLastfmTopArtists(username, limit = 50) {
+  const url = `https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${encodeURIComponent(username)}&api_key=${LASTFM_API_KEY}&format=json&limit=${limit}`;
+  const res = await axios.get(url);
+  const artists = res.data?.topartists?.artist || [];
+  return artists.map(a => ({
+    name: a.name,
+    playcount: parseInt(a.playcount, 10) || 0,
+    image: (a.image && a.image.find(i => i.size === 'large'))?.['#text'] || null
+  }));
 }
 
-/** Canonical site URL for OAuth redirects (avoid mismatches when multiple *.vercel.app hosts exist). */
-function getPublicBaseUrl(req) {
-  const explicit = (process.env.PUBLIC_BASE_URL || process.env.WILLCALL_PUBLIC_URL || '').trim().replace(/\/$/, '');
-  if (explicit) return explicit;
-  return getBaseUrl(req);
-}
-
-function getSpotifyCredentials(req) {
-  const redirectUri =
-    process.env.SPOTIFY_REDIRECT_URI ||
-    (getPublicBaseUrl(req) + '/oauth/spotify/callback');
-  return {
-    clientId: process.env.SPOTIFY_CLIENT_ID,
-    clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
-    redirectUri
-  };
-}
-
-const IS_PROD = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
-const COOKIE_OPTS = { httpOnly: true, sameSite: 'lax', secure: IS_PROD, maxAge: 10 * 60 * 1000 };
-
-app.get('/oauth/spotify', (req, res) => {
-  const creds = getSpotifyCredentials(req);
-  if (!creds.clientId || !creds.clientSecret) {
-    return res.status(500).send('Spotify app not configured. Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET in .env');
-  }
-  const scopes = ['user-top-read', 'user-read-recently-played'];
-  const state = Math.random().toString(36).slice(2);
-  res.cookie('spotify_state', state, COOKIE_OPTS);
-  res.cookie('spotify_redirect_uri', creds.redirectUri, COOKIE_OPTS);
-  const authUrl = `https://accounts.spotify.com/authorize?${new URLSearchParams({
-    response_type: 'code',
-    client_id: creds.clientId,
-    redirect_uri: creds.redirectUri,
-    scope: scopes.join(' '),
-    state
-  })}`;
-  res.redirect(authUrl);
-});
-
-app.get('/oauth/spotify/callback', async (req, res) => {
-  const { code, state, error } = req.query;
-  const baseUrl = getPublicBaseUrl(req);
-  const redirect = (path) => res.redirect(`${baseUrl}${path}`);
-  const savedState = req.cookies?.spotify_state;
-  const savedRedirectUri = req.cookies?.spotify_redirect_uri;
-
-  console.log('[spotify-callback] cookies received:', Object.keys(req.cookies || {}));
-  console.log('[spotify-callback] state match:', state === savedState, '| savedState:', !!savedState);
-
-  res.clearCookie('spotify_state');
-  res.clearCookie('spotify_redirect_uri');
-
-  if (error) {
-    console.error('Spotify OAuth error from provider:', error);
-    return redirect('/app?error=auth_failed&reason=spotify_denied');
-  }
-  if (!savedState || state !== savedState) {
-    const reason = !savedState ? 'cookie_missing' : 'state_mismatch';
-    console.error('[spotify-callback]', reason, '| savedState:', savedState, '| got:', state);
-    return redirect('/app?error=auth_failed&reason=' + reason);
-  }
+app.get('/api/lastfm/top-artists', async (req, res) => {
+  const username = req.query.username;
+  if (!username) return res.status(400).json({ error: 'username required' });
+  if (!LASTFM_API_KEY) return res.status(500).json({ error: 'Last.fm API key not configured' });
   try {
-    const creds = getSpotifyCredentials(req);
-    if (savedRedirectUri) creds.redirectUri = savedRedirectUri;
-    console.log('[spotify-callback] exchanging code with redirectUri:', creds.redirectUri);
-    const spotifyApi = new SpotifyWebApi(creds);
-    const data = await spotifyApi.authorizationCodeGrant(code);
-    res.cookie('spotify_tokens', JSON.stringify({
-      access_token: data.body.access_token,
-      refresh_token: data.body.refresh_token,
-      expires_at: Date.now() + data.body.expires_in * 1000
-    }), { ...COOKIE_OPTS, maxAge: 30 * 24 * 60 * 60 * 1000 });
-    console.log('[spotify-callback] success, redirecting to /app');
-    redirect('/app?authenticated=true');
-  } catch (err) {
-    const detail = err.response?.body?.error_description || err.response?.body?.error || err.message;
-    console.error('[spotify-callback] token exchange failed:', detail);
-    redirect('/app?error=auth_failed&reason=token_exchange&detail=' + encodeURIComponent(detail || 'unknown'));
-  }
-});
-
-app.post('/api/spotify/disconnect', (req, res) => {
-  res.clearCookie('spotify_tokens');
-  if (req.session) {
-    req.session.spotifyTokens = null;
-    req.session.spotifyState = null;
-  }
-  res.json({ ok: true });
-});
-
-app.get('/api/spotify/status', async (req, res) => {
-  const tokens = await ensureSpotifyAccessToken(req, res);
-  if (!tokens) return res.json({ connected: false });
-  try {
-    const spotifyApi = new SpotifyWebApi(spotifyCredentials);
-    spotifyApi.setAccessToken(tokens.access_token);
-    await spotifyApi.getMe();
-    res.json({ connected: true });
-  } catch (e) {
-    console.warn('[spotify-status] Token present but Spotify rejected it:', e.message);
-    // Clear the bad cookie so the user isn't stuck in a "connected but broken" state
-    res.clearCookie('spotify_tokens');
-    res.json({ connected: false, reason: 'token_invalid' });
-  }
-});
-
-app.get('/api/spotify/top-artists', async (req, res) => {
-  try {
-    const tokens = await ensureSpotifyAccessToken(req, res);
-    if (!tokens) { res.clearCookie('spotify_tokens'); return res.status(401).json({ error: 'Spotify session expired. Reconnect in Settings.' }); }
-    const artists = await getSpotifyTopArtistsWithIds(tokens.access_token, 50);
+    const artists = await getLastfmTopArtists(username, 50);
     res.json({ artists });
   } catch (e) {
-    console.error('Top artists error:', e);
-    res.status(500).json({ error: e.message });
+    const msg = e.response?.data?.message || e.message;
+    console.error('[lastfm] top-artists error:', msg);
+    res.status(e.response?.status === 404 ? 404 : 500).json({ error: msg });
   }
 });
 
-app.get('/api/spotify/debug', async (req, res) => {
-  const diag = {
-    hasCookie: false, tokenParsed: false, tokenExpired: null,
-    refreshable: false, refreshed: false, spotifyValidated: false,
-    topArtistsCount: 0, spotifyUser: null, topArtistsSample: [],
-    clientIdSet: !!process.env.SPOTIFY_CLIENT_ID,
-    clientSecretSet: !!process.env.SPOTIFY_CLIENT_SECRET,
-    error: null
-  };
+app.get('/api/lastfm/validate', async (req, res) => {
+  const username = req.query.username;
+  if (!username) return res.status(400).json({ valid: false, error: 'username required' });
+  if (!LASTFM_API_KEY) return res.status(500).json({ valid: false, error: 'Last.fm API key not configured' });
   try {
-    const raw = req.cookies?.spotify_tokens;
-    diag.hasCookie = !!raw;
-    if (!raw) { diag.error = 'No spotify_tokens cookie. User needs to connect Spotify.'; return res.json(diag); }
-    let tokens;
-    try { tokens = JSON.parse(raw); diag.tokenParsed = true; } catch (_) { diag.error = 'Cookie not valid JSON'; return res.json(diag); }
-    diag.tokenExpired = tokens.expires_at ? Date.now() >= tokens.expires_at - 60000 : 'unknown';
-    diag.expiresAt = tokens.expires_at ? new Date(tokens.expires_at).toISOString() : null;
-    diag.refreshable = !!tokens.refresh_token;
-
-    const fresh = await ensureSpotifyAccessToken(req, res);
-    if (!fresh) {
-      diag.error = 'Token refresh failed. User should disconnect and reconnect Spotify.';
-      return res.json(diag);
-    }
-    diag.refreshed = fresh.access_token !== tokens.access_token;
-
-    const spotifyApi = new SpotifyWebApi(spotifyCredentials);
-    spotifyApi.setAccessToken(fresh.access_token);
-    try {
-      const me = await spotifyApi.getMe();
-      diag.spotifyValidated = true;
-      diag.spotifyUser = me.body?.display_name || me.body?.id || 'unknown';
-    } catch (e) {
-      diag.error = 'getMe() failed: ' + (e.body?.error?.message || e.message) + '. Token is invalid — disconnect and reconnect.';
-      return res.json(diag);
-    }
-
-    const artists = await getSpotifyTopArtistsWithIds(fresh.access_token, 10);
-    diag.topArtistsCount = artists.length;
-    diag.topArtistsSample = artists.slice(0, 5).map(a => a.name);
-    if (artists.length === 0) {
-      diag.error = 'Token works but Spotify returned 0 top artists. This account may have no listening history.';
-    }
+    const url = `https://ws.audioscrobbler.com/2.0/?method=user.getinfo&user=${encodeURIComponent(username)}&api_key=${LASTFM_API_KEY}&format=json`;
+    const r = await axios.get(url);
+    const user = r.data?.user;
+    res.json({ valid: !!user, username: user?.name || username });
   } catch (e) {
-    diag.error = e.message;
+    res.json({ valid: false, error: 'User not found on Last.fm' });
   }
-  res.json(diag);
 });
 
-// Time ranges for top artists (Spotify: long_term ~years, medium_term ~6 months, short_term ~4 weeks)
-const SPOTIFY_TIME_RANGES = ['long_term', 'medium_term', 'short_term'];
 
-// Get user's top artists from Spotify. Combines long_term, medium_term, short_term and recently played.
-// Deduplicates by artist id; order: long_term first, then medium, short, then recent tracks.
-async function getSpotifyTopArtistsWithIds(accessToken, limit = 50) {
-  const spotifyApi = new SpotifyWebApi(spotifyCredentials);
-  spotifyApi.setAccessToken(accessToken);
-  const limitPerRequest = Math.min(50, limit);
-  const fetches = [
-    ...SPOTIFY_TIME_RANGES.map(tr =>
-      spotifyApi.getMyTopArtists({ limit: limitPerRequest, time_range: tr }).catch(() => ({ body: { items: [] } }))
-    ),
-    spotifyApi.getMyRecentlyPlayedTracks({ limit: 50 }).catch(() => ({ body: { items: [] } }))
-  ];
-  const results = await Promise.all(fetches);
-  const byId = new Map(); // id -> { id, name } — insertion order preserved
-  for (const res of results) {
-    const items = res?.body?.items || [];
-    for (const item of items) {
-      const artist = item.track?.artists?.[0] || item;
-      if (artist?.id && artist?.name) {
-        const imgs = artist.images || [];
-        const img = (imgs.find(i => i.width >= 160 && i.width <= 400) || imgs[0])?.url || null;
-        byId.set(artist.id, { id: artist.id, name: artist.name, image: img });
+// Last.fm concert suggestions: top artists → Setlist.fm search
+app.post('/api/lastfm/concerts-suggestions', async (req, res) => {
+  try {
+    let { username, cities, yearStart, yearEnd, artistLimit } = req.body;
+    if (!username) return res.status(400).json({ error: 'Last.fm username required' });
+    if (!LASTFM_API_KEY) return res.status(500).json({ error: 'Last.fm API key not configured' });
+    if (!cities || !Array.isArray(cities)) {
+      cities = typeof req.body.cities === 'string' ? req.body.cities.split(',').map(s => s.trim()).filter(Boolean) : [];
+    }
+    if (cities.length === 0) {
+      return res.status(400).json({ error: 'Please provide at least one city.' });
+    }
+    let maxArtists = 20;
+    if (artistLimit != null) {
+      const n = parseInt(String(artistLimit), 10);
+      if (!isNaN(n)) maxArtists = Math.min(50, Math.max(1, n));
+    }
+
+    let artists = await getLastfmTopArtists(username, 50);
+    console.log(`[concerts-suggestions] Got ${artists.length} top artists from Last.fm for ${username}`);
+    if (artists.length === 0) {
+      return res.json({ concerts: [], message: 'No top artists found on Last.fm for this user.' });
+    }
+
+    const maxCities = 6;
+    const artistsToUse = artists.slice(0, maxArtists);
+    const citiesToUse = cities.slice(0, maxCities);
+
+    const yearStartNum = yearStart != null ? parseInt(String(yearStart), 10) : null;
+    const yearEndNum = yearEnd != null ? parseInt(String(yearEnd), 10) : null;
+    const results = [];
+    const seen = new Set();
+    const startYear = yearStartNum ?? 0;
+    const endYear = yearEndNum ?? 9999;
+
+    console.log(`[concerts-suggestions] Searching ${artistsToUse.length} artists × ${citiesToUse.length} cities`);
+
+    let consecutive429s = 0;
+    const MAX_CONSECUTIVE_429S = 3;
+
+    for (const artist of artistsToUse) {
+      if (consecutive429s >= MAX_CONSECUTIVE_429S) {
+        console.warn('[concerts-suggestions] Too many rate limits, stopping early');
+        break;
+      }
+      const artistName = artist.name;
+      for (const city of citiesToUse) {
+        try {
+          const data = await searchSetlistWithCache(artistName, city, 0);
+          consecutive429s = 0;
+          const setlists = data.setlist || [];
+          for (const s of setlists) {
+            const key = `${s.artist?.name}-${s.eventDate}-${s.venue?.name}`;
+            if (seen.has(key)) continue;
+            const setlistYear = s.eventDate ? parseInt(String(s.eventDate).split('-')[2], 10) : null;
+            if (setlistYear != null && (yearStartNum != null || yearEndNum != null) && (setlistYear < startYear || setlistYear > endYear)) continue;
+            seen.add(key);
+            results.push({ ...s, _sourceArtist: artistName, _sourceArtistImage: artist.image || null });
+          }
+        } catch (err) {
+          if (err.response?.status === 429) {
+            consecutive429s++;
+          }
+        }
       }
     }
-  }
-  return Array.from(byId.values()).slice(0, Math.min(limit, 50));
-}
 
-// Filter to artists who have at least one album released in [yearStart, yearEnd] (inclusive). Runs in parallel (5 at a time).
-async function filterArtistsByAlbumYearRange(spotifyApi, artists, yearStart, yearEnd) {
-  if (yearStart == null && yearEnd == null) return artists;
-  const start = yearStart != null ? parseInt(String(yearStart), 10) : 0;
-  const end = yearEnd != null ? parseInt(String(yearEnd), 10) : 9999;
-  const BATCH = 5;
-  const filtered = [];
-  for (let i = 0; i < artists.length; i += BATCH) {
-    const batch = artists.slice(i, i + BATCH);
-    const results = await Promise.all(
-      batch.map(async (artist) => {
-        try {
-          const res = await spotifyApi.getArtistAlbums(artist.id, { limit: 50, include_groups: 'album,single' });
-          const items = res.body?.items || [];
-          const hasAlbumInRange = items.some((album) => {
-            const date = album.release_date || '';
-            const year = parseInt(date.substring(0, 4), 10);
-            return !isNaN(year) && year >= start && year <= end;
-          });
-          return hasAlbumInRange ? artist : null;
-        } catch (_) {
-          return artist;
-        }
-      })
-    );
-    filtered.push(...results.filter(Boolean));
+    results.sort((a, b) => {
+      const dA = a.eventDate ? parseSetlistDate(a.eventDate) : 0;
+      const dB = b.eventDate ? parseSetlistDate(b.eventDate) : 0;
+      return dB - dA;
+    });
+    res.json({ concerts: results.slice(0, 100), artistsUsed: artistsToUse.map(a => a.name) });
+  } catch (error) {
+    console.error('Last.fm concerts error:', error);
+    res.status(500).json({ error: error.message });
   }
-  return filtered;
-}
+});
 
 // Strip state/country suffix from city strings like "Albany, NY" or "New York, NY, USA"
 function parseCityInput(raw) {
@@ -931,132 +803,6 @@ async function searchSetlistWithCache(artistName, cityName, year = 0) {
 
   return result;
 }
-
-// Refresh Spotify access token if we have a refresh_token
-async function ensureSpotifyAccessToken(req, res) {
-  let tokens = req.session?.spotifyTokens || null;
-  if (!tokens && req.cookies?.spotify_tokens) {
-    try { tokens = JSON.parse(req.cookies.spotify_tokens); } catch (_) {}
-  }
-  if (!tokens) return null;
-  if (tokens.expires_at && Date.now() >= tokens.expires_at - 60000) {
-    if (!tokens.refresh_token) return null;
-    try {
-      const spotifyApi = new SpotifyWebApi({ ...spotifyCredentials, refreshToken: tokens.refresh_token });
-      const data = await spotifyApi.refreshAccessToken();
-      tokens = {
-        ...tokens,
-        access_token: data.body.access_token,
-        expires_at: Date.now() + data.body.expires_in * 1000
-      };
-      if (req.session) req.session.spotifyTokens = tokens;
-      if (res) res.cookie('spotify_tokens', JSON.stringify(tokens), { httpOnly: true, sameSite: 'lax', secure: IS_PROD, maxAge: 30 * 24 * 60 * 60 * 1000 });
-    } catch (_) {
-      return null;
-    }
-  }
-  return tokens;
-}
-
-// Concerts you may have attended: filter artists by album year range, then search Setlist.fm only for those
-app.post('/api/spotify/concerts-suggestions', async (req, res) => {
-  try {
-    const tokens = await ensureSpotifyAccessToken(req, res);
-    if (!tokens) {
-      res.clearCookie('spotify_tokens');
-      return res.status(401).json({ error: 'Spotify session expired. Disconnect and reconnect Spotify in Settings.' });
-    }
-    let { cities, yearStart, yearEnd, artistLimit } = req.body;
-    if (!cities || !Array.isArray(cities)) {
-      cities = typeof req.body.cities === 'string' ? req.body.cities.split(',').map(s => s.trim()).filter(Boolean) : [];
-    }
-    if (cities.length === 0) {
-      return res.status(400).json({ error: 'Please provide at least one city (e.g. ["New York", "Brooklyn"]).' });
-    }
-    let maxArtists = 20;
-    if (artistLimit != null) {
-      const n = parseInt(String(artistLimit), 10);
-      if (!isNaN(n)) maxArtists = Math.min(50, Math.max(1, n));
-    }
-
-    const spotifyApi = new SpotifyWebApi(spotifyCredentials);
-    spotifyApi.setAccessToken(tokens.access_token);
-
-    let artists = await getSpotifyTopArtistsWithIds(tokens.access_token, 50);
-    console.log(`[concerts-suggestions] Got ${artists.length} top artists from Spotify`);
-    if (artists.length === 0) {
-      return res.json({ concerts: [], message: 'No top artists from Spotify. Listen to some music and try again.' });
-    }
-
-    // If user gave a year range, keep only artists who have an album in that range (faster + fewer Setlist.fm calls)
-    if (yearStart != null || yearEnd != null) {
-      artists = await filterArtistsByAlbumYearRange(spotifyApi, artists, yearStart, yearEnd);
-      if (artists.length === 0) {
-        return res.json({
-          concerts: [],
-          message: 'None of your top artists had albums in that year range. Try a wider range or leave years blank.'
-        });
-      }
-    }
-
-    const maxCities = 6;
-    const artistsToUse = artists.slice(0, maxArtists);
-    const citiesToUse = cities.slice(0, maxCities);
-
-    const yearStartNum = yearStart != null ? parseInt(String(yearStart), 10) : null;
-    const yearEndNum = yearEnd != null ? parseInt(String(yearEnd), 10) : null;
-    const results = [];
-    const seen = new Set();
-    const startYear = yearStartNum ?? 0;
-    const endYear = yearEndNum ?? 9999;
-
-    console.log(`[concerts-suggestions] Searching ${artistsToUse.length} artists × ${citiesToUse.length} cities`);
-    console.log(`[concerts-suggestions] Artists: ${artistsToUse.map(a => a.name).join(', ')}`);
-
-    let consecutive429s = 0;
-    const MAX_CONSECUTIVE_429S = 3;
-
-    for (const artist of artistsToUse) {
-      if (consecutive429s >= MAX_CONSECUTIVE_429S) {
-        console.warn('[concerts-suggestions] Too many rate limits, stopping early with partial results');
-        break;
-      }
-      const artistName = artist.name;
-      for (const city of citiesToUse) {
-        try {
-          const data = await searchSetlistWithCache(artistName, city, 0);
-          consecutive429s = 0;
-          const setlists = data.setlist || [];
-          for (const s of setlists) {
-            const key = `${s.artist?.name}-${s.eventDate}-${s.venue?.name}`;
-            if (seen.has(key)) continue;
-            const setlistYear = s.eventDate ? parseInt(String(s.eventDate).split('-')[2], 10) : null;
-            if (setlistYear != null && (yearStartNum != null || yearEndNum != null) && (setlistYear < startYear || setlistYear > endYear)) continue;
-            seen.add(key);
-            results.push({ ...s, _sourceArtist: artistName, _sourceArtistImage: artist.image || null });
-          }
-          console.log(`[concerts-suggestions] ${artistName} in ${city}: ${setlists.length} setlists found`);
-        } catch (err) {
-          if (err.response?.status === 429) {
-            consecutive429s++;
-            console.warn(`[concerts-suggestions] 429 for ${artistName} in ${city} (${consecutive429s}/${MAX_CONSECUTIVE_429S})`);
-          }
-        }
-      }
-    }
-
-    results.sort((a, b) => {
-      const dA = a.eventDate ? parseSetlistDate(a.eventDate) : 0;
-      const dB = b.eventDate ? parseSetlistDate(b.eventDate) : 0;
-      return dB - dA;
-    });
-    console.log(`[concerts-suggestions] Done. Returning ${Math.min(results.length, 100)} concerts.`);
-    res.json({ concerts: results.slice(0, 100), artistsUsed: artistsToUse.map(a => a.name) });
-  } catch (error) {
-    console.error('Spotify concerts error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
 
 function parseSetlistDate(str) {
   if (!str) return 0;
@@ -1331,52 +1077,6 @@ Return ONLY the JSON object, no other text or explanation.`
   }
 });
 
-// Batch artist image lookup via Spotify search
-app.post('/api/spotify/artist-images', async (req, res) => {
-  try {
-    const tokens = await ensureSpotifyAccessToken(req, res);
-    if (!tokens) {
-      console.log('[artist-images] No Spotify tokens — returning 401');
-      res.clearCookie('spotify_tokens');
-      return res.status(401).json({ error: 'Spotify session expired. Reconnect in Settings.' });
-    }
-    const { names } = req.body;
-    if (!Array.isArray(names) || names.length === 0) return res.json({ images: {} });
-
-    console.log(`[artist-images] Looking up images for ${names.length} artists:`, names);
-    const spotifyApi = new SpotifyWebApi(spotifyCredentials);
-    spotifyApi.setAccessToken(tokens.access_token);
-
-    const unique = [...new Set(names)].slice(0, 50);
-    const images = {};
-    const BATCH = 5;
-    for (let i = 0; i < unique.length; i += BATCH) {
-      const batch = unique.slice(i, i + BATCH);
-      await Promise.all(batch.map(name =>
-        spotifyApi.searchArtists(name, { limit: 5 })
-          .then(r => {
-            const items = r.body?.artists?.items || [];
-            const nameLower = name.toLowerCase().trim();
-            const match = items.find(a => a.name && a.name.toLowerCase().trim() === nameLower)
-              || items.find(a => a.name && a.name.toLowerCase().trim().includes(nameLower))
-              || null;
-            if (match?.images?.length) {
-              const imgs = match.images;
-              images[name] = (imgs.find(i => i.width >= 160 && i.width <= 400) || imgs[0])?.url || null;
-            }
-          })
-          .catch(err => { console.warn(`[artist-images] Search failed for "${name}":`, err.message); })
-      ));
-      if (i + BATCH < unique.length) await new Promise(r => setTimeout(r, 100));
-    }
-    console.log(`[artist-images] Found images for ${Object.keys(images).length}/${unique.length} artists`);
-    res.json({ images });
-  } catch (e) {
-    console.error('Artist images error:', e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // Health check – returns JSON so you can verify the API is reachable
 app.get('/api/health', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
@@ -1387,7 +1087,7 @@ app.get('/api/health', (req, res) => {
     publicBaseUrl: publicBase || null,
     configured: {
       supabase: !!(process.env.SUPABASE_URL && process.env.SUPABASE_KEY),
-      spotify: !!(process.env.SPOTIFY_CLIENT_ID && process.env.SPOTIFY_CLIENT_SECRET),
+      lastfm: !!process.env.LASTFM_API_KEY,
       ticketmaster: !!process.env.TICKETMASTER_API_KEY,
       setlistfm: !!process.env.SETLISTFM_API_KEY,
       anthropic: !!process.env.ANTHROPIC_API_KEY,
@@ -1874,7 +1574,6 @@ app.use((req, res) => {
         <li><a href="/">Home</a></li>
         <li><a href="/test">Concert search</a></li>
         <li><a href="/gmail-parser">Gmail parser</a></li>
-        <li><a href="/spotify-concerts">Spotify concerts</a></li>
       </ul>
     </body>
     </html>
@@ -1888,7 +1587,6 @@ const server = app.listen(PORT, () => {
   console.log(`  API:     http://127.0.0.1:${PORT}/api/health`);
   console.log(`  Concert search: http://127.0.0.1:${PORT}/test`);
   console.log(`  Gmail parser:   http://127.0.0.1:${PORT}/gmail-parser`);
-  console.log(`  Spotify:       http://127.0.0.1:${PORT}/spotify-concerts`);
   console.log('');
   console.log('>>> Leave this terminal open. Press Ctrl+C to stop the server.');
 });
