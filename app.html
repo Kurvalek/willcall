@@ -1311,8 +1311,23 @@
     .add-menu-item:hover { background: var(--wc-near-black); }
     .add-menu-item:active { transform: scale(0.96); }
 
-    .search-results { margin-top: 16px; }
+    .search-results {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--wc-bg); z-index: 10; padding: 0;
+      overflow-y: auto;
+    }
     .search-results.hidden { display: none; }
+    .search-results-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .search-results-close {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      font-size: 20px; color: var(--wc-text-primary); line-height: 1;
+    }
+    .search-results-list {
+      display: flex; flex-direction: column; gap: 12px;
+    }
     .search-location-line {
       font-size: 14px; color: var(--wc-text-muted); margin-bottom: 8px; line-height: 1.6;
     }
@@ -3606,7 +3621,7 @@
     var SETLIST_SVG = '<img src="/assets/setlist.svg" alt="" width="18" height="18">';
     var REMOVE_SVG = '<img src="/assets/cantgo.svg" alt="" width="18" height="18">';
     var CANTGO_SVG = '<img src="/assets/cantgo.svg" alt="" width="18" height="18">';
-    var GOING_SVG = '<img src="/assets/checkin.svg" alt="" width="18" height="18">';
+    var GOING_SVG = '<img src="/assets/imgoing.svg" alt="" width="18" height="18">';
 
     function srgbToLinear(c) { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
     function relativeLuminance(r, g, b) {
@@ -4409,6 +4424,16 @@
       doSearch(searchInput.value.trim());
     });
 
+    var _searchResultEvents = [];
+
+    function closeSearchResults() {
+      searchResults.classList.add('hidden');
+      searchResults.innerHTML = '';
+      searchExplore.style.display = '';
+      searchInput.value = '';
+    }
+    window.closeSearchResults = closeSearchResults;
+
     async function doSearch(query) {
       if (!query) return;
       searchResults.classList.remove('hidden');
@@ -4421,34 +4446,88 @@
           body: JSON.stringify({ query })
         });
         const data = await res.json();
-        searchExplore.style.display = 'block';
         if (data.error) {
-          searchResults.innerHTML = '<div class="empty-state">' + data.error + '</div>';
+          searchResults.innerHTML = '<div class="search-results-header"><h2 class="section-title">Results</h2><button class="search-results-close" onclick="closeSearchResults()">✕</button></div><div class="empty-state">' + data.error + '</div>';
           return;
         }
         const results = data.results || [];
+        _searchResultEvents = results;
         if (results.length === 0) {
-          searchResults.innerHTML = '<div class="empty-state">No concerts found. Try another search.</div>';
+          searchResults.innerHTML = '<div class="search-results-header"><h2 class="section-title">Results</h2><button class="search-results-close" onclick="closeSearchResults()">✕</button></div><div class="empty-state">No concerts found. Try another search.</div>';
           return;
         }
-        let html = '<h2 class="section-title">Search results</h2>';
-        results.slice(0, 10).forEach(c => {
-          const artist = c.artist?.name || 'Unknown';
-          const date = formatDate(c.eventDate);
-          const venue = c.venue?.name || '—';
-          const city = c.venue?.city?.name || '';
-          const country = c.venue?.city?.country?.name || '';
-          const loc = [city, country].filter(Boolean).join(', ');
-          html += '<div class="concert-card"><div class="concert-artist">' + artist + '</div>';
-          html += '<div class="concert-date">' + date + '</div>';
-          html += '<div class="concert-venue">' + venue + '</div>';
-          if (loc) html += '<div class="concert-location">' + loc + '</div>';
-          html += '</div>';
-        });
-        searchResults.innerHTML = html;
+        renderSearchResultCards(results);
       } catch (err) {
-        searchExplore.style.display = 'block';
-        searchResults.innerHTML = '<div class="empty-state">Search failed: ' + err.message + '</div>';
+        searchResults.innerHTML = '<div class="search-results-header"><h2 class="section-title">Results</h2><button class="search-results-close" onclick="closeSearchResults()">✕</button></div><div class="empty-state">Search failed: ' + err.message + '</div>';
+      }
+    }
+
+    function renderSearchResultCards(results) {
+      var html = '<div class="search-results-header"><h2 class="section-title">Results</h2><button class="search-results-close" onclick="closeSearchResults()">✕</button></div>';
+      html += '<div class="search-results-list">';
+      results.slice(0, 20).forEach(function(c, idx) {
+        var artist = (c.artist && c.artist.name) || 'Unknown';
+        var date = formatDate(c.eventDate);
+        var venue = (c.venue && c.venue.name) || '';
+        var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+        var imgHtml = c.imageUrl
+          ? '<div class="show-card-img-wrap"><img src="' + c.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
+          : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
+        var ticketUrl = c.url || '';
+        html += '<div class="show-card" data-search-idx="' + idx + '" data-card-type="search-result" data-ticket-url="' + ticketUrl + '">';
+        html += '<div class="show-card-inner">';
+        html += '<div class="show-card-default">';
+        html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
+        html += '<div class="concert-artist">' + artist + '</div>';
+        html += '<div class="concert-date">' + date + '</div>';
+        if (venue) html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
+        html += '</div></div>';
+        html += DOTS_HTML;
+        html += '</div>';
+        html += '<div class="show-card-actions">';
+        html += DOTS_HTML;
+        html += '<div class="card-actions-body">';
+        html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
+        html += '<div class="card-action-divider"></div>';
+        html += '<button type="button" class="card-action-btn" data-action="going">' + GOING_SVG + "I'm Going</button>";
+        html += '</div></div>';
+        html += '</div></div>';
+      });
+      html += '</div>';
+      searchResults.innerHTML = html;
+      searchResults.addEventListener('click', handleSearchResultActions);
+      initCardSwipe(searchResults);
+    }
+
+    function handleSearchResultActions(ev) {
+      var dots = ev.target.closest('.card-dots');
+      if (dots) { var card = dots.closest('.show-card'); if (card) toggleCardOpen(card); return; }
+      var actionBtn = ev.target.closest('.card-action-btn');
+      if (!actionBtn) return;
+      var card = actionBtn.closest('.show-card');
+      var action = actionBtn.dataset.action;
+      if (action === 'tickets') {
+        var url = card ? card.dataset.ticketUrl : '';
+        if (url) window.open(url, '_blank');
+        if (card) card.classList.remove('open');
+      } else if (action === 'going') {
+        var idx = card ? parseInt(card.dataset.searchIdx, 10) : -1;
+        if (idx >= 0 && idx < _searchResultEvents.length) {
+          var ev = _searchResultEvents[idx];
+          var goData = {
+            id: ev.id || (ev.artist?.name + '-' + ev.eventDate),
+            name: ev.artist?.name || 'Unknown',
+            artist: ev.artist || { name: ev.artist?.name || 'Unknown' },
+            venue: ev.venue || {},
+            eventDate: ev.eventDate,
+            url: ev.url || '',
+            imageUrl: ev.imageUrl || ev._sourceArtistImage || ''
+          };
+          addGoingShow(goData);
+          renderSearchGoingList();
+          renderProfileUpcomingShows();
+        }
+        if (card) card.classList.remove('open');
       }
     }
 
