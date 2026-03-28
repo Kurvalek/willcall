@@ -1431,81 +1431,59 @@
       cursor: pointer;
       z-index: 899;
       box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-      transition: transform 0.15s ease;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .fab-btn:hover { transform: scale(1.06); }
     .fab-btn:active { transform: scale(0.95); }
-    .fab-btn img { filter: brightness(0) invert(1); }
+    .fab-btn img {
+      filter: brightness(0) invert(1);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .fab-btn.open img { transform: rotate(45deg); }
 
     .add-menu-backdrop {
       position: fixed; inset: 0; z-index: 850;
       background: rgba(0, 0, 0, 0.3);
       opacity: 0; visibility: hidden; pointer-events: none;
-      transition: opacity 0.2s ease, visibility 0.2s;
+      transition: opacity 0.25s ease, visibility 0.25s;
     }
     .add-menu-backdrop.open {
       opacity: 1; visibility: visible; pointer-events: auto;
     }
-    .fab-sheet {
+
+    .fab-morph-menu {
       position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%) translateY(100%);
-      width: 100%;
-      max-width: 430px;
-      background: var(--wc-bg);
-      border-radius: var(--wc-radius) var(--wc-radius) 0 0;
-      padding: 12px 20px calc(24px + var(--safe-bottom));
-      z-index: 901;
-      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+      z-index: 898;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: flex-end;
+      gap: 12px;
+      pointer-events: none;
     }
-    .fab-sheet.open {
-      transform: translateX(-50%) translateY(0);
-    }
-    .fab-sheet-handle {
-      width: 36px;
-      height: 4px;
-      background: var(--wc-gray-300);
-      border-radius: 2px;
-      margin: 0 auto 20px;
-    }
-    .fab-sheet-item {
+    .fab-morph-menu.open { pointer-events: auto; }
+
+    .fab-morph-item {
       display: flex;
       align-items: center;
-      gap: 16px;
-      width: 100%;
-      padding: 16px 0;
+      gap: 10px;
+      padding: 12px 20px 12px 16px;
+      background: var(--wc-black);
+      color: #fff;
       border: none;
-      border-bottom: 1px solid var(--wc-gray-200);
-      background: none;
+      border-radius: 9999px;
       cursor: pointer;
       font-family: var(--wc-font-body);
-      text-align: left;
-      transition: opacity 0.15s;
-    }
-    .fab-sheet-item:last-child { border-bottom: none; }
-    .fab-sheet-item:active { opacity: 0.7; }
-    .fab-sheet-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: var(--wc-radius);
-      background: var(--wc-gray-100);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .fab-sheet-label {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
-      color: var(--wc-text-primary);
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      opacity: 0;
+      transform: scale(0.3);
+      transform-origin: right bottom;
+      will-change: transform, opacity;
+      transition: none;
     }
-    .fab-sheet-desc {
-      font-size: 13px;
-      color: var(--wc-text-muted);
-      margin-top: 2px;
-    }
+    .fab-morph-item:active { opacity: 0.8 !important; }
 
     .search-results {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -2481,7 +2459,10 @@
 
   <div id="pastShowsSheet" class="past-shows-sheet">
     <div class="past-shows-sheet-header">
-      <span class="title">Add Past Shows</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img src="/assets/addnav.svg" alt="" width="24" height="24" style="filter:brightness(0);">
+        <span class="title">Add Past Shows</span>
+      </div>
       <button class="close" onclick="closePastShowsSheet()">✕</button>
     </div>
     <div class="past-shows-sheet-body">
@@ -2554,7 +2535,7 @@
     <div class="checkin-flow-body">
       <div class="checkin-flow-header">
         <div class="checkin-flow-header-left">
-          <img src="/assets/checkin.svg" alt="" width="30" height="30" style="filter:brightness(0);">
+          <img src="/assets/addnav.svg" alt="" width="30" height="30" style="filter:brightness(0);">
           <span class="checkin-flow-title">Check in</span>
         </div>
         <button class="checkin-flow-close" id="closeCheckinFlow" aria-label="Close">✕</button>
@@ -2711,32 +2692,16 @@
     </div>
   </nav>
   <button class="fab-btn" id="fabBtn" aria-label="Add">
-    <img src="/assets/addshow.svg" alt="Add" width="24" height="24">
+    <img src="/assets/addnav.svg" alt="Add" width="24" height="24">
   </button>
 
   <div id="addMenuBackdrop" class="add-menu-backdrop" aria-hidden="true"></div>
-  <div id="addMenu" class="fab-sheet" aria-hidden="true">
-    <div class="fab-sheet-handle"></div>
-    <button type="button" class="fab-sheet-item" data-action="checkin">
-      <div class="fab-sheet-icon"><img src="/assets/checkin.svg" alt="" width="20" height="20"></div>
-      <div class="fab-sheet-text">
-        <div class="fab-sheet-label">Check In</div>
-        <div class="fab-sheet-desc">I'm at a show right now</div>
-      </div>
+  <div id="fabMorphMenu" class="fab-morph-menu" aria-hidden="true">
+    <button type="button" class="fab-morph-item" data-action="checkin">
+      <span>Check-In</span>
     </button>
-    <button type="button" class="fab-sheet-item" data-action="past-show">
-      <div class="fab-sheet-icon"><img src="/assets/addshow.svg" alt="" width="20" height="20"></div>
-      <div class="fab-sheet-text">
-        <div class="fab-sheet-label">Add a Past Show</div>
-        <div class="fab-sheet-desc">I went to a show</div>
-      </div>
-    </button>
-    <button type="button" class="fab-sheet-item" data-action="scan-ticket">
-      <div class="fab-sheet-icon"><img src="/assets/doorguy.svg" alt="" width="20" height="20"></div>
-      <div class="fab-sheet-text">
-        <div class="fab-sheet-label">Scan a Ticket Photo</div>
-        <div class="fab-sheet-desc">Upload a ticket stub</div>
-      </div>
+    <button type="button" class="fab-morph-item" data-action="past-show">
+      <span>Add Past Show</span>
     </button>
   </div>
 
@@ -4561,26 +4526,75 @@
     });
 
     var fabBtn = document.getElementById('fabBtn');
-    var addMenu = document.getElementById('addMenu');
+    var fabMorphMenu = document.getElementById('fabMorphMenu');
     var addMenuBackdrop = document.getElementById('addMenuBackdrop');
+    var fabMorphItems = Array.prototype.slice.call(fabMorphMenu.querySelectorAll('.fab-morph-item'));
+    var _fabOpen = false;
+    var _fabAnimating = false;
+
+    function positionFabMenu() {
+      var r = fabBtn.getBoundingClientRect();
+      fabMorphMenu.style.right = (window.innerWidth - r.right) + 'px';
+      fabMorphMenu.style.bottom = (window.innerHeight - r.top + 12) + 'px';
+    }
 
     function openAddMenu() {
-      addMenu.classList.add('open');
+      if (_fabOpen || _fabAnimating) return;
+      _fabAnimating = true;
+      _fabOpen = true;
+      positionFabMenu();
+      fabBtn.classList.add('open');
       addMenuBackdrop.classList.add('open');
+      fabMorphMenu.classList.add('open');
+      fabMorphMenu.setAttribute('aria-hidden', 'false');
+
+      fabMorphItems.forEach(function(item, i) {
+        item.style.transition = 'none';
+        item.style.opacity = '0';
+        item.style.transform = 'scale(0.3)';
+      });
+
+      requestAnimationFrame(function() {
+        fabMorphItems.forEach(function(item, i) {
+          var delay = i * 50;
+          item.style.transition = 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1) ' + delay + 'ms, opacity 200ms ease ' + delay + 'ms';
+          item.style.opacity = '1';
+          item.style.transform = 'scale(1)';
+        });
+        setTimeout(function() { _fabAnimating = false; }, 300 + fabMorphItems.length * 50);
+      });
     }
+
     function closeAddMenu() {
-      addMenu.classList.remove('open');
+      if (!_fabOpen || _fabAnimating) return;
+      _fabAnimating = true;
+      _fabOpen = false;
+      fabBtn.classList.remove('open');
       addMenuBackdrop.classList.remove('open');
+
+      var reversed = fabMorphItems.slice().reverse();
+      reversed.forEach(function(item, i) {
+        var delay = i * 40;
+        item.style.transition = 'transform 200ms cubic-bezier(0.65, 0, 0.35, 1) ' + delay + 'ms, opacity 150ms ease ' + delay + 'ms';
+        item.style.opacity = '0';
+        item.style.transform = 'scale(0.3)';
+      });
+
+      setTimeout(function() {
+        fabMorphMenu.classList.remove('open');
+        fabMorphMenu.setAttribute('aria-hidden', 'true');
+        _fabAnimating = false;
+      }, 200 + reversed.length * 40);
     }
 
     fabBtn.addEventListener('click', function() {
-      if (addMenu.classList.contains('open')) closeAddMenu();
+      if (_fabOpen) closeAddMenu();
       else openAddMenu();
     });
 
     addMenuBackdrop.addEventListener('click', closeAddMenu);
 
-    addMenu.querySelectorAll('.fab-sheet-item').forEach(function(item) {
+    fabMorphItems.forEach(function(item) {
       item.addEventListener('click', function() {
         var action = item.dataset.action;
         closeAddMenu();
