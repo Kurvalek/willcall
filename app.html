@@ -1030,6 +1030,85 @@
       cursor: default;
     }
 
+    .checkin-flow-sheet {
+      position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+      width: 100%; max-width: 430px; height: 100%;
+      background: var(--wc-bg); z-index: 1100;
+      display: none; flex-direction: column;
+    }
+    .checkin-flow-sheet.open { display: flex; }
+    .checkin-flow-body {
+      flex: 1; overflow-y: auto; padding: 32px 32px 24px;
+      display: flex; flex-direction: column; gap: 34px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .checkin-flow-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .checkin-flow-header-left {
+      display: flex; align-items: center; gap: 16px;
+    }
+    .checkin-flow-title {
+      font-size: 20px; font-weight: 700; color: var(--wc-black);
+    }
+    .checkin-flow-close {
+      background: none; border: none; font-size: 20px; cursor: pointer;
+      color: var(--wc-black); padding: 4px;
+    }
+    .checkin-flow-search-box {
+      position: relative;
+      background: #fff; border: 1px solid var(--wc-gray-100, #f0ede7);
+      border-radius: 2px; padding: 16px 16px 8px; min-height: 100px;
+    }
+    .checkin-flow-textarea {
+      width: 100%; border: none; outline: none; resize: none;
+      font-family: var(--wc-font-body); font-size: 16px;
+      color: var(--wc-black); background: transparent;
+      line-height: 1.4;
+    }
+    .checkin-flow-textarea::placeholder { color: #5c5955; }
+    .checkin-flow-clear {
+      position: absolute; top: 10px; right: 10px;
+      background: none; border: none; font-size: 16px; cursor: pointer;
+      color: #5c5955; padding: 4px;
+    }
+    .checkin-flow-search-btn {
+      position: absolute; bottom: 8px; right: 8px;
+      width: 30px; height: 30px; border-radius: 4px;
+      background: var(--wc-black); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .checkin-flow-results-heading {
+      font-size: 20px; font-weight: 700; color: var(--wc-black);
+      margin-bottom: 16px;
+    }
+    .checkin-flow-add-show-ghost {
+      width: 100%; padding: 16px; border-radius: 4px;
+      background: rgba(31,30,29,0.08); border: none; cursor: pointer;
+      font-family: var(--wc-font-body); font-size: 16px; font-weight: 500;
+      color: #5c5955; text-align: center;
+    }
+    .checkin-flow-form-fields {
+      display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;
+    }
+    .checkin-flow-field {
+      width: 100%; padding: 16px; font-family: var(--wc-font-body);
+      font-size: 16px; color: var(--wc-black); background: #fff;
+      border: 1px solid var(--wc-gray-100, #f0ede7); border-radius: 2px;
+      outline: none;
+    }
+    .checkin-flow-field::placeholder { color: #5c5955; }
+    .checkin-flow-submit {
+      width: 100%; padding: 12px 24px; border-radius: 4px;
+      background: var(--wc-black); border: none; cursor: pointer;
+      font-family: var(--wc-font-body); font-size: 14px; font-weight: 600;
+      color: #fff; text-align: center;
+    }
+    .checkin-flow-success {
+      text-align: center; padding: 32px 16px;
+      font-size: 16px; font-weight: 600; color: var(--wc-black);
+    }
+
     .checkin-form-fields { display: flex; flex-direction: column; gap: 0; }
     .checkin-form-input {
       width: 100%; padding: 14px 0 15px; font-family: var(--wc-font-body);
@@ -2461,6 +2540,42 @@
       <button class="close" onclick="closeSetlistDetail()">✕</button>
     </div>
     <div class="past-shows-sheet-body" id="setlistDetailBody"></div>
+  </div>
+
+  <div id="checkinFlowSheet" class="checkin-flow-sheet">
+    <div class="checkin-flow-body">
+      <div class="checkin-flow-header">
+        <div class="checkin-flow-header-left">
+          <img src="/assets/checkin.svg" alt="" width="30" height="30" style="filter:brightness(0);">
+          <span class="checkin-flow-title">Check in</span>
+        </div>
+        <button class="checkin-flow-close" id="closeCheckinFlow" aria-label="Close">✕</button>
+      </div>
+
+      <div class="checkin-flow-search-box">
+        <textarea id="checkinFlowInput" class="checkin-flow-textarea" placeholder="I'm at a Joyce Manor show in NJ" rows="2"></textarea>
+        <button class="checkin-flow-clear" id="checkinFlowClear" style="display:none" aria-label="Clear">✕</button>
+        <button class="checkin-flow-search-btn" id="checkinFlowSearchBtn" aria-label="Search">
+          <img src="/assets/searchnav.svg" alt="" width="18" height="18" style="filter:brightness(0) invert(1);">
+        </button>
+      </div>
+
+      <div id="checkinFlowLoading" style="display:none"></div>
+      <div id="checkinFlowResults"></div>
+
+      <div id="checkinFlowManualWrap" style="display:none">
+        <button type="button" class="checkin-flow-add-show-ghost" id="checkinFlowManualToggle">+ Add show</button>
+      </div>
+
+      <div id="checkinFlowForm" style="display:none">
+        <div class="checkin-flow-form-fields">
+          <input type="text" id="ciFormArtist" class="checkin-flow-field" placeholder="Artist name">
+          <input type="text" id="ciFormVenue" class="checkin-flow-field" placeholder="Venue">
+          <input type="date" id="ciFormDate" class="checkin-flow-field">
+        </div>
+        <button type="button" class="checkin-flow-submit" id="checkinFlowFormSave">+ Add show</button>
+      </div>
+    </div>
   </div>
 
   <div id="userProfileSheet" class="user-profile-sheet">
@@ -4461,7 +4576,7 @@
       item.addEventListener('click', function() {
         var action = item.dataset.action;
         closeAddMenu();
-        if (action === 'checkin') openCheckInSheet();
+        if (action === 'checkin') openCheckinFlow();
         else if (action === 'past-show') openPastShowsSheet();
       });
     });
@@ -5609,6 +5724,164 @@
         + '<div style="font-size:14px;color:#1F1E1D;margin-top:4px">' + artist + (venue ? ' at ' + venue : '') + '</div>'
         + '</div>';
     });
+
+    // --- New Check-In Flow ---
+    (function() {
+      var sheet = document.getElementById('checkinFlowSheet');
+      var input = document.getElementById('checkinFlowInput');
+      var searchBtn = document.getElementById('checkinFlowSearchBtn');
+      var clearBtn = document.getElementById('checkinFlowClear');
+      var closeBtn = document.getElementById('closeCheckinFlow');
+      var loadingEl = document.getElementById('checkinFlowLoading');
+      var resultsEl = document.getElementById('checkinFlowResults');
+      var manualWrap = document.getElementById('checkinFlowManualWrap');
+      var manualToggle = document.getElementById('checkinFlowManualToggle');
+      var formEl = document.getElementById('checkinFlowForm');
+      var formArtist = document.getElementById('ciFormArtist');
+      var formVenue = document.getElementById('ciFormVenue');
+      var formDate = document.getElementById('ciFormDate');
+      var formSave = document.getElementById('checkinFlowFormSave');
+
+      function openCheckinFlow() {
+        sheet.classList.add('open');
+        input.value = '';
+        clearBtn.style.display = 'none';
+        loadingEl.style.display = 'none';
+        resultsEl.innerHTML = '';
+        manualWrap.style.display = 'none';
+        formEl.style.display = 'none';
+        formArtist.value = '';
+        formVenue.value = '';
+        formDate.value = new Date().toISOString().split('T')[0];
+        setTimeout(function() { input.focus(); }, 100);
+      }
+      function closeCheckinFlow() {
+        sheet.classList.remove('open');
+      }
+
+      window.openCheckinFlow = openCheckinFlow;
+      closeBtn.addEventListener('click', closeCheckinFlow);
+
+      input.addEventListener('input', function() {
+        clearBtn.style.display = input.value.trim() ? 'block' : 'none';
+      });
+      clearBtn.addEventListener('click', function() {
+        input.value = '';
+        clearBtn.style.display = 'none';
+        resultsEl.innerHTML = '';
+        manualWrap.style.display = 'none';
+        formEl.style.display = 'none';
+        input.focus();
+      });
+
+      function doCheckinSearch() {
+        var q = input.value.trim();
+        if (!q) return;
+        loadingEl.innerHTML = discoverLoadingHtml(3);
+        loadingEl.style.display = 'block';
+        resultsEl.innerHTML = '';
+        manualWrap.style.display = 'none';
+        formEl.style.display = 'none';
+
+        fetch('/api/ticketmaster/nlp-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          loadingEl.style.display = 'none';
+          var events = data.events || [];
+          if (events.length === 0) {
+            resultsEl.innerHTML = '<div class="checkin-flow-results-heading">Are you at this show?</div>'
+              + '<div style="color:#5c5955;font-size:14px;margin-bottom:16px">No shows found. Try different words or add manually.</div>';
+            manualWrap.style.display = 'block';
+            return;
+          }
+          window._checkinFlowResults = events;
+          var html = '<div class="checkin-flow-results-heading">Are you at this show?</div>';
+          events.forEach(function(ev, i) {
+            var img = ev.imageUrl || '';
+            var imgHtml = img
+              ? '<img src="' + img + '" alt="" style="width:88px;height:88px;object-fit:cover;border-radius:4px 0 0 4px;filter:grayscale(100%) contrast(1.3) brightness(0.95);">'
+              : '<div style="width:88px;height:88px;background:#444;border-radius:4px 0 0 4px;"></div>';
+            html += '<div class="show-card ci-flow-card" data-ci-idx="' + i + '" style="margin-bottom:12px;">'
+              + '<div class="show-card-content">'
+              + '<div class="show-card-img">' + imgHtml + '</div>'
+              + '<div class="show-card-info">'
+              + '<div class="show-card-artist">' + (ev.artist || 'Unknown') + '</div>'
+              + '<div class="show-card-date">' + (ev.date || '') + '</div>'
+              + '<div class="show-card-venue"><img src="/assets/location.svg" alt="" width="10" height="14" style="filter:brightness(0) invert(1);margin-right:4px;">' + (ev.venue || '') + '</div>'
+              + '</div></div></div>';
+          });
+          resultsEl.innerHTML = html;
+          manualWrap.style.display = 'block';
+        })
+        .catch(function(err) {
+          loadingEl.style.display = 'none';
+          resultsEl.innerHTML = '<div style="color:#c00;font-size:14px;">Search failed: ' + err.message + '</div>';
+          manualWrap.style.display = 'block';
+        });
+      }
+
+      searchBtn.addEventListener('click', doCheckinSearch);
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doCheckinSearch(); }
+      });
+
+      resultsEl.addEventListener('click', function(ev) {
+        var card = ev.target.closest('.ci-flow-card');
+        if (!card) return;
+        var idx = parseInt(card.dataset.ciIdx, 10);
+        var events = window._checkinFlowResults || [];
+        var show = events[idx];
+        if (!show) return;
+        if (card.classList.contains('ci-added')) return;
+        addAttendedShow(show);
+        card.classList.add('ci-added');
+        resultsEl.innerHTML = '<div class="checkin-flow-success">✓ Checked in!<br><span style="font-weight:400;font-size:14px;margin-top:4px;display:inline-block;">' + (show.artist || '') + (show.venue ? ' at ' + show.venue : '') + '</span></div>';
+        manualWrap.style.display = 'none';
+        formEl.style.display = 'none';
+      });
+
+      manualToggle.addEventListener('click', function() {
+        formEl.style.display = 'block';
+        manualWrap.style.display = 'none';
+        var events = window._checkinFlowResults || [];
+        if (events.length > 0) {
+          var first = events[0];
+          formArtist.value = first.artist || '';
+          formVenue.value = first.venue || '';
+          if (first.date) {
+            try {
+              var d = new Date(first.date);
+              if (!isNaN(d)) formDate.value = d.toISOString().split('T')[0];
+            } catch(e) {}
+          }
+        }
+        formArtist.focus();
+      });
+
+      formSave.addEventListener('click', function() {
+        var artist = formArtist.value.trim();
+        if (!artist) { formArtist.focus(); return; }
+        var venue = formVenue.value.trim();
+        var dateVal = formDate.value;
+        var eventDate = '';
+        if (dateVal) {
+          var parts = dateVal.split('-');
+          eventDate = parts[2] + '-' + parts[1] + '-' + parts[0];
+        }
+        var entry = { artist: artist, eventDate: eventDate, venue: venue, city: '', country: '' };
+        var list = getAttendedShows();
+        list.push(entry);
+        localStorage.setItem(ATTENDED_KEY, JSON.stringify(list));
+        syncShowToServer('attended', entry, showId(entry));
+        renderProfileShows();
+        formEl.style.display = 'none';
+        resultsEl.innerHTML = '<div class="checkin-flow-success">✓ Checked in!<br><span style="font-weight:400;font-size:14px;margin-top:4px;display:inline-block;">' + artist + (venue ? ' at ' + venue : '') + '</span></div>';
+      });
+    })();
 
     document.getElementById('pastShowsResults').addEventListener('click', function(ev) {
       var btn = ev.target.closest('.past-show-add-btn');
