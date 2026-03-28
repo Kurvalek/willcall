@@ -277,44 +277,57 @@
     }
     .discover-search-box {
       background: #fff;
-      border: 1px solid var(--wc-gray-200);
-      border-radius: var(--wc-radius);
-      padding: 16px;
+      border: 1px solid var(--wc-gray-100, #f0ede7);
+      border-radius: 2px;
+      padding: 16px 40px 8px 16px;
       margin-bottom: 32px;
       position: relative;
+      min-height: 100px;
     }
     .discover-search-inner {
       display: flex; align-items: flex-start; gap: 8px;
     }
     .discover-search-input {
-      flex: 1;
+      width: 100%;
       border: none; background: transparent;
       font-family: inherit; font-size: 16px;
       color: var(--wc-text-primary);
       outline: none; resize: none;
       line-height: 1.4;
-      min-height: 20px;
+      min-height: 44px;
       caret-color: var(--wc-black);
     }
-    .discover-search-input::placeholder { color: var(--wc-gray-400); }
+    .discover-search-input::placeholder { color: #5c5955; }
     .discover-search-clear {
+      position: absolute; top: 10px; right: 10px;
       background: none; border: none; cursor: pointer;
-      color: var(--wc-text-muted); padding: 2px;
+      color: #5c5955; padding: 4px;
       flex-shrink: 0;
       transition: color 0.15s;
     }
     .discover-search-clear:hover { color: var(--wc-text-primary); }
     .discover-search-clear.hidden { display: none; }
     .discover-search-btn {
-      position: absolute; bottom: 12px; right: 12px;
+      position: absolute; bottom: 8px; right: 8px;
       width: 30px; height: 30px;
       display: flex; align-items: center; justify-content: center;
-      background: var(--wc-bg); border: 1px solid var(--wc-gray-300);
-      border-radius: var(--wc-radius);
+      background: var(--wc-black); border: none;
+      border-radius: 4px;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
     }
-    .discover-search-btn:hover { background: var(--wc-gray-100); border-color: var(--wc-black); }
+    .discover-search-btn:hover { opacity: 0.85; }
+    .discover-search-box--single {
+      min-height: 0;
+      padding: 0 40px 0 0;
+    }
+    .discover-search-box--single .discover-search-input {
+      min-height: 0;
+      padding: 16px;
+    }
+    .discover-search-box--single .discover-search-btn {
+      top: 50%; bottom: auto;
+      transform: translateY(-50%);
+    }
     .discover-tab-content { display: none; }
     .discover-tab-content.active { display: block; }
     .discover-show-list {
@@ -546,7 +559,7 @@
     .badge-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px 0;
+      gap: 16px;
       margin-bottom: 8px;
     }
     .badge-item {
@@ -556,24 +569,20 @@
       gap: 8px;
     }
     .badge-item .icon {
-      width: 39px;
-      height: 39px;
+      width: 100%;
+      aspect-ratio: 1;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .badge-item .icon img {
-      width: 39px;
-      height: 39px;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
     }
     .badge-item .label {
-      display: block;
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--wc-black);
-      text-align: center;
+      display: none;
     }
     
     .see-all-badges {
@@ -1058,7 +1067,7 @@
     .checkin-flow-search-box {
       position: relative;
       background: #fff; border: 1px solid var(--wc-gray-100, #f0ede7);
-      border-radius: 2px; padding: 16px 16px 8px; min-height: 100px;
+      border-radius: 2px; padding: 16px 40px 8px 16px; min-height: 100px;
     }
     .checkin-flow-textarea {
       width: 100%; border: none; outline: none; resize: none;
@@ -2366,14 +2375,10 @@
     </div>
 
     <div class="discover-search-box" id="discoverSearchBox">
-      <div class="discover-search-inner">
-        <textarea class="discover-search-input" id="discoverSearchInput" placeholder="Shows in Albany tonight" rows="1"></textarea>
-        <button type="button" class="discover-search-clear hidden" id="discoverSearchClear" aria-label="Clear search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
+      <textarea class="discover-search-input" id="discoverSearchInput" placeholder="Shows in Albany tonight" rows="2"></textarea>
+      <button type="button" class="discover-search-clear hidden" id="discoverSearchClear" aria-label="Clear search">✕</button>
       <button type="button" class="discover-search-btn" id="discoverSearchBtn" aria-label="Search">
-        <img src="/assets/searchnav.svg" alt="" width="18" height="18" style="filter:brightness(0);">
+        <img src="/assets/searchnav.svg" alt="" width="18" height="18" style="filter:brightness(0) invert(1);">
       </button>
     </div>
 
@@ -2409,12 +2414,10 @@
       <span class="crowd-header-title">My crowd</span>
     </div>
 
-    <div class="discover-search-box" id="crowdSearchBox">
-      <div class="discover-search-inner">
-        <input type="text" class="discover-search-input" id="friends-search-input" placeholder="Search by name or username" autocomplete="off" style="resize:none">
-      </div>
+    <div class="discover-search-box discover-search-box--single" id="crowdSearchBox">
+      <input type="text" class="discover-search-input" id="friends-search-input" placeholder="Search by name or username" autocomplete="off">
       <button type="button" class="discover-search-btn" id="friends-search-btn" aria-label="Search">
-        <img src="/assets/searchnav.svg" alt="" width="18" height="18" style="filter:brightness(0);">
+        <img src="/assets/searchnav.svg" alt="" width="18" height="18" style="filter:brightness(0) invert(1);">
       </button>
     </div>
 
@@ -4655,11 +4658,11 @@
       _discoverSearchEvents = [];
       if (tab === 'upcoming') {
         discoverSearchInput.placeholder = 'Shows in Albany tonight';
-        discoverSearchInput.rows = 1;
+        discoverSearchInput.rows = 2;
         clearDiscoverResults('upcoming');
       } else {
         discoverSearchInput.placeholder = 'I saw Jimmy Eat World in 2002';
-        discoverSearchInput.rows = 1;
+        discoverSearchInput.rows = 2;
         clearDiscoverResults('past');
       }
     }
