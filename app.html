@@ -924,124 +924,6 @@
     .past-shows-search-btn:active { opacity: 0.7; transform: scale(0.98); }
     .past-shows-search-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .past-shows-hints {
-      margin-bottom: 20px;
-    }
-    .past-shows-hints .hint-title {
-      font-size: 13px; font-weight: 600; color: var(--wc-text-muted); margin-bottom: 10px;
-    }
-    .past-shows-hint-chips {
-      display: flex; flex-wrap: wrap; gap: 8px;
-    }
-    .past-shows-hint-chip {
-      padding: 8px 14px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 20px;
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--wc-text-primary);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .past-shows-hint-chip:hover {
-      background: rgba(0, 0, 0, 0.06);
-      border-color: rgba(0, 0, 0, 0.15);
-      color: var(--wc-black);
-    }
-
-    #pastShowsSuggestions { margin-top: 20px; }
-    .suggestions-header {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
-    }
-    .suggestions-header .section-title { font-size: 15px; font-weight: 700; }
-    .suggestions-loading {
-      display: flex; align-items: center; gap: 8px; color: var(--wc-text-primary); font-size: 13px; padding: 16px 0;
-    }
-    .suggestions-loading .spinner { width: 18px; height: 18px; border-width: 2px; }
-    .suggestion-card {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 12px; margin-bottom: 8px;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(0,0,0,0.06); border-radius: var(--wc-radius);
-    }
-    .suggestion-info { flex: 1; min-width: 0; }
-    .suggestion-artist { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .suggestion-detail { font-size: 12px; color: var(--wc-text-primary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .suggestion-add {
-      flex-shrink: 0; margin-left: 10px; padding: 6px 14px;
-      font-family: var(--wc-font-body); font-size: 12px; font-weight: 600;
-      color: #fff; border: none; border-radius: var(--wc-radius); cursor: pointer;
-      background: linear-gradient(114deg, #50eed6 2%, #626be4 42%);
-    }
-    .suggestion-add.added { background: #c8c6c0; cursor: default; }
-    .suggestion-add:active:not(.added) { transform: scale(0.95); }
-    .suggestions-connect {
-      padding: 20px; text-align: center;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(0,0,0,0.06); border-radius: var(--wc-radius);
-    }
-    .suggestions-connect p { font-size: 14px; color: var(--wc-text-primary); margin-bottom: 12px; }
-    .suggestions-connect-btn {
-      padding: 10px 24px; font-family: var(--wc-font-body);
-      font-size: 14px; font-weight: 600; color: #fff; border: none; border-radius: var(--wc-radius);
-      cursor: pointer; background: linear-gradient(114deg, #50eed6 2%, #626be4 42%);
-    }
-    .suggestions-connect-btn:active { transform: scale(0.96); }
-    .suggestions-more-btn {
-      display: block; width: 100%; padding: 10px; margin-top: 4px;
-      font-family: var(--wc-font-body); font-size: 13px; font-weight: 600;
-      color: var(--wc-text-primary); background: none; border: 1px solid rgba(0,0,0,0.1); border-radius: var(--wc-radius);
-      cursor: pointer; text-align: center;
-    }
-    .suggestions-more-btn:hover { background: rgba(0,0,0,0.03); }
-
-    .past-show-result {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 16px;
-      margin-bottom: 10px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(32px) saturate(180%);
-      -webkit-backdrop-filter: blur(32px) saturate(180%);
-      border-radius: var(--wc-radius);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      box-shadow:
-        0 4px 20px rgba(0, 0, 0, 0.05),
-        0 1px 4px rgba(0, 0, 0, 0.03),
-        inset 0 0.5px 0 rgba(255, 255, 255, 0.4);
-    }
-    .past-show-result .result-info { flex: 1; min-width: 0; }
-    .past-show-result .result-artist {
-      font-size: 15px; font-weight: 600; color: var(--wc-text-primary);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .past-show-result .result-date { font-size: 12px; color: var(--wc-black); font-weight: 500; margin-top: 2px; }
-    .past-show-result .result-venue { font-size: 12px; color: var(--wc-text-muted); margin-top: 1px; }
-    .past-show-add-btn {
-      padding: 7px 14px;
-      border-radius: var(--wc-radius);
-      font-family: inherit;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      flex-shrink: 0;
-      border: none;
-      transition: all 0.15s;
-      background: linear-gradient(135deg, var(--wc-black), var(--wc-black));
-      color: #fff;
-    }
-    .past-show-add-btn:hover { opacity: 0.9; }
-    .past-show-add-btn.added {
-      background: #1F1E1D;
-      cursor: default;
-    }
 
     .checkin-flow-sheet {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
@@ -2324,7 +2206,7 @@
           <a href="#" onclick="openLastfmSheet(); return false;">Find concerts from Last.fm</a> or add a show with the + button.
         </div>
       </div>
-      <button type="button" class="add-past-shows-btn" onclick="openPastShowsSheet()">
+      <button type="button" class="add-past-shows-btn" onclick="goToDiscoverPast()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Add Past Shows
       </button>
@@ -2457,37 +2339,6 @@
     </div>
   </div>
 
-  <div id="pastShowsSheet" class="past-shows-sheet">
-    <div class="past-shows-sheet-header">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <img src="/assets/addnav.svg" alt="" width="24" height="24" style="filter:brightness(0);">
-        <span class="title">Add Past Shows</span>
-      </div>
-      <button class="close" onclick="closePastShowsSheet()">✕</button>
-    </div>
-    <div class="past-shows-sheet-body">
-      <p style="font-size: 14px; color: var(--wc-text-muted); margin-bottom: 16px; line-height: 1.5;">Describe a show you went to and we'll find it. Use natural language — artist names, venues, cities, dates, even opening acts.</p>
-      <div class="past-shows-search-box">
-        <input type="text" id="pastShowsInput" placeholder="e.g. Radiohead at MSG in 2018">
-        <button type="button" class="past-shows-search-btn" id="pastShowsSearchBtn">Search</button>
-      </div>
-      <div class="past-shows-hints" id="pastShowsHints">
-        <div class="hint-title">Try something like:</div>
-        <div class="past-shows-hint-chips">
-          <button class="past-shows-hint-chip" data-hint="Radiohead at Madison Square Garden">Radiohead at MSG</button>
-          <button class="past-shows-hint-chip" data-hint="Tame Impala Brooklyn 2024">Tame Impala Brooklyn 2024</button>
-          <button class="past-shows-hint-chip" data-hint="The Strokes at Forest Hills Stadium">The Strokes Forest Hills</button>
-          <button class="past-shows-hint-chip" data-hint="LCD Soundsystem New Years Eve Brooklyn Steel">LCD NYE Brooklyn Steel</button>
-        </div>
-      </div>
-      <div id="pastShowsSuggestions"></div>
-      <div id="pastShowsLoading" class="home-loading">
-        <div class="spinner"></div>
-        <div>Searching Setlist.fm...</div>
-      </div>
-      <div id="pastShowsResults"></div>
-    </div>
-  </div>
 
   <div id="checkInSheet" class="past-shows-sheet">
     <div class="past-shows-sheet-header">
@@ -4517,6 +4368,11 @@
       }
     }
 
+    function goToDiscoverPast() {
+      switchTab('discover');
+      if (typeof switchDiscoverTab === 'function') switchDiscoverTab('past');
+    }
+
     document.querySelectorAll('.tab-bar .tab').forEach(btn => {
       btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
@@ -4595,7 +4451,7 @@
         var action = item.dataset.action;
         closeAddMenu();
         if (action === 'checkin') openCheckinFlow();
-        else if (action === 'past-show') openPastShowsSheet();
+        else if (action === 'past-show') goToDiscoverPast();
       });
     });
 
@@ -5391,131 +5247,6 @@
 
     document.getElementById('friends-list').addEventListener('click', handleCardClick);
     friendsSearchResults.addEventListener('click', handleCardClick);
-    var _pastSuggestionConcerts = [];
-    var _pastSuggestionsLoaded = false;
-
-    function openPastShowsSheet() {
-      document.getElementById('pastShowsSheet').classList.add('open');
-      document.getElementById('pastShowsInput').value = '';
-      document.getElementById('pastShowsResults').innerHTML = '';
-      document.getElementById('pastShowsLoading').classList.remove('show');
-      document.getElementById('pastShowsHints').style.display = '';
-      var sugEl = document.getElementById('pastShowsSuggestions');
-      if (sugEl) sugEl.style.display = '';
-      setTimeout(function() { document.getElementById('pastShowsInput').focus(); }, 100);
-      if (!_pastSuggestionsLoaded) loadPastShowsSuggestions();
-    }
-
-    function loadPastShowsSuggestions() {
-      var container = document.getElementById('pastShowsSuggestions');
-      if (!container) return;
-      container.innerHTML = '<div class="suggestions-loading"><div class="spinner" style="width:18px;height:18px;border:2px solid #E5E2DB;border-top-color:#1F1E1D;border-radius:50%;animation:spin 0.8s linear infinite"></div><span>Loading suggestions...</span></div>';
-
-      var lastfmUser = localStorage.getItem('willcall_lastfm_username');
-      if (!lastfmUser) {
-        container.innerHTML = '<div class="suggestions-header"><span class="section-title">Suggested shows</span></div>'
-          + '<div class="suggestions-connect">'
-          + '<p>Connect Last.fm to see shows you may have been to based on your listening history.</p>'
-          + '<button type="button" class="suggestions-connect-btn" id="suggestionsConnectBtn">Connect Last.fm</button>'
-          + '</div>';
-        document.getElementById('suggestionsConnectBtn').addEventListener('click', function() {
-          openLastfmSheet();
-        });
-        return;
-      }
-
-      var locs = WillcallLocations.getAll();
-      var cities = locs.map(function(l) { return l.city; });
-      if (cities.length === 0) cities = ['New York'];
-      var yearStart = null, yearEnd = null;
-      locs.forEach(function(l) {
-        if (l.yearFrom && (!yearStart || parseInt(l.yearFrom) < parseInt(yearStart))) yearStart = l.yearFrom;
-        if (l.yearTo && (!yearEnd || parseInt(l.yearTo) > parseInt(yearEnd))) yearEnd = l.yearTo;
-      });
-
-      fetch('/api/lastfm/concerts-suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: lastfmUser, cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 20 })
-      })
-        .then(function(r) {
-          if (!r.ok) throw new Error('HTTP ' + r.status);
-          return r.json();
-        })
-        .then(function(data) {
-          if (data.error) {
-            console.error('[past-suggestions] API error:', data.error);
-            container.innerHTML = '<div class="suggestions-header"><span class="section-title">Suggested shows</span></div>'
-              + '<p style="font-size:13px;color:#999;padding:0 4px">Could not load suggestions. Try again later.</p>';
-            return;
-          }
-          _pastSuggestionsLoaded = true;
-          _pastSuggestionConcerts = data.concerts || [];
-          var indexed = [];
-          _pastSuggestionConcerts.forEach(function(c, i) {
-            if (!isAttended(c)) indexed.push({ c: c, idx: i });
-          });
-          if (indexed.length === 0) {
-            container.innerHTML = '';
-            return;
-          }
-          renderPastSuggestions(container, indexed);
-        })
-        .catch(function(e) {
-          console.error('[past-suggestions] fetch error:', e);
-          container.innerHTML = '<div class="suggestions-header"><span class="section-title">Suggested shows</span></div>'
-            + '<p style="font-size:13px;color:#999;padding:0 4px">Could not load suggestions. Check your connection and try again.</p>';
-        });
-    }
-
-    function renderPastSuggestions(container, items) {
-      var INITIAL_COUNT = 5;
-      var showing = Math.min(INITIAL_COUNT, items.length);
-      var html = '<div class="suggestions-header"><span class="section-title">Based on your Last.fm</span></div>';
-      for (var i = 0; i < showing; i++) {
-        html += buildSuggestionCard(items[i].c, items[i].idx);
-      }
-      if (items.length > INITIAL_COUNT) {
-        html += '<button type="button" class="suggestions-more-btn" id="suggestionsMoreBtn">Show ' + (items.length - INITIAL_COUNT) + ' more</button>';
-      }
-      container.innerHTML = html;
-      if (document.getElementById('suggestionsMoreBtn')) {
-        document.getElementById('suggestionsMoreBtn').addEventListener('click', function() {
-          var extra = '';
-          for (var j = INITIAL_COUNT; j < items.length; j++) {
-            extra += buildSuggestionCard(items[j].c, items[j].idx);
-          }
-          this.insertAdjacentHTML('beforebegin', extra);
-          this.remove();
-        });
-      }
-    }
-
-    function buildSuggestionCard(c, origIdx) {
-      var artist = c.artist && c.artist.name ? c.artist.name : (c._sourceArtist || 'Unknown');
-      var d = formatDate(c.eventDate);
-      var v = c.venue && c.venue.name ? c.venue.name : '';
-      var city = c.venue && c.venue.city ? c.venue.city.name : '';
-      var detail = [d, v, city].filter(Boolean).join(' · ');
-      return '<div class="suggestion-card">'
-        + '<div class="suggestion-info"><div class="suggestion-artist">' + artist + '</div>'
-        + '<div class="suggestion-detail">' + detail + '</div></div>'
-        + '<button type="button" class="suggestion-add" data-sug-idx="' + origIdx + '">I was there</button></div>';
-    }
-
-    document.getElementById('pastShowsSuggestions').addEventListener('click', function(ev) {
-      var btn = ev.target.closest('.suggestion-add');
-      if (!btn || btn.classList.contains('added')) return;
-      var idx = parseInt(btn.getAttribute('data-sug-idx'), 10);
-      if (_pastSuggestionConcerts[idx]) {
-        addAttendedShow(_pastSuggestionConcerts[idx]);
-        btn.textContent = '✓ Added';
-        btn.classList.add('added');
-      }
-    });
-    function closePastShowsSheet() {
-      document.getElementById('pastShowsSheet').classList.remove('open');
-    }
 
     function openCheckInSheet() {
       document.getElementById('checkInSheet').classList.add('open');
@@ -5539,87 +5270,6 @@
       if (err) { err.style.display = 'none'; err.textContent = ''; }
     }
 
-    window._lastPastShowResults = [];
-
-    async function searchPastShows(query) {
-      if (!query) return;
-      var input = document.getElementById('pastShowsInput');
-      var btn = document.getElementById('pastShowsSearchBtn');
-      var loading = document.getElementById('pastShowsLoading');
-      var results = document.getElementById('pastShowsResults');
-      var hints = document.getElementById('pastShowsHints');
-      var suggestions = document.getElementById('pastShowsSuggestions');
-
-      input.value = query;
-      if (suggestions) suggestions.style.display = 'none';
-      btn.disabled = true;
-      loading.classList.add('show');
-      results.innerHTML = '';
-      hints.style.display = 'none';
-
-      try {
-        var res = await fetch('/parse-concert-query', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: query })
-        });
-        var data = await res.json();
-        loading.classList.remove('show');
-        btn.disabled = false;
-
-        if (data.error) {
-          results.innerHTML = '<div class="empty-state">' + data.error + '</div>';
-          return;
-        }
-        var concerts = data.results || [];
-        if (concerts.length === 0) {
-          results.innerHTML = '<div class="empty-state">No shows found. Try a different search — include the artist name, venue, or city.</div>';
-          return;
-        }
-
-        window._lastPastShowResults = concerts;
-        var html = '<h2 class="section-title" style="margin-bottom: 12px;">' + concerts.length + ' show' + (concerts.length !== 1 ? 's' : '') + ' found</h2>';
-        concerts.slice(0, 20).forEach(function(c, idx) {
-          var artist = (c.artist && c.artist.name) || 'Unknown';
-          var date = formatDate(c.eventDate);
-          var venue = (c.venue && c.venue.name) || '';
-          var city = (c.venue && c.venue.city && c.venue.city.name) || '';
-          var country = (c.venue && c.venue.city && c.venue.city.country && c.venue.city.country.name) || '';
-          var loc = [venue, city, country].filter(Boolean).join(', ');
-          var alreadyAdded = isAttended(c);
-          var songs = extractSets(c);
-          var hasSets = songs && songs.length > 0;
-
-          html += '<div class="past-show-result' + (hasSets ? ' has-setlist' : '') + '" data-past-idx="' + idx + '">';
-          html += '<div class="result-info" style="cursor:' + (hasSets ? 'pointer' : 'default') + '" ' + (hasSets ? 'data-view-setlist="' + idx + '"' : '') + '>';
-          html += '<div class="result-artist">' + artist + '</div>';
-          html += '<div class="result-date">' + date + '</div>';
-          html += '<div class="result-venue">' + loc + '</div>';
-          if (hasSets) html += '<div style="font-size:11px;color:var(--wc-black);margin-top:3px;font-weight:500;">View setlist (' + songs.length + ' songs)</div>';
-          html += '</div>';
-          html += '<button class="past-show-add-btn' + (alreadyAdded ? ' added' : '') + '" data-past-idx="' + idx + '">' + (alreadyAdded ? '✓ Added' : 'I was there') + '</button>';
-          html += '</div>';
-        });
-        results.innerHTML = html;
-      } catch (err) {
-        loading.classList.remove('show');
-        btn.disabled = false;
-        results.innerHTML = '<div class="empty-state">Search failed: ' + err.message + '</div>';
-      }
-    }
-
-    document.getElementById('pastShowsSearchBtn').addEventListener('click', function() {
-      searchPastShows(document.getElementById('pastShowsInput').value.trim());
-    });
-    document.getElementById('pastShowsInput').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') searchPastShows(this.value.trim());
-    });
-
-    document.querySelectorAll('.past-shows-hint-chip').forEach(function(chip) {
-      chip.addEventListener('click', function() {
-        searchPastShows(chip.dataset.hint);
-      });
-    });
 
     window._lastCheckInResults = [];
 
@@ -5913,21 +5563,6 @@
       });
     })();
 
-    document.getElementById('pastShowsResults').addEventListener('click', function(ev) {
-      var btn = ev.target.closest('.past-show-add-btn');
-      if (btn && !btn.classList.contains('added')) {
-        var idx = parseInt(btn.dataset.pastIdx, 10);
-        var c = window._lastPastShowResults[idx];
-        if (c) { addAttendedShow(c); btn.textContent = '✓ Added'; btn.classList.add('added'); }
-        return;
-      }
-      var viewEl = ev.target.closest('[data-view-setlist]');
-      if (viewEl) {
-        var idx2 = parseInt(viewEl.dataset.viewSetlist, 10);
-        var c2 = window._lastPastShowResults[idx2];
-        if (c2) openSetlistDetail(c2);
-      }
-    });
 
     function openSetlistDetail(showData, bgColor, theme) {
       var sheet = document.getElementById('setlistDetailSheet');
