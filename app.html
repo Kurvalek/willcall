@@ -105,6 +105,22 @@
       border-radius: var(--wc-radius);
       background: rgba(255,255,255,0.5);
     }
+    .discover-loading {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .discover-loading-bar {
+      height: 72px;
+      border-radius: var(--wc-radius);
+      background: linear-gradient(90deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.14) 50%, rgba(0,0,0,0.06) 100%);
+      background-size: 200% 100%;
+      animation: discoverShimmer 1.4s ease-in-out infinite;
+    }
+    @keyframes discoverShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
     .empty-state a {
       color: var(--wc-black);
       font-weight: 600;
@@ -222,6 +238,100 @@
     }
     .search-bar-btn:hover { background: var(--wc-near-black); }
     .search-bar-btn:active { opacity: 0.7; transform: scale(0.98); }
+
+    .discover-header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 0 24px;
+    }
+    .discover-header-icon {
+      width: 30px; height: 30px;
+      filter: brightness(0);
+    }
+    .discover-header-title {
+      font-size: 20px; font-weight: 700; color: var(--wc-text-primary);
+      font-family: var(--wc-font-body);
+    }
+    .discover-tabs {
+      display: flex; gap: 24px;
+      border-bottom: 1px solid var(--wc-gray-200);
+      margin-bottom: 24px;
+    }
+    .discover-tab {
+      padding: 10px 0;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      background: transparent;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--wc-text-muted);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .discover-tab:hover { color: var(--wc-text-secondary); }
+    .discover-tab.active {
+      color: var(--wc-text-primary);
+      font-weight: 600;
+      border-bottom-color: var(--wc-black);
+    }
+    .discover-search-box {
+      background: #fff;
+      border: 1px solid var(--wc-gray-200);
+      border-radius: var(--wc-radius);
+      padding: 16px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .discover-search-inner {
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+    .discover-search-input {
+      flex: 1;
+      border: none; background: transparent;
+      font-family: inherit; font-size: 16px;
+      color: var(--wc-text-primary);
+      outline: none; resize: none;
+      line-height: 1.4;
+      min-height: 20px;
+      caret-color: var(--wc-black);
+    }
+    .discover-search-input::placeholder { color: var(--wc-gray-400); }
+    .discover-search-clear {
+      background: none; border: none; cursor: pointer;
+      color: var(--wc-text-muted); padding: 2px;
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .discover-search-clear:hover { color: var(--wc-text-primary); }
+    .discover-search-clear.hidden { display: none; }
+    .discover-search-btn {
+      position: absolute; bottom: 12px; right: 12px;
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--wc-bg); border: 1px solid var(--wc-gray-300);
+      border-radius: var(--wc-radius);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .discover-search-btn:hover { background: var(--wc-gray-100); border-color: var(--wc-black); }
+    .discover-tab-content { display: none; }
+    .discover-tab-content.active { display: block; }
+    .discover-show-list {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .discover-show-results {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .discover-show-results.hidden { display: none; }
+    .discover-show-results .discover-results-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .discover-results-close {
+      background: none; border: none; cursor: pointer; padding: 4px;
+      font-size: 20px; color: var(--wc-text-primary); line-height: 1;
+    }
 
     .stats-grid {
       display: grid;
@@ -446,20 +556,24 @@
       gap: 8px;
     }
     .badge-item .icon {
-      width: 72px;
-      height: 72px;
+      width: 39px;
+      height: 39px;
       border-radius: 0;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .badge-item .icon img {
-      width: 72px;
-      height: 72px;
+      width: 39px;
+      height: 39px;
       object-fit: contain;
     }
     .badge-item .label {
-      display: none;
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--wc-black);
+      text-align: center;
     }
     
     .see-all-badges {
@@ -1043,31 +1157,44 @@
       font-weight: 600;
       border-bottom-color: var(--wc-black);
     }
-    .friends-counts {
-      font-size: 13px;
-      color: var(--wc-text-primary);
-      margin-bottom: 16px;
+
+    .crowd-header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 0 24px;
+    }
+    .crowd-header-icon {
+      width: 30px; height: 30px;
+      filter: brightness(0);
+    }
+    .crowd-header-title {
+      font-size: 20px; font-weight: 700; color: var(--wc-text-primary);
       font-family: var(--wc-font-body);
     }
-
     .friend-card {
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 14px 16px;
-      margin-bottom: 10px;
-      background: transparent;
-      border-radius: var(--wc-radius);
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 13px 16px 16px;
+      margin-bottom: 12px;
+      background: var(--wc-bg);
+      border-radius: 2px;
       border: 1px solid var(--wc-black);
       cursor: pointer;
-      transition: background 0.15s;
+      transition: opacity 0.15s;
     }
     .friend-card:active {
-      background: rgba(255, 255, 255, 0.25);
+      opacity: 0.85;
+    }
+    .friend-card-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      min-width: 0;
     }
     .friend-avatar {
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       border-radius: 0;
       border: 1px solid var(--wc-black);
       display: flex;
@@ -1087,72 +1214,37 @@
       filter: grayscale(100%) contrast(1.3) brightness(0.95);
     }
     .friend-info {
-      flex: 1;
       min-width: 0;
     }
     .friend-name {
-      font-size: 15px;
+      font-size: 18px;
       font-weight: 600;
-      color: var(--wc-text-primary);
+      color: var(--wc-black);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: normal;
     }
     .friend-handle {
-      font-size: 12px;
-      color: var(--wc-text-primary);
-      margin-top: 1px;
-    }
-    .mutual-badge {
-      margin-left: 5px;
       font-size: 13px;
-      vertical-align: middle;
-    }
-    .friend-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 4px;
-    }
-    .friend-show-count {
-      font-size: 11px;
-      color: var(--wc-text-muted);
       font-weight: 500;
-    }
-    .friend-badges {
-      display: flex;
-      gap: 4px;
-    }
-    .friend-badges img {
-      width: 18px;
-      height: 18px;
-      object-fit: contain;
+      color: var(--wc-black);
+      margin-top: 4px;
+      line-height: normal;
     }
     .friend-action-btn {
-      padding: 7px 16px;
-      border-radius: var(--wc-radius);
+      padding: 0;
+      background: none;
+      border: none;
       font-family: inherit;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 500;
+      color: var(--wc-black);
       cursor: pointer;
       flex-shrink: 0;
-      transition: all 0.15s ease;
-      border: none;
+      white-space: nowrap;
     }
-    .friend-action-btn.follow {
-      background: linear-gradient(135deg, var(--wc-black), var(--wc-black));
-      color: #fff;
-    }
-    .friend-action-btn.follow:hover { opacity: 0.9; }
-    .friend-action-btn.following {
-      background: rgba(255, 255, 255, 0.4);
-      color: var(--wc-text-muted);
-      border: 1px solid rgba(0, 0, 0, 0.08);
-    }
-    .friend-action-btn.following:hover {
-      color: var(--wc-text-primary);
-      border-color: rgba(0, 0, 0, 0.2);
-    }
+    .friend-action-btn:hover { opacity: 0.7; }
 
     .add-actions {
       display: flex;
@@ -1340,14 +1432,6 @@
     .search-results-list {
       display: flex; flex-direction: column; gap: 12px;
     }
-    .search-location-line {
-      font-size: 14px; color: var(--wc-text-muted); margin-bottom: 8px; line-height: 1.6;
-    }
-    .search-location-btn {
-      font-weight: 600; color: var(--wc-text-primary); cursor: pointer;
-      transition: opacity 0.15s;
-    }
-    .search-location-btn:hover { opacity: 0.7; }
     .location-sheet-overlay {
       position: fixed; inset: 0; z-index: 1100;
     }
@@ -1379,12 +1463,8 @@
     .location-sheet-option .loc-check {
       width: 20px; text-align: center; font-size: 14px;
     }
-    .search-going-list, #search-nearby-shows {
-      display: flex; flex-direction: column; gap: 12px; min-height: 0;
-    }
-    .search-going-list:empty::before { content: 'No shows yet. Mark shows as "I\'m going" below.'; font-size: 14px; color: var(--wc-text-muted); padding: 16px; border: 1px dashed var(--wc-gray-300); border-radius: var(--wc-radius); background: rgba(255,255,255,0.3); }
-    .search-going-list .show-card,
-    #search-nearby-shows .show-card { margin-bottom: 0; }
+    .discover-show-list .show-card,
+    .discover-show-results .show-card { margin-bottom: 0; }
 
     .lastfm-connect-card {
       background: rgba(255, 255, 255, 0.15);
@@ -1809,6 +1889,33 @@
     .profile-settings-btn:hover { opacity: 1; }
     .profile-settings-btn svg { display: block; }
 
+    .profile-page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0 24px;
+    }
+    .profile-page-header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .profile-page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--wc-black);
+    }
+    .profile-settings-text {
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--wc-black);
+      cursor: pointer;
+      padding: 0;
+      font-family: inherit;
+    }
+
     /* Settings sheet */
     .settings-sheet {
       position: fixed; top: 0; left: 50%; transform: translateX(-50%);
@@ -2073,11 +2180,16 @@
       <strong>Use this URL so login works:</strong> <a href="http://127.0.0.1:3000/app" id="correctUrl">http://127.0.0.1:3000/app</a>
     </div>
 
+    <div class="profile-page-header">
+      <div class="profile-page-header-left">
+        <img src="/assets/homenav.svg" alt="" width="30" height="30" style="filter:brightness(0);">
+        <span class="profile-page-title">Your profile</span>
+      </div>
+      <button class="profile-settings-text" id="openSettingsBtn">Settings</button>
+    </div>
+
     <div class="home-border-frame">
     <div id="profile-header-anchor" class="profile-header-anchor" style="position:relative">
-      <button class="profile-settings-btn" id="openSettingsBtn" aria-label="Settings">
-        <img src="/assets/settings.svg" alt="Settings" width="24" height="18">
-      </button>
       <div class="profile-header" id="profileHeader">
         <div class="profile-avatar" id="profileAvatar"><svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="4" fill="#D1CEC7"/><circle cx="40" cy="30" r="14" fill="#fff"/><ellipse cx="40" cy="66" rx="24" ry="18" fill="#fff"/></svg></div>
         <div class="profile-info" id="profileInfo">
@@ -2102,7 +2214,6 @@
     <div class="home-section">
       <div class="section-header">
         <h2 class="section-title">Top Artists</h2>
-        <a href="#" class="see-all-link" id="see-all-artists">See All</a>
       </div>
       <div id="top-artists-list">
         <div class="empty-state">Check in to shows to see your top artists.</div>
@@ -2112,17 +2223,16 @@
     <div class="home-section">
       <div class="section-header">
         <h2 class="section-title">Badges</h2>
-        <img src="/assets/more-icon.svg" alt="More" width="20" height="6" style="cursor:pointer">
       </div>
       <div class="badge-grid" id="profileBadges">
-        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-102.svg" alt="Badge"></div></div>
-        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-103.svg" alt="Badge"></div></div>
-        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-101.svg" alt="Badge"></div></div>
-        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-108.svg" alt="Badge"></div></div>
-        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-107.svg" alt="Badge"></div></div>
-        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-105.svg" alt="Badge"></div></div>
-        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-106.svg" alt="Badge"></div></div>
-        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-104.svg" alt="Badge"></div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-102.svg" alt="Badge"></div><div class="label">First Show</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-103.svg" alt="Badge"></div><div class="label">Bar Fly</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-101.svg" alt="Badge"></div><div class="label">Encore</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-108.svg" alt="Badge"></div><div class="label">On Tour</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-107.svg" alt="Badge"></div><div class="label">NYC Local</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-105.svg" alt="Badge"></div><div class="label">Legend</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-106.svg" alt="Badge"></div><div class="label">Electric</div></div>
+        <div class="badge-item locked"><div class="icon"><img src="/assets/badges/y2k-shapes-104.svg" alt="Badge"></div><div class="label">Superfan</div></div>
       </div>
     </div>
 
@@ -2166,37 +2276,42 @@
   </section>
 
   <section id="tab-discover" class="tab-content">
-    <div class="search-bar-wrap">
-      <input type="text" class="search-bar" id="search-input" placeholder="Search artists, venues...">
-      <button type="button" class="search-bar-btn" id="search-bar-btn">Search</button>
+    <div class="discover-header">
+      <img src="/assets/searchnav.svg" alt="" width="30" height="30" class="discover-header-icon">
+      <span class="discover-header-title">Find shows</span>
     </div>
-    <div id="search-results" class="search-results hidden"></div>
 
-    <div id="search-explore">
-      <div class="search-location-line" id="searchLocationLine">
-        Look for shows in <span class="search-location-btn" id="searchLocationBtn">✦ my current location ✦</span>
-      </div>
+    <div class="discover-tabs">
+      <button class="discover-tab active" data-discover-tab="upcoming">Upcoming</button>
+      <button class="discover-tab" data-discover-tab="past">Past</button>
+    </div>
 
-      <div class="section-header" style="margin-top: 32px;">
-        <h2 class="section-title">I'm going</h2>
-        <span class="count" id="search-going-count"></span>
+    <div class="discover-search-box" id="discoverSearchBox">
+      <div class="discover-search-inner">
+        <textarea class="discover-search-input" id="discoverSearchInput" placeholder="Shows in Albany tonight" rows="1"></textarea>
+        <button type="button" class="discover-search-clear hidden" id="discoverSearchClear" aria-label="Clear search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
-      <div id="search-going-list" class="search-going-list"></div>
+      <button type="button" class="discover-search-btn" id="discoverSearchBtn" aria-label="Search">
+        <img src="/assets/searchnav.svg" alt="" width="18" height="18" style="filter:brightness(0);">
+      </button>
+    </div>
 
-      <div class="section-header" style="margin-top: 32px;">
-        <h2 class="section-title">Upcoming shows near you</h2>
+    <div id="discover-upcoming-content" class="discover-tab-content active">
+      <div id="discover-upcoming-defaults">
+        <h2 class="section-title" style="margin-bottom:16px">Going to any of these shows?</h2>
+        <div id="discover-upcoming-list" class="discover-show-list"></div>
       </div>
-      <div id="search-nearby-shows"></div>
+      <div id="discover-upcoming-results" class="discover-show-results hidden"></div>
+    </div>
 
-      <div class="section-header" style="margin-top: 32px;">
-        <h2 class="section-title">Shows you may have attended</h2>
+    <div id="discover-past-content" class="discover-tab-content">
+      <div id="discover-past-defaults">
+        <h2 class="section-title" style="margin-bottom:16px">Were you at these shows?</h2>
+        <div id="discover-past-list" class="discover-show-list"></div>
       </div>
-      <div id="lastfm-suggestions-section">
-        <div id="lastfm-suggestions-list"></div>
-        <div id="lastfm-suggestions-prompt" class="empty-state" style="padding:24px 16px">
-          <p style="margin-bottom:12px">Connect your Last.fm in Settings to discover shows matched to your listening history.</p>
-        </div>
-      </div>
+      <div id="discover-past-results" class="discover-show-results hidden"></div>
     </div>
 
     <div id="locationSheet" class="location-sheet-overlay" style="display:none">
@@ -2210,11 +2325,18 @@
   </section>
 
   <section id="tab-crowd" class="tab-content">
-    <h2 class="section-title" style="margin-bottom: 16px;">My Crowd</h2>
+    <div class="crowd-header">
+      <img src="/assets/crowdnav.svg" alt="" width="30" height="30" class="crowd-header-icon">
+      <span class="crowd-header-title">My crowd</span>
+    </div>
 
-    <div class="past-shows-search-box" style="margin-bottom:16px">
-      <input type="text" id="friends-search-input" placeholder="Search people..." autocomplete="off">
-      <button type="button" class="past-shows-search-btn" id="friends-search-btn">Search</button>
+    <div class="discover-search-box" id="crowdSearchBox">
+      <div class="discover-search-inner">
+        <input type="text" class="discover-search-input" id="friends-search-input" placeholder="Search by name or username" autocomplete="off" style="resize:none">
+      </div>
+      <button type="button" class="discover-search-btn" id="friends-search-btn" aria-label="Search">
+        <img src="/assets/searchnav.svg" alt="" width="18" height="18" style="filter:brightness(0);">
+      </button>
     </div>
 
     <div id="friends-search-results" style="margin-bottom:16px"></div>
@@ -2222,10 +2344,6 @@
     <div class="friends-toggle">
       <button class="friends-toggle-btn active" data-friends-tab="followers">My crowd</button>
       <button class="friends-toggle-btn" data-friends-tab="following">Crowds I'm in</button>
-    </div>
-
-    <div class="friends-counts">
-      <span id="friends-count-label">0 in your crowd</span>
     </div>
 
     <div id="friends-list"></div>
@@ -3903,33 +4021,10 @@
         if (url) window.open(url, '_blank');
         if (card) card.classList.remove('open');
       } else if (action === 'cantgo') {
-        var cardType = card ? card.dataset.cardType : '';
-        if (cardType === 'search-going' || cardType === 'search-nearby') {
-          var goingId = card.dataset.goingId || card.dataset.eventId;
-          if (goingId) {
-            removeGoingShow(goingId);
-            renderSearchGoingList();
-            renderSearchNearbyShows();
-            renderProfileUpcomingShows();
-          }
-        } else {
-          var upId = card ? card.dataset.upcomingId : null;
-          if (upId) {
-            removeGoingShow(upId);
-            renderProfileUpcomingShows();
-            renderSearchGoingList();
-          }
-        }
-      } else if (action === 'going') {
-        var evId = card ? card.dataset.eventId : null;
-        if (evId) {
-          var ev = searchNearbyEvents.find(function(e) { return e.id === evId; });
-          if (ev) {
-            addGoingShow(ev);
-            renderSearchGoingList();
-            renderSearchNearbyShows();
-            renderProfileUpcomingShows();
-          }
+        var upId = card ? (card.dataset.goingId || card.dataset.eventId || card.dataset.upcomingId) : null;
+        if (upId) {
+          removeGoingShow(upId);
+          renderProfileUpcomingShows();
         }
         if (card) card.classList.remove('open');
       }
@@ -3943,11 +4038,17 @@
     profileUpcomingEl.addEventListener('click', handleCardActions);
     initCardSwipe(profileUpcomingEl);
 
-    var searchGoingEl = document.getElementById('search-going-list');
-    if (searchGoingEl) { searchGoingEl.addEventListener('click', handleCardActions); initCardSwipe(searchGoingEl); }
+    var discoverUpcomingEl = document.getElementById('discover-upcoming-content');
+    if (discoverUpcomingEl) {
+      initCardSwipe(discoverUpcomingEl);
+      discoverUpcomingEl.addEventListener('click', handleDiscoverActions);
+    }
 
-    var searchNearbyEl = document.getElementById('search-nearby-shows');
-    if (searchNearbyEl) { searchNearbyEl.addEventListener('click', handleCardActions); initCardSwipe(searchNearbyEl); }
+    var discoverPastEl = document.getElementById('discover-past-content');
+    if (discoverPastEl) {
+      initCardSwipe(discoverPastEl);
+      discoverPastEl.addEventListener('click', handleDiscoverActions);
+    }
 
     document.addEventListener('mouseenter', function(ev) {
       var btn = ev.target.closest('.card-action-btn');
@@ -4356,294 +4457,341 @@
       });
     });
 
-    var ACTIVE_FILTER = 'brightness(0) saturate(100%) invert(1)';
-    var INACTIVE_FILTER = 'brightness(0) saturate(100%) invert(1) opacity(0.45)';
+    try {
+      var ACTIVE_FILTER = 'brightness(0) saturate(100%) invert(1)';
+      var INACTIVE_FILTER = 'brightness(0) saturate(100%) invert(1) opacity(0.45)';
 
-    function initLottieTab(id, path, isActiveByDefault) {
-      var anim = lottie.loadAnimation({
-        container: document.getElementById(id),
-        renderer: 'svg',
-        loop: false,
-        autoplay: false,
-        path: path
-      });
-      anim.goToAndStop(0, true);
-      anim.addEventListener('DOMLoaded', function() {
-        var svg = document.querySelector('#' + id + ' svg');
-        if (svg) svg.style.filter = isActiveByDefault ? ACTIVE_FILTER : INACTIVE_FILTER;
-      });
-      return anim;
-    }
-
-    var homeAnim = initLottieTab('lottie-home', 'assets/icons8-house.json', true);
-    var searchAnim = initLottieTab('lottie-search', 'assets/icons8-search.json', false);
-    var crowdAnim = initLottieTab('lottie-crowd', 'assets/icons8-flame.json', false);
-
-    function updateLottieColors(tabId) {
-      var mapping = { 'lottie-home': 'home', 'lottie-search': 'discover', 'lottie-crowd': 'crowd' };
-      Object.keys(mapping).forEach(function(id) {
-        var svg = document.querySelector('#' + id + ' svg');
-        if (svg) svg.style.filter = (mapping[id] === tabId) ? ACTIVE_FILTER : INACTIVE_FILTER;
-      });
-    }
-
-    var origSwitchTab = switchTab;
-    switchTab = function(tabId) {
-      origSwitchTab(tabId);
-      updateLottieColors(tabId);
-    };
-
-    document.querySelector('[data-tab="home"]').addEventListener('click', function() {
-      homeAnim.goToAndStop(0, true);
-      homeAnim.play();
-    });
-    document.querySelector('[data-tab="discover"]').addEventListener('click', function() {
-      searchAnim.goToAndStop(0, true);
-      searchAnim.play();
-    });
-    document.querySelector('[data-tab="crowd"]').addEventListener('click', function() {
-      crowdAnim.goToAndStop(0, true);
-      crowdAnim.play();
-    });
-
-    const searchInput = document.getElementById('search-input');
-    const searchResults = document.getElementById('search-results');
-    const searchExplore = document.getElementById('search-explore');
-
-    searchInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') doSearch(this.value.trim());
-    });
-    document.getElementById('search-bar-btn').addEventListener('click', function() {
-      doSearch(searchInput.value.trim());
-    });
-
-    var _searchResultEvents = [];
-
-    function closeSearchResults() {
-      searchResults.classList.add('hidden');
-      searchResults.innerHTML = '';
-      searchExplore.style.display = '';
-      searchInput.value = '';
-    }
-    window.closeSearchResults = closeSearchResults;
-
-    async function doSearch(query) {
-      if (!query) return;
-      searchResults.classList.remove('hidden');
-      searchResults.innerHTML = '<div class="empty-state">Searching...</div>';
-      searchExplore.style.display = 'none';
-      try {
-        const res = await fetch('/parse-concert-query', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query })
+      function initLottieTab(id, path, isActiveByDefault) {
+        var el = document.getElementById(id);
+        if (!el) return null;
+        var anim = lottie.loadAnimation({
+          container: el,
+          renderer: 'svg',
+          loop: false,
+          autoplay: false,
+          path: path
         });
-        const data = await res.json();
-        if (data.error) {
-          searchResults.innerHTML = '<div class="search-results-header"><h2 class="section-title">Results</h2><button class="search-results-close" onclick="closeSearchResults()">✕</button></div><div class="empty-state">' + data.error + '</div>';
-          return;
-        }
-        const results = data.results || [];
-        _searchResultEvents = results;
-        if (results.length === 0) {
-          searchResults.innerHTML = '<div class="search-results-header"><h2 class="section-title">Results</h2><button class="search-results-close" onclick="closeSearchResults()">✕</button></div><div class="empty-state">No concerts found. Try another search.</div>';
-          return;
-        }
-        renderSearchResultCards(results);
-      } catch (err) {
-        searchResults.innerHTML = '<div class="search-results-header"><h2 class="section-title">Results</h2><button class="search-results-close" onclick="closeSearchResults()">✕</button></div><div class="empty-state">Search failed: ' + err.message + '</div>';
+        anim.goToAndStop(0, true);
+        anim.addEventListener('DOMLoaded', function() {
+          var svg = document.querySelector('#' + id + ' svg');
+          if (svg) svg.style.filter = isActiveByDefault ? ACTIVE_FILTER : INACTIVE_FILTER;
+        });
+        return anim;
+      }
+
+      var homeAnim = initLottieTab('lottie-home', 'assets/icons8-house.json', true);
+      var searchAnim = initLottieTab('lottie-search', 'assets/icons8-search.json', false);
+      var crowdAnim = initLottieTab('lottie-crowd', 'assets/icons8-flame.json', false);
+
+      function updateLottieColors(tabId) {
+        var mapping = { 'lottie-home': 'home', 'lottie-search': 'discover', 'lottie-crowd': 'crowd' };
+        Object.keys(mapping).forEach(function(id) {
+          var svg = document.querySelector('#' + id + ' svg');
+          if (svg) svg.style.filter = (mapping[id] === tabId) ? ACTIVE_FILTER : INACTIVE_FILTER;
+        });
+      }
+
+      var origSwitchTab = switchTab;
+      switchTab = function(tabId) {
+        origSwitchTab(tabId);
+        updateLottieColors(tabId);
+      };
+
+      if (homeAnim) document.querySelector('[data-tab="home"]').addEventListener('click', function() { homeAnim.goToAndStop(0, true); homeAnim.play(); });
+      if (searchAnim) document.querySelector('[data-tab="discover"]').addEventListener('click', function() { searchAnim.goToAndStop(0, true); searchAnim.play(); });
+      if (crowdAnim) document.querySelector('[data-tab="crowd"]').addEventListener('click', function() { crowdAnim.goToAndStop(0, true); crowdAnim.play(); });
+    } catch (e) {}
+
+    // ─── Discover page: Find Shows ───
+    var _discoverTab = 'upcoming';
+    var _discoverSearchEvents = [];
+    var _savedLocs = WillcallLocations.getAll();
+    var searchCity = (_savedLocs.length > 0 && _savedLocs[0].city) ? _savedLocs[0].city : 'New York';
+
+    var discoverSearchInput = document.getElementById('discoverSearchInput');
+    var discoverSearchBtn = document.getElementById('discoverSearchBtn');
+    var discoverSearchClear = document.getElementById('discoverSearchClear');
+
+    function discoverLoadingHtml(count) {
+      count = count || 4;
+      var h = '<div class="discover-loading">';
+      for (var i = 0; i < count; i++) h += '<div class="discover-loading-bar"></div>';
+      h += '</div>';
+      return h;
+    }
+
+    function switchDiscoverTab(tab) {
+      _discoverTab = tab;
+      document.querySelectorAll('.discover-tab').forEach(function(b) { b.classList.remove('active'); });
+      document.querySelector('.discover-tab[data-discover-tab="' + tab + '"]').classList.add('active');
+      document.querySelectorAll('.discover-tab-content').forEach(function(c) { c.classList.remove('active'); });
+      document.getElementById('discover-' + tab + '-content').classList.add('active');
+      discoverSearchInput.value = '';
+      discoverSearchClear.classList.add('hidden');
+      _discoverSearchEvents = [];
+      if (tab === 'upcoming') {
+        discoverSearchInput.placeholder = 'Shows in Albany tonight';
+        discoverSearchInput.rows = 1;
+        clearDiscoverResults('upcoming');
+      } else {
+        discoverSearchInput.placeholder = 'I saw Jimmy Eat World in 2002';
+        discoverSearchInput.rows = 1;
+        clearDiscoverResults('past');
       }
     }
 
-    function renderSearchResultCards(results) {
-      var html = '<div class="search-results-header"><h2 class="section-title">Results</h2><button class="search-results-close" onclick="closeSearchResults()">✕</button></div>';
-      html += '<div class="search-results-list">';
-      results.slice(0, 20).forEach(function(c, idx) {
-        var artist = (c.artist && c.artist.name) || 'Unknown';
-        var date = formatDate(c.eventDate);
-        var venue = (c.venue && c.venue.name) || '';
-        var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-        var imgHtml = c.imageUrl
-          ? '<div class="show-card-img-wrap"><img src="' + c.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
-          : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
-        var ticketUrl = c.url || '';
-        html += '<div class="show-card" data-search-idx="' + idx + '" data-card-type="search-result" data-ticket-url="' + ticketUrl + '">';
-        html += '<div class="show-card-inner">';
-        html += '<div class="show-card-default">';
-        html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
-        html += '<div class="concert-artist">' + artist + '</div>';
-        html += '<div class="concert-date">' + date + '</div>';
-        if (venue) html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
-        html += '</div></div>';
-        html += DOTS_HTML;
-        html += '</div>';
-        html += '<div class="show-card-actions">';
-        html += DOTS_HTML;
-        html += '<div class="card-actions-body">';
+    document.querySelectorAll('.discover-tab').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        switchDiscoverTab(btn.dataset.discoverTab);
+      });
+    });
+
+    discoverSearchInput.addEventListener('input', function() {
+      if (this.value.trim()) {
+        discoverSearchClear.classList.remove('hidden');
+      } else {
+        discoverSearchClear.classList.add('hidden');
+      }
+      this.style.height = 'auto';
+      this.style.height = this.scrollHeight + 'px';
+    });
+
+    discoverSearchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        doDiscoverSearch(this.value.trim());
+      }
+    });
+
+    discoverSearchBtn.addEventListener('click', function() {
+      doDiscoverSearch(discoverSearchInput.value.trim());
+    });
+
+    discoverSearchClear.addEventListener('click', function() {
+      discoverSearchInput.value = '';
+      discoverSearchClear.classList.add('hidden');
+      discoverSearchInput.style.height = 'auto';
+      _discoverSearchEvents = [];
+      clearDiscoverResults(_discoverTab);
+    });
+
+    function clearDiscoverResults(tab) {
+      var defaults = document.getElementById('discover-' + tab + '-defaults');
+      var results = document.getElementById('discover-' + tab + '-results');
+      if (defaults) defaults.style.display = '';
+      if (results) { results.classList.add('hidden'); results.innerHTML = ''; }
+    }
+
+    async function doDiscoverSearch(query) {
+      if (!query) return;
+      var defaults = document.getElementById('discover-' + _discoverTab + '-defaults');
+      var results = document.getElementById('discover-' + _discoverTab + '-results');
+      if (defaults) defaults.style.display = 'none';
+      results.classList.remove('hidden');
+      results.innerHTML = discoverLoadingHtml(5);
+
+      try {
+        if (_discoverTab === 'upcoming') {
+          var res = await fetch('/api/ticketmaster/nlp-search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query })
+          });
+          var data = await res.json();
+          if (data.error) { results.innerHTML = '<div class="empty-state">' + data.error + '</div>'; return; }
+          var events = data.events || [];
+          _discoverSearchEvents = events;
+          if (events.length === 0) { results.innerHTML = '<div class="empty-state">No upcoming shows found. Try another search.</div>'; return; }
+          renderDiscoverCards(results, events, 'upcoming-result');
+        } else {
+          var res = await fetch('/parse-concert-query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query })
+          });
+          var data = await res.json();
+          if (data.error) { results.innerHTML = '<div class="empty-state">' + data.error + '</div>'; return; }
+          var concerts = data.results || [];
+          _discoverSearchEvents = concerts;
+          if (concerts.length === 0) { results.innerHTML = '<div class="empty-state">No past shows found. Try another search.</div>'; return; }
+          renderDiscoverCards(results, concerts, 'past-result');
+        }
+      } catch (err) {
+        results.innerHTML = '<div class="empty-state">Search failed: ' + err.message + '</div>';
+      }
+    }
+
+    function buildShowCardHtml(ev, idx, cardType) {
+      var artist = (ev.artist && ev.artist.name) ? ev.artist.name : ev.name || 'Unknown';
+      var date = formatDate(ev.eventDate);
+      var venue = (ev.venue && ev.venue.name) ? ev.venue.name : '';
+      var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+      var imgHtml = ev.imageUrl
+        ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
+        : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
+      var ticketUrl = ev.url || '';
+      var isUpcoming = cardType.indexOf('upcoming') !== -1 || cardType === 'search-nearby';
+
+      var html = '<div class="show-card" data-search-idx="' + idx + '" data-card-type="' + cardType + '" data-ticket-url="' + ticketUrl + '">';
+      html += '<div class="show-card-inner">';
+      html += '<div class="show-card-default">';
+      html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
+      html += '<div class="concert-artist">' + artist + '</div>';
+      html += '<div class="concert-date">' + date + '</div>';
+      if (venue) html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
+      html += '</div></div>';
+      html += DOTS_HTML;
+      html += '</div>';
+      html += '<div class="show-card-actions">';
+      html += DOTS_HTML;
+      html += '<div class="card-actions-body">';
+      if (isUpcoming) {
         html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
         html += '<div class="card-action-divider"></div>';
         html += '<button type="button" class="card-action-btn" data-action="going">' + GOING_SVG + "I'm Going</button>";
-        html += '</div></div>';
-        html += '</div></div>';
-      });
-      html += '</div>';
-      searchResults.innerHTML = html;
-      searchResults.addEventListener('click', handleSearchResultActions);
-      initCardSwipe(searchResults);
+      } else {
+        html += '<button type="button" class="card-action-btn" data-action="setlist">' + SETLIST_SVG + 'View Setlist</button>';
+        html += '<div class="card-action-divider"></div>';
+        html += '<button type="button" class="card-action-btn" data-action="add-past">' + GOING_SVG + 'I Was There</button>';
+      }
+      html += '</div></div>';
+      html += '</div></div>';
+      return html;
     }
 
-    function handleSearchResultActions(ev) {
+    function renderDiscoverCards(container, events, cardType) {
+      var html = '';
+      events.slice(0, 20).forEach(function(ev, idx) {
+        html += buildShowCardHtml(ev, idx, cardType);
+      });
+      container.innerHTML = html;
+    }
+
+    function handleDiscoverActions(ev) {
       var dots = ev.target.closest('.card-dots');
       if (dots) { var card = dots.closest('.show-card'); if (card) toggleCardOpen(card); return; }
       var actionBtn = ev.target.closest('.card-action-btn');
       if (!actionBtn) return;
       var card = actionBtn.closest('.show-card');
       var action = actionBtn.dataset.action;
+      var idx = card ? parseInt(card.dataset.searchIdx, 10) : -1;
+
       if (action === 'tickets') {
         var url = card ? card.dataset.ticketUrl : '';
         if (url) window.open(url, '_blank');
         if (card) card.classList.remove('open');
       } else if (action === 'going') {
-        var idx = card ? parseInt(card.dataset.searchIdx, 10) : -1;
-        if (idx >= 0 && idx < _searchResultEvents.length) {
-          var ev = _searchResultEvents[idx];
+        if (idx >= 0 && idx < _discoverSearchEvents.length) {
+          var show = _discoverSearchEvents[idx];
           var goData = {
-            id: ev.id || (ev.artist?.name + '-' + ev.eventDate),
-            name: ev.artist?.name || 'Unknown',
-            artist: ev.artist || { name: ev.artist?.name || 'Unknown' },
-            venue: ev.venue || {},
-            eventDate: ev.eventDate,
-            url: ev.url || '',
-            imageUrl: ev.imageUrl || ev._sourceArtistImage || ''
+            id: show.id || (show.artist?.name + '-' + show.eventDate),
+            name: show.artist?.name || 'Unknown',
+            artist: show.artist || { name: show.artist?.name || 'Unknown' },
+            venue: show.venue || {},
+            eventDate: show.eventDate,
+            url: show.url || '',
+            imageUrl: show.imageUrl || show._sourceArtistImage || ''
           };
           addGoingShow(goData);
-          renderSearchGoingList();
           renderProfileUpcomingShows();
+        }
+        if (card) card.classList.remove('open');
+      } else if (action === 'add-past') {
+        if (idx >= 0 && idx < _discoverSearchEvents.length) {
+          var show = _discoverSearchEvents[idx];
+          var showData = {
+            id: show.id || (show.artist?.name + '-' + show.eventDate),
+            artist: show.artist || { name: 'Unknown' },
+            venue: show.venue || {},
+            eventDate: show.eventDate,
+            sets: show.sets || null,
+            imageUrl: show.imageUrl || show._sourceArtistImage || ''
+          };
+          addAttendedShow(showData);
+          renderProfileShows();
+        }
+        if (card) card.classList.remove('open');
+      } else if (action === 'setlist') {
+        if (idx >= 0 && idx < _discoverSearchEvents.length) {
+          var show = _discoverSearchEvents[idx];
+          var setlistId = show.id || '';
+          if (setlistId) window.open('https://www.setlist.fm/setlist/-/' + setlistId + '.html', '_blank');
         }
         if (card) card.classList.remove('open');
       }
     }
 
-    var _savedLocs = WillcallLocations.getAll();
-    var searchCity = (_savedLocs.length > 0 && _savedLocs[0].city) ? _savedLocs[0].city : 'New York';
-    var searchNearbyEvents = [];
 
-    function renderSearchGoingList() {
-      var el = document.getElementById('search-going-list');
+    async function loadUpcomingDefaults() {
+      var el = document.getElementById('discover-upcoming-list');
       if (!el) return;
-      var list = getGoingShows();
-      var countEl = document.getElementById('search-going-count');
-      if (countEl) countEl.textContent = list.length > 0 ? list.length + ' show' + (list.length !== 1 ? 's' : '') : '';
-      if (list.length === 0) {
-        el.innerHTML = '';
-        return;
-      }
-      var html = '';
-      list.forEach(function(ev) {
-        var artist = ev.artist && ev.artist.name ? ev.artist.name : ev.name || 'Unknown';
-        var date = formatDate(ev.eventDate);
-        var venue = ev.venue && ev.venue.name ? ev.venue.name : '—';
-        var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-        var imgHtml = ev.imageUrl
-          ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
-          : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
-        var ticketUrl = ev.url || '';
-        html += '<div class="show-card" data-going-id="' + ev.id + '" data-card-type="search-going" data-ticket-url="' + ticketUrl + '">';
-        html += '<div class="show-card-inner">';
-        html += '<div class="show-card-default">';
-        html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
-        html += '<div class="concert-artist">' + artist + '</div>';
-        html += '<div class="concert-date">' + date + '</div>';
-        html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
-        html += '</div></div>';
-        html += DOTS_HTML;
-        html += '</div>';
-        html += '<div class="show-card-actions">';
-        html += DOTS_HTML;
-        html += '<div class="card-actions-body">';
-        html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
-        html += '<div class="card-action-divider"></div>';
-        html += '<button type="button" class="card-action-btn" data-action="cantgo">' + CANTGO_SVG + "Can't Go</button>";
-        html += '</div></div>';
-        html += '</div></div>';
-      });
-      el.innerHTML = html;
-    }
-
-    async function renderSearchNearbyShows() {
-      var el = document.getElementById('search-nearby-shows');
-      if (!el) return;
-      el.innerHTML = '<div class="empty-state">Loading shows...</div>';
+      el.innerHTML = discoverLoadingHtml(5);
       try {
-        var cityVal = searchCity;
-        var query = '?city=' + encodeURIComponent(cityVal) + '&size=15';
-        var url = '/api/ticketmaster/events' + query;
-        var res = await fetch(url);
-        var ct = (res.headers.get('content-type') || '').toLowerCase();
-        if (!ct.includes('application/json') && !ct.includes('json')) {
-          el.innerHTML = '<div class="empty-state">Server returned HTML instead of JSON. Try opening <a href="/api/health" target="_blank">/api/health</a> — you should see {\"ok\":true}. If you see a 404 page, restart the server with <code>node server.js</code>.</div>';
-          return;
-        }
-        var data;
-        try {
-          data = await res.json();
-        } catch (parseErr) {
-          el.innerHTML = '<div class="empty-state">Invalid response. Ensure TICKETMASTER_API_KEY is set in your environment variables.</div>';
-          return;
-        }
-        if (data && data.error) {
-          el.innerHTML = '<div class="empty-state">' + data.error + '</div>';
-          return;
-        }
-        var events = data.events || [];
-        searchNearbyEvents = events;
-        if (events.length === 0) {
-          el.innerHTML = '<div class="empty-state">No upcoming music events found. Try a different city.</div>';
-          return;
-        }
+        var locs = WillcallLocations.getAll();
+        var cities = locs.map(function(l) { return l.city; }).filter(Boolean);
+        if (cities.length === 0) cities = [searchCity];
+        var perCity = Math.max(5, Math.ceil(20 / cities.length));
+        var fetches = cities.map(function(city) {
+          return fetch('/api/ticketmaster/events?city=' + encodeURIComponent(city) + '&size=' + perCity)
+            .then(function(r) { return r.json(); })
+            .then(function(d) { return d.events || []; })
+            .catch(function() { return []; });
+        });
+        var results = await Promise.all(fetches);
+        var allEvents = [];
+        var seen = new Set();
+        results.forEach(function(events) {
+          events.forEach(function(ev) {
+            var key = ev.id || (ev.artist?.name + '-' + ev.eventDate);
+            if (!seen.has(key)) { seen.add(key); allEvents.push(ev); }
+          });
+        });
+        allEvents.sort(function(a, b) {
+          return (a.eventDate || '').localeCompare(b.eventDate || '');
+        });
+        _discoverSearchEvents = allEvents;
+        if (allEvents.length === 0) { el.innerHTML = '<div class="empty-state">No upcoming shows found near you.</div>'; return; }
         var html = '';
-        events.forEach(function(ev) {
-          var artist = ev.artist && ev.artist.name ? ev.artist.name : ev.name || 'Unknown';
-          var date = formatDate(ev.eventDate);
-          var venue = ev.venue && ev.venue.name ? ev.venue.name : '—';
-          var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-          var imgHtml = ev.imageUrl
-            ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
-            : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
-          var ticketUrl = ev.url || '';
-          html += '<div class="show-card" data-event-id="' + ev.id + '" data-card-type="search-nearby" data-ticket-url="' + ticketUrl + '">';
-          html += '<div class="show-card-inner">';
-          html += '<div class="show-card-default">';
-          html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
-          html += '<div class="concert-artist">' + artist + '</div>';
-          html += '<div class="concert-date">' + date + '</div>';
-          html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
-          html += '</div></div>';
-          html += DOTS_HTML;
-          html += '</div>';
-          html += '<div class="show-card-actions">';
-          html += DOTS_HTML;
-          html += '<div class="card-actions-body">';
-          html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
-          html += '<div class="card-action-divider"></div>';
-          html += '<button type="button" class="card-action-btn" data-action="going">' + GOING_SVG + "I'm Going</button>";
-          html += '</div></div>';
-          html += '</div></div>';
+        allEvents.slice(0, 20).forEach(function(ev, idx) {
+          html += buildShowCardHtml(ev, idx, 'upcoming-default');
         });
         el.innerHTML = html;
       } catch (err) {
-        var msg = err.message || 'Unknown error';
-        if (msg === 'Failed to fetch' || msg.indexOf('fetch') !== -1) {
-          el.innerHTML = '<div class="empty-state">Could not connect to the server. If running locally, open <strong>http://127.0.0.1:3000</strong> in your browser and run <code>node server.js</code> first.</div>';
-        } else {
-          el.innerHTML = '<div class="empty-state">Failed to load shows: ' + msg + '</div>';
-        }
+        el.innerHTML = '<div class="empty-state">Could not load shows. Check your connection.</div>';
       }
     }
 
-    function updateLocationLabel() {
-      var btn = document.getElementById('searchLocationBtn');
-      if (btn) btn.textContent = '✦ ' + (searchCity || 'my current location') + ' ✦';
+    async function loadPastDefaults() {
+      var el = document.getElementById('discover-past-list');
+      if (!el) return;
+      var lastfmUser = localStorage.getItem('willcall_lastfm_username');
+      if (!lastfmUser) {
+        el.innerHTML = '<div class="empty-state" style="padding:24px 16px"><p>Connect your Last.fm in Settings to discover shows matched to your listening history.</p></div>';
+        return;
+      }
+      var locs = WillcallLocations.getAll();
+      var cities = locs.map(function(l) { return l.city; }).filter(Boolean);
+      if (cities.length === 0) cities = [searchCity];
+      el.innerHTML = discoverLoadingHtml(5);
+      try {
+        var res = await fetch('/api/lastfm/concerts-suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: lastfmUser, cities: cities })
+        });
+        var data = await res.json();
+        if (data.error) { el.innerHTML = '<div class="empty-state">' + data.error + '</div>'; return; }
+        var concerts = data.concerts || [];
+        _discoverSearchEvents = concerts;
+        if (concerts.length === 0) { el.innerHTML = '<div class="empty-state">No past show suggestions found. Try adding more cities in your settings.</div>'; return; }
+        var html = '';
+        concerts.slice(0, 15).forEach(function(ev, idx) {
+          html += buildShowCardHtml(ev, idx, 'past-default');
+        });
+        el.innerHTML = html;
+      } catch (err) {
+        el.innerHTML = '<div class="empty-state">Could not load suggestions.</div>';
+      }
     }
 
     function openLocationSheet() {
@@ -4669,8 +4817,6 @@
       if (sheet) sheet.style.display = 'none';
     }
 
-    document.getElementById('searchLocationBtn').addEventListener('click', openLocationSheet);
-
     document.getElementById('locationSheet').addEventListener('click', function(ev) {
       if (ev.target.closest('.location-sheet-backdrop')) { closeLocationSheet(); return; }
       var opt = ev.target.closest('.location-sheet-option');
@@ -4686,9 +4832,8 @@
               .then(function(data) {
                 var city = (data.address && (data.address.city || data.address.town || data.address.village)) || 'Unknown';
                 searchCity = city;
-                updateLocationLabel();
                 closeLocationSheet();
-                renderSearchNearbyShows();
+                loadUpcomingDefaults();
               })
               .catch(function() { alert('Could not determine city.'); closeLocationSheet(); });
           },
@@ -4697,18 +4842,17 @@
         return;
       }
       searchCity = loc;
-      updateLocationLabel();
       closeLocationSheet();
-      renderSearchNearbyShows();
+      loadUpcomingDefaults();
     });
-
-    updateLocationLabel();
 
     document.querySelector('[data-tab="discover"]').addEventListener('click', function() {
-      updateLocationLabel();
-      renderSearchNearbyShows();
-      renderSearchGoingList();
+      if (_discoverTab === 'upcoming') loadUpcomingDefaults();
+      else loadPastDefaults();
     });
+
+    window.renderSearchGoingList = function() {};
+    window.closeSearchResults = function() {};
 
     var _currentUserId = null;
     var _followingIds = {};
@@ -4737,18 +4881,20 @@
       var name = user.display_name || user.username || 'User';
       var handle = user.username ? '@' + user.username : '';
       var initials = userInitials(name);
-      var btnClass = isFollowing ? 'friend-action-btn following' : 'friend-action-btn follow';
-      var btnText = isFollowing ? 'In your crowd' : 'Join their crowd';
+      var btnText = isFollowing ? 'In their crowd' : 'Join crowd';
+      var profileColor = user.profile_color || '#F5F3EE';
       var avatarHtml = user.avatar_url
         ? '<div class="friend-avatar"><img src="' + user.avatar_url + '" alt="' + name + '"></div>'
         : '<div class="friend-avatar" style="background:#1F1E1D">' + initials + '</div>';
-      return '<div class="friend-card" data-user-id="' + user.id + '">' +
-        avatarHtml +
-        '<div class="friend-info">' +
-          '<div class="friend-name">' + name + '</div>' +
-          (handle ? '<div class="friend-handle">' + handle + '</div>' : '') +
+      return '<div class="friend-card" data-user-id="' + user.id + '" style="background:' + profileColor + '">' +
+        '<div class="friend-card-left">' +
+          avatarHtml +
+          '<div class="friend-info">' +
+            '<div class="friend-name">' + name + '</div>' +
+            (handle ? '<div class="friend-handle">' + handle + '</div>' : '') +
+          '</div>' +
         '</div>' +
-        '<button class="' + btnClass + '" data-user-id="' + user.id + '">' + btnText + '</button>' +
+        '<button class="friend-action-btn" data-user-id="' + user.id + '">' + btnText + '</button>' +
       '</div>';
     }
 
@@ -4775,12 +4921,6 @@
       var list = currentFriendsTab === 'followers' ? _connectionsCache.following : _connectionsCache.followers;
       list = list || [];
       var container = document.getElementById('friends-list');
-      var countLabel = document.getElementById('friends-count-label');
-
-      if (countLabel) {
-        countLabel.textContent = list.length + (currentFriendsTab === 'followers' ? ' in your crowd' : ' crowd' + (list.length !== 1 ? 's' : '') + " you're in");
-      }
-
       if (list.length === 0) {
         container.innerHTML = '<div class="empty-state">' + (currentFriendsTab === 'followers' ? 'No one in your crowd yet.' : "You're not in anyone's crowd yet.") + '</div>';
         return;

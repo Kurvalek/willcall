@@ -1156,6 +1156,86 @@ app.get('/api/ticketmaster/events', async (req, res) => {
   }
 });
 
+// Natural language Ticketmaster search – parse with Claude, then query Ticketmaster
+app.post('/api/ticketmaster/nlp-search', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  const apiKey = process.env.TICKETMASTER_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'Ticketmaster API key not configured.' });
+  const { query } = req.body;
+  if (!query || !query.trim()) return res.status(400).json({ error: 'query is required' });
+
+  try {
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 512,
+      messages: [{
+        role: 'user',
+        content: `Extract search parameters from this upcoming concert search query: "${query}"
+
+Return ONLY a JSON object:
+{
+  "keyword": string,       // artist or event name to search for
+  "city": string|null,     // city name if mentioned
+  "stateCode": string|null // US state 2-letter code if determinable
+}
+
+If the query is vague like "shows tonight" or "concerts near me", set keyword to "" and extract city if mentioned.
+Return ONLY JSON, no other text.`
+      }]
+    });
+
+    let cleanedText = message.content[0].text.trim().replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    const parsed = JSON.parse(cleanedText);
+
+    const keyword = (parsed.keyword || '').trim();
+    const city = (parsed.city || '').trim();
+    const stateCode = (parsed.stateCode || '').trim();
+    const size = Math.min(parseInt(req.body.size, 10) || 20, 50);
+    const today = new Date().toISOString().slice(0, 10);
+
+    const params = new URLSearchParams({
+      apikey: apiKey,
+      classificationName: 'music',
+      startDateTime: today + 'T00:00:00Z',
+      sort: 'date,asc',
+      size: String(size)
+    });
+    if (keyword) params.set('keyword', keyword);
+    if (city) params.set('city', city);
+    if (stateCode) params.set('stateCode', stateCode);
+
+    const url = `https://app.ticketmaster.com/discovery/v2/events.json?${params}`;
+    const response = await axios.get(url, { timeout: 10000 });
+    const events = response.data?._embedded?.events || [];
+    const normalized = events.map((e) => {
+      const venue = e._embedded?.venues?.[0];
+      const attraction = e._embedded?.attractions?.[0];
+      const artist = attraction?.name || e.name || 'Unknown';
+      const images = e.images || [];
+      const img = images.find((i) => i.ratio === '16_9') || images.find((i) => i.ratio === '4_3') || images[0];
+      return {
+        id: e.id,
+        name: e.name,
+        artist: { name: artist },
+        eventDate: e.dates?.start?.localDate || '',
+        imageUrl: img?.url || null,
+        venue: venue ? {
+          name: venue.name,
+          city: venue.city ? { name: venue.city.name } : null
+        } : null,
+        url: e.url,
+        _source: 'ticketmaster'
+      };
+    });
+
+    res.json({ events: normalized, parsed });
+  } catch (err) {
+    console.error('Ticketmaster NLP search error:', err.response?.data || err.message);
+    const status = err.response?.status || 500;
+    res.status(status).json({ error: err.response?.data?.fault?.faultstring || err.message || 'Search failed' });
+  }
+});
+
 // Ticketmaster keyword search – for check-in flow
 app.get('/api/ticketmaster/search', async (req, res) => {
   const apiKey = process.env.TICKETMASTER_API_KEY;
@@ -1452,7 +1532,7 @@ app.get('/api/users/search', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, display_name, username, email, avatar_url')
+      .select('id, display_name, username, email, avatar_url, profile_color')
       .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
       .limit(20);
     if (error) {
@@ -1471,7 +1551,7 @@ app.get('/api/users', async (req, res) => {
   if (!supabase) return res.json({ users: [] });
   const excludeId = req.query.exclude || '';
   try {
-    let query = supabase.from('profiles').select('id, display_name, username, avatar_url').limit(20);
+    let query = supabase.from('profiles').select('id, display_name, username, avatar_url, profile_color').limit(20);
     if (excludeId) query = query.neq('id', excludeId);
     const { data, error } = await query;
     if (error) {
@@ -1545,7 +1625,7 @@ app.get('/api/users/:id/connections', async (req, res) => {
     const allIds = [...new Set([...followerIds, ...followingIds])];
     let profiles = [];
     if (allIds.length > 0) {
-      const { data } = await supabase.from('profiles').select('id, display_name, username, avatar_url').in('id', allIds);
+      const { data } = await supabase.from('profiles').select('id, display_name, username, avatar_url, profile_color').in('id', allIds);
       profiles = data || [];
     }
     const profileMap = {};
