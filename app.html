@@ -4160,31 +4160,27 @@
     });
 
     function backfillArtistImages() {
-      var lastfmUser = localStorage.getItem('willcall_lastfm_username');
-      if (!lastfmUser) {
-        console.log('[backfill] No Last.fm username — skipping.');
-        return;
-      }
       var list = getAttendedShows();
       var missing = [];
       list.forEach(function(s) {
         if (s.artist && !s.artistImage && missing.indexOf(s.artist) === -1) missing.push(s.artist);
       });
       if (missing.length === 0) return;
-      console.log('[backfill] Fetching images for', missing.length, 'artists via Last.fm top-artists');
-      fetch('/api/lastfm/top-artists?username=' + encodeURIComponent(lastfmUser))
+      console.log('[backfill] Fetching images for', missing.length, 'artists via Ticketmaster');
+      fetch('/api/ticketmaster/artist-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ artists: missing })
+      })
         .then(function(r) {
           if (!r.ok) throw new Error('HTTP ' + r.status);
           return r.json();
         })
         .then(function(data) {
-          if (!data.artists || !data.artists.length) { console.log('[backfill] No artists returned'); return; }
-          var imageMap = {};
-          data.artists.forEach(function(a) {
-            if (a.name && a.image) imageMap[a.name] = a.image;
-          });
+          var imageMap = data.images || {};
           var found = Object.keys(imageMap).length;
-          console.log('[backfill] Got images for', found, 'artists');
+          console.log('[backfill] Got images for', found, '/', missing.length, 'artists');
+          if (found === 0) return;
           var list = getAttendedShows();
           var changed = false;
           list.forEach(function(s) {

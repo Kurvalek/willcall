@@ -1284,6 +1284,47 @@ app.get('/api/ticketmaster/search', async (req, res) => {
   }
 });
 
+// Ticketmaster artist image lookup — batch search attractions by name
+app.post('/api/ticketmaster/artist-images', async (req, res) => {
+  const apiKey = process.env.TICKETMASTER_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'Ticketmaster API key not configured.' });
+  const { artists } = req.body;
+  if (!artists || !Array.isArray(artists) || artists.length === 0) {
+    return res.status(400).json({ error: 'artists array required' });
+  }
+  try {
+    const results = {};
+    const batches = artists.slice(0, 30);
+    const lookups = batches.map(async (name) => {
+      try {
+        const params = new URLSearchParams({
+          apikey: apiKey,
+          keyword: name,
+          size: 1,
+          locale: '*'
+        });
+        const url = `https://app.ticketmaster.com/discovery/v2/attractions.json?${params}`;
+        const r = await axios.get(url, { timeout: 8000 });
+        const attraction = r.data?._embedded?.attractions?.[0];
+        if (!attraction) return;
+        const nameMatch = attraction.name?.toLowerCase() === name.toLowerCase();
+        if (!nameMatch) return;
+        const images = attraction.images || [];
+        const img = images.find(i => i.ratio === '16_9' && i.width >= 640)
+          || images.find(i => i.ratio === '16_9')
+          || images.find(i => i.ratio === '3_2')
+          || images[0];
+        if (img?.url) results[name] = img.url;
+      } catch (e) { /* skip individual failures */ }
+    });
+    await Promise.all(lookups);
+    res.json({ images: results });
+  } catch (err) {
+    console.error('[artist-images] error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Waitlist email collection
 app.post('/api/waitlist', async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
