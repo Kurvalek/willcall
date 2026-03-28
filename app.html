@@ -3506,6 +3506,10 @@
       function applyProfileColor(color) {
         var homeTab = document.getElementById('tab-home');
         if (homeTab) homeTab.style.background = color;
+        var activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.id === 'tab-home') {
+          document.body.style.background = color;
+        }
       }
 
       function renderSwatches() {
@@ -4059,7 +4063,8 @@
       if (btn) setTimeout(function() { btn.classList.remove('icon-spun'); }, 300);
     }, true);
 
-    document.getElementById('see-all-artists').addEventListener('click', function(e) {
+    var seeAllArtistsBtn = document.getElementById('see-all-artists');
+    if (seeAllArtistsBtn) seeAllArtistsBtn.addEventListener('click', function(e) {
       e.preventDefault();
       var listEl = document.getElementById('top-artists-list');
       listEl.dataset.showAll = listEl.dataset.showAll === 'true' ? 'false' : 'true';
@@ -4421,6 +4426,10 @@
       if (tabId === 'home') {
         window.dispatchEvent(new Event('scroll'));
         renderProfileUpcomingShows();
+        var pc = typeof window._getProfileColor === 'function' ? window._getProfileColor() : '';
+        if (pc) document.body.style.background = pc;
+      } else {
+        document.body.style.background = '';
       }
     }
 
