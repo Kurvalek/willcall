@@ -4531,10 +4531,12 @@
         discoverSearchInput.placeholder = 'Shows in Albany tonight';
         discoverSearchInput.rows = 2;
         clearDiscoverResults('upcoming');
+        loadUpcomingDefaults();
       } else {
         discoverSearchInput.placeholder = 'I saw Jimmy Eat World in 2002';
         discoverSearchInput.rows = 2;
         clearDiscoverResults('past');
+        loadPastDefaults();
       }
     }
 
@@ -5074,12 +5076,13 @@
     var upSheet = document.getElementById('userProfileSheet');
 
     function renderUpShowCard(show) {
-      var artist = (show.artist && show.artist.name) || show.name || 'Unknown';
+      var artist = (show.artist && typeof show.artist === 'object') ? show.artist.name : (show.artist || show.name || 'Unknown');
       var date = typeof formatDate === 'function' ? formatDate(show.eventDate) : (show.eventDate || '');
-      var venue = (show.venue && show.venue.name) || '';
+      var venue = (show.venue && typeof show.venue === 'object') ? show.venue.name : (show.venue || '');
+      var imgUrl = show.imageUrl || show.artistImage || '';
       var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-      var imgHtml = show.imageUrl
-        ? '<div class="show-card-img-wrap"><img src="' + show.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
+      var imgHtml = imgUrl
+        ? '<div class="show-card-img-wrap"><img src="' + imgUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
         : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
       var html = '<div class="show-card">';
       html += '<div class="show-card-inner"><div class="show-card-default">';
@@ -5146,11 +5149,11 @@
         var uniqueCities = {};
         var artistCounts = {};
         attended.forEach(function(s) {
-          var a = (s.artist && s.artist.name) || s.name || '';
+          var a = (s.artist && typeof s.artist === 'object') ? s.artist.name : (s.artist || s.name || '');
           if (a) { uniqueArtists[a] = true; artistCounts[a] = (artistCounts[a] || 0) + 1; }
-          var v = (s.venue && s.venue.name) || '';
+          var v = (s.venue && typeof s.venue === 'object') ? s.venue.name : (s.venue || '');
           if (v) uniqueVenues[v] = true;
-          var c = (s.venue && s.venue.city && s.venue.city.name) || '';
+          var c = (s.venue && typeof s.venue === 'object' && s.venue.city) ? s.venue.city.name : (s.city || '');
           if (c) uniqueCities[c] = true;
         });
         document.getElementById('upStatShows').textContent = attended.length;
@@ -5164,8 +5167,9 @@
           document.getElementById('upTopArtistsSection').style.display = '';
           var artistImgs = {};
           attended.forEach(function(s) {
-            var a = (s.artist && s.artist.name) || s.name || '';
-            if (a && s.imageUrl && !artistImgs[a]) artistImgs[a] = s.imageUrl;
+            var a = (s.artist && typeof s.artist === 'object') ? s.artist.name : (s.artist || s.name || '');
+            var img = s.imageUrl || s.artistImage || '';
+            if (a && img && !artistImgs[a]) artistImgs[a] = img;
           });
           var taHtml = '';
           topArtists.forEach(function(a) {
