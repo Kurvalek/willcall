@@ -1257,7 +1257,13 @@ app.get('/api/health', (req, res) => {
       ticketmaster: !!process.env.TICKETMASTER_API_KEY,
       setlistfm: !!process.env.SETLISTFM_API_KEY,
       anthropic: !!process.env.ANTHROPIC_API_KEY,
-      google: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
+      google: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+      googleRedirect: !!process.env.GOOGLE_REDIRECT_URI
+    },
+    googleDebug: {
+      clientIdPrefix: process.env.GOOGLE_CLIENT_ID ? process.env.GOOGLE_CLIENT_ID.substring(0, 12) + '…' : 'MISSING',
+      secretPrefix: process.env.GOOGLE_CLIENT_SECRET ? process.env.GOOGLE_CLIENT_SECRET.substring(0, 8) + '…' : 'MISSING',
+      redirectUri: OAUTH_REDIRECT_URI
     }
   });
 });
