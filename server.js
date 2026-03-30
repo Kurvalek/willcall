@@ -90,11 +90,11 @@ if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
   console.warn('Supabase: using anon key — add SUPABASE_SERVICE_ROLE_KEY for full access');
 }
 
-// OAuth2 client for Gmail
+const OAUTH_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:3000/oauth/callback';
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  'http://localhost:3000/oauth/callback'
+  OAUTH_REDIRECT_URI
 );
 
 // Helper function to normalize venue names
