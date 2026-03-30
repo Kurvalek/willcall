@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar Concert Scanner – willcall POC</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F5F3EE; color: #1F1E1D; min-height: 100vh; padding: 24px;
+    }
+    .container { max-width: 640px; margin: 0 auto; }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: #7A7670; margin-bottom: 32px; }
+    .connect-card {
+      background: #fff; border: 1px solid #E5E2DB; border-radius: 8px;
+      padding: 40px 24px; text-align: center; margin-bottom: 24px;
+    }
+    .connect-card p { font-size: 15px; color: #5C5955; margin-bottom: 20px; line-height: 1.5; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 28px; font-family: inherit; font-size: 15px; font-weight: 600;
+      border: none; border-radius: 6px; cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-dark { background: #1F1E1D; color: #fff; }
+    .btn-outline { background: none; border: 1px solid #1F1E1D; color: #1F1E1D; }
+    .options { display: flex; gap: 12px; align-items: center; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .options label { font-size: 14px; color: #5C5955; }
+    .options select {
+      padding: 8px 12px; font-family: inherit; font-size: 14px;
+      border: 1px solid #E5E2DB; border-radius: 6px; background: #fff; color: #1F1E1D;
+    }
+    .status {
+      text-align: center; padding: 32px; font-size: 14px; color: #5C5955;
+    }
+    .status .spinner {
+      width: 24px; height: 24px; border: 3px solid #E5E2DB; border-top-color: #1F1E1D;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .results-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .results-header h2 { font-size: 18px; font-weight: 700; }
+    .results-header .meta { font-size: 13px; color: #7A7670; }
+    .concert-card {
+      background: #fff; border: 1px solid #E5E2DB; border-radius: 8px;
+      padding: 16px 20px; margin-bottom: 12px;
+    }
+    .concert-card .artist { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .concert-card .detail { font-size: 13px; color: #5C5955; line-height: 1.5; }
+    .concert-card .detail span { display: inline-block; margin-right: 12px; }
+    .concert-card .match-tag {
+      display: inline-block; margin-top: 8px; padding: 3px 10px;
+      font-size: 11px; font-weight: 600; border-radius: 99px;
+    }
+    .match-tag.found { background: #E8F5E9; color: #2E7D32; }
+    .match-tag.not-found { background: #FFF3E0; color: #E65100; }
+    .setlist-songs {
+      margin-top: 10px; padding: 10px 14px;
+      background: #FAFAF8; border-radius: 6px; font-size: 12px; color: #5C5955;
+    }
+    .setlist-songs strong { display: block; margin-bottom: 4px; font-size: 12px; color: #1F1E1D; }
+    .empty { text-align: center; padding: 40px; font-size: 14px; color: #7A7670; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Calendar Concert Scanner</h1>
+    <p class="subtitle">Connect your Google Calendar and we'll find concerts you attended.</p>
+
+    <div id="connectCard" class="connect-card">
+      <p>We'll scan your calendar events for concerts and cross-reference them with Setlist.fm to find setlists, venues, and show details.</p>
+      <a href="/oauth/google-calendar" class="btn btn-dark">Connect Google Calendar</a>
+    </div>
+
+    <div id="scanSection" style="display:none">
+      <div class="options">
+        <label for="months">Look back:</label>
+        <select id="months">
+          <option value="6">6 months</option>
+          <option value="12">1 year</option>
+          <option value="24" selected>2 years</option>
+          <option value="60">5 years</option>
+          <option value="120">10 years</option>
+        </select>
+        <button class="btn btn-dark" id="scanBtn">Scan Calendar</button>
+      </div>
+      <div id="status" style="display:none"></div>
+      <div id="results"></div>
+    </div>
+  </div>
+
+  <script>
+    var authenticated = new URLSearchParams(window.location.search).get('authenticated') === 'true';
+    if (authenticated) {
+      document.getElementById('connectCard').style.display = 'none';
+      document.getElementById('scanSection').style.display = '';
+    }
+
+    document.getElementById('scanBtn').addEventListener('click', async function() {
+      var btn = this;
+      var months = document.getElementById('months').value;
+      var statusEl = document.getElementById('status');
+      var resultsEl = document.getElementById('results');
+
+      btn.disabled = true;
+      resultsEl.innerHTML = '';
+      statusEl.style.display = '';
+      statusEl.innerHTML = '<div class="spinner"></div><div>Scanning your calendar and searching Setlist.fm...<br>This may take a minute.</div>';
+
+      try {
+        var res = await fetch('/api/calendar/scan?months=' + months);
+        var data = await res.json();
+        statusEl.style.display = 'none';
+        btn.disabled = false;
+
+        if (data.error) {
+          if (res.status === 401) {
+            resultsEl.innerHTML = '<div class="empty">' + data.error + ' <a href="/oauth/google-calendar">Reconnect</a></div>';
+          } else {
+            resultsEl.innerHTML = '<div class="empty">Error: ' + data.error + '</div>';
+          }
+          return;
+        }
+
+        var concerts = data.concerts || [];
+        if (concerts.length === 0) {
+          resultsEl.innerHTML = '<div class="empty">No concerts detected in your calendar (' + data.eventsScanned + ' events scanned).</div>';
+          return;
+        }
+
+        var html = '<div class="results-header"><h2>' + concerts.length + ' concert' + (concerts.length !== 1 ? 's' : '') + ' found</h2>';
+        html += '<span class="meta">' + data.eventsScanned + ' events scanned</span></div>';
+
+        concerts.forEach(function(c) {
+          var ev = c.calendarEvent;
+          var det = c.detected;
+          var sl = c.setlist;
+          html += '<div class="concert-card">';
+          html += '<div class="artist">' + (det.artist || ev.summary) + '</div>';
+          html += '<div class="detail">';
+          if (ev.date) html += '<span>📅 ' + ev.date + '</span>';
+          if (det.venue || ev.location) html += '<span>📍 ' + (det.venue || ev.location) + '</span>';
+          if (det.city) html += '<span>' + det.city + '</span>';
+          html += '</div>';
+          html += '<div class="detail" style="margin-top:2px;font-size:12px;color:#999">Calendar: "' + ev.summary + '"</div>';
+
+          if (sl) {
+            var slArtist = (sl.artist && sl.artist.name) || '';
+            var slVenue = (sl.venue && sl.venue.name) || '';
+            var slCity = (sl.venue && sl.venue.city && sl.venue.city.name) || '';
+            html += '<span class="match-tag found">✓ Setlist.fm match</span>';
+            if (slVenue || slCity) html += '<span style="font-size:12px;color:#5C5955;margin-left:8px">' + [slVenue, slCity].filter(Boolean).join(', ') + '</span>';
+            var songs = [];
+            if (sl.sets && sl.sets.set) {
+              sl.sets.set.forEach(function(s) {
+                if (s.song) s.song.forEach(function(sg) { if (sg.name) songs.push(sg.name); });
+              });
+            }
+            if (songs.length > 0) {
+              html += '<div class="setlist-songs"><strong>Setlist (' + songs.length + ' songs)</strong>' + songs.join(' · ') + '</div>';
+            }
+          } else {
+            html += '<span class="match-tag not-found">No Setlist.fm match</span>';
+          }
+          html += '</div>';
+        });
+
+        resultsEl.innerHTML = html;
+      } catch (err) {
+        statusEl.style.display = 'none';
+        btn.disabled = false;
+        resultsEl.innerHTML = '<div class="empty">Request failed: ' + err.message + '</div>';
+      }
+    });
+  </script>
+</body>
+</html>

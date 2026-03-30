@@ -1634,12 +1634,43 @@
     }
     .onb-countdown a { color: #595959; text-decoration: underline; cursor: pointer; }
 
-    /* Last.fm next button (onboarding) */
+    /* Connect services row (onboarding step 6) */
+    .onb-connect-row {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%;
+    }
+    .onb-connect-label {
+      font-size: 18px; font-weight: 700; color: var(--wc-black);
+    }
+    .onb-connect-btn {
+      padding: 12px 24px; border: 1px solid var(--wc-black); border-radius: 4px;
+      background: none; color: var(--wc-black);
+      font-family: var(--wc-font-body); font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .onb-connect-btn:hover { background: var(--wc-black); color: #fff; }
+    .onb-connect-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .onb-connect-btn.connected {
+      background: var(--wc-black); color: #fff; border-color: var(--wc-black);
+    }
+    .onb-connect-input {
+      width: 220px; padding: 16px 16px 8px;
+      background: #fff; border: 1px solid var(--wc-gray-100, #f0ede7); border-radius: 2px;
+      font-family: var(--wc-font-body); font-size: 16px; color: var(--wc-black);
+      outline: none;
+    }
+    .onb-connect-input::placeholder { color: var(--wc-gray-600, #5c5955); }
+    .onb-connect-input:focus { border-color: var(--wc-black); }
+    .onb-connect-status {
+      font-size: 13px; color: #2E7D32; margin-top: 6px;
+    }
+
+    /* Next button (onboarding) */
     .onb-lastfm-btn {
-      width: 209px; height: 45px; border-radius: var(--wc-radius); border: none;
+      width: 96px; height: 45px; border-radius: 4px; border: none;
       background: var(--wc-black); color: #fff;
-      font-family: var(--wc-font-body); font-size: 16px; font-weight: 600;
-      cursor: pointer; margin-top: 40px;
+      font-family: var(--wc-font-body); font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-top: 0;
     }
     .onb-lastfm-btn:active { transform: scale(0.96); }
 
@@ -1722,6 +1753,7 @@
       justify-content: space-between;
       gap: 12px;
       flex-wrap: wrap;
+      margin-bottom: 10px;
     }
     .settings-connection-info { flex: 1; min-width: 0; }
     .settings-connection-name {
@@ -2078,7 +2110,7 @@
       </div>
     </div>
 
-    <!-- Step 6: Last.fm -->
+    <!-- Step 6: Connect services (Calendar + Last.fm) -->
     <div id="onbStep6" class="onb-step">
       <div class="onb-header">
         <button class="onb-header-btn" id="onbBackToLocation">Back</button>
@@ -2086,13 +2118,27 @@
         <button class="onb-header-btn right" id="onbSkipLastfm">Skip</button>
       </div>
       <div class="onb-body">
-        <div class="onb-step-content">
-          <p class="onb-title" style="font-size:22px">Connect your Last.fm</p>
-          <p class="onb-subtitle" style="max-width:291px">Enter your Last.fm username and we'll match your listening history to shows you may have been to.</p>
-          <input type="text" class="onb-text-input" id="onbLastfmInput" placeholder="Last.fm username" style="width:100%;max-width:280px;padding:12px 14px;border:2px solid var(--wc-gray-200);border-radius:var(--wc-radius);font-family:inherit;font-size:16px;margin-top:24px;text-align:center">
+        <div class="onb-step-content" style="align-items:flex-start;padding-top:64px">
+          <div style="text-align:center;width:100%">
+            <p class="onb-title" style="font-size:20px">Let's find some shows</p>
+            <p class="onb-subtitle" style="font-size:14px;margin-top:17px">Connect services to help us populate some of your past concert history.</p>
+          </div>
+
+          <div class="onb-connect-row" style="margin-top:32px">
+            <span class="onb-connect-label">Google Calendar</span>
+            <button type="button" class="onb-connect-btn" id="onbCalendarBtn">Connect</button>
+          </div>
+          <div id="onbCalendarStatus" class="onb-connect-status" style="display:none"></div>
+
+          <div class="onb-connect-row" style="margin-top:32px">
+            <span class="onb-connect-label">Last.fm</span>
+            <input type="text" class="onb-connect-input" id="onbLastfmInput" placeholder="Enter your username">
+          </div>
           <div id="onbLastfmError" style="color:var(--wc-error);font-size:13px;margin-top:8px;display:none"></div>
-          <button type="button" class="onb-lastfm-btn" id="onbLastfmBtn">Next</button>
-          <a href="#" id="onbSkipLastfmLink" style="display:block;margin-top:16px;font-size:14px;color:#595959;text-decoration:none">Skip</a>
+
+          <div style="display:flex;justify-content:flex-end;width:100%;margin-top:48px">
+            <button type="button" class="onb-lastfm-btn" id="onbLastfmBtn">Next</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2100,17 +2146,16 @@
     <!-- Step 7: Results -->
     <div id="onbStep7" class="onb-step">
       <div class="onb-header">
-        <div class="onb-header-spacer"></div>
+        <button class="onb-header-btn" id="onbBackToConnect">Back</button>
         <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
-        <div class="onb-header-spacer"></div>
+        <button class="onb-header-btn right" id="onbSkipResults">Skip</button>
       </div>
       <div class="onb-body">
         <div class="onb-step-content" style="padding-top:20px;justify-content:flex-start">
-          <p class="onb-title" style="font-size:22px;text-align:left;width:100%">Shows you may have been to</p>
-          <p class="onb-subtitle" style="text-align:left;width:100%;margin-top:8px;font-size:14px;color:#595959">Tap the ones you went to and we'll add them to your profile.</p>
+          <p class="onb-title" style="font-size:20px;text-align:left;width:100%">Were you at these shows?</p>
           <div id="onbResultsLoading" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:40px;color:#595959;font-size:14px">
             <div class="spinner" style="width:28px;height:28px;border:3px solid #E5E2DB;border-top-color:#1F1E1D;border-radius:50%;animation:spin 0.8s linear infinite"></div>
-            <span>Searching your artists...</span>
+            <span>Scanning for concerts...</span>
           </div>
           <div id="onbResultsList" style="width:100%;margin-top:20px;display:none"></div>
           <p id="onbResultsEmpty" style="display:none;text-align:center;color:#595959;font-size:14px;margin-top:40px">No results found. You can add shows later from your profile.</p>
@@ -2521,7 +2566,16 @@
             <button type="button" class="settings-connection-btn secondary" id="settingsLastfmDisconnectBtn" style="display:none">Disconnect</button>
           </div>
         </div>
-        <p class="settings-connections-soon">More connections coming soon.</p>
+        <div class="settings-connection-card" data-connection="gcal">
+          <div class="settings-connection-info">
+            <div class="settings-connection-name">Google Calendar</div>
+            <div class="settings-connection-status" id="settingsGcalStatus">Not connected</div>
+          </div>
+          <div class="settings-connection-actions" id="settingsGcalActions">
+            <button type="button" class="settings-connection-btn primary" id="settingsGcalConnectBtn">Connect</button>
+            <button type="button" class="settings-connection-btn secondary" id="settingsGcalDisconnectBtn" style="display:none">Disconnect</button>
+          </div>
+        </div>
       </div>
 
       <div style="flex:1"></div>
@@ -3115,19 +3169,65 @@
       document.getElementById('onbSkipLocation').addEventListener('click', function() { goToStep(6); });
       document.getElementById('onbDoneLocBtn').addEventListener('click', function() { goToStep(6); });
 
-      // Step 6: Last.fm
+      // Step 6: Connect services (Calendar + Last.fm)
+      var _calendarConnected = false;
       document.getElementById('onbBackToLocation').addEventListener('click', function() { goToStep(5); });
       document.getElementById('onbSkipLastfm').addEventListener('click', function() { finishOnboarding(); });
-      document.getElementById('onbSkipLastfmLink').addEventListener('click', function(e) { e.preventDefault(); finishOnboarding(); });
+
+      document.getElementById('onbCalendarBtn').addEventListener('click', function() {
+        var btn = this;
+        btn.disabled = true;
+        btn.textContent = 'Connecting…';
+        var w = 500, h = 600;
+        var left = (screen.width - w) / 2, top = (screen.height - h) / 2;
+        var popup = window.open('/oauth/google-calendar', 'gcal_auth', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top);
+
+        function onCalMsg(ev) {
+          if (ev.data === 'calendar-connected') {
+            window.removeEventListener('message', onCalMsg);
+            _calendarConnected = true;
+            btn.textContent = '✓ Connected';
+            btn.classList.add('connected');
+            btn.disabled = true;
+            var statusEl = document.getElementById('onbCalendarStatus');
+            statusEl.textContent = 'Google Calendar connected';
+            statusEl.style.display = 'block';
+          }
+        }
+        window.addEventListener('message', onCalMsg);
+
+        var poll = setInterval(function() {
+          if (!popup || popup.closed) {
+            clearInterval(poll);
+            if (!_calendarConnected) {
+              window.removeEventListener('message', onCalMsg);
+              btn.disabled = false;
+              btn.textContent = 'Connect';
+            }
+          }
+        }, 1000);
+      });
+
       document.getElementById('onbLastfmBtn').addEventListener('click', function() {
         var input = document.getElementById('onbLastfmInput');
         var errEl = document.getElementById('onbLastfmError');
         var username = input.value.trim();
-        if (!username) { errEl.textContent = 'Please enter a username.'; errEl.style.display = 'block'; return; }
         errEl.style.display = 'none';
+
+        if (!username && !_calendarConnected) {
+          errEl.textContent = 'Connect Google Calendar or enter your Last.fm username.';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        if (!username) {
+          goToStep(7);
+          return;
+        }
+
         var btn = document.getElementById('onbLastfmBtn');
         btn.disabled = true;
-        btn.textContent = 'Checking…';
+        btn.textContent = '…';
         fetch('/api/lastfm/validate?username=' + encodeURIComponent(username))
           .then(function(r) { return r.json(); })
           .then(function(data) {
@@ -3150,6 +3250,8 @@
       });
 
       // Step 7: Results
+      document.getElementById('onbBackToConnect').addEventListener('click', function() { goToStep(6); });
+      document.getElementById('onbSkipResults').addEventListener('click', function() { finishOnboarding(); });
       document.getElementById('onbResultsDoneBtn').addEventListener('click', function() { finishOnboarding(); });
 
       var _onbConcerts = [];
@@ -3164,36 +3266,72 @@
         emptyEl.style.display = 'none';
         doneBtn.style.display = 'none';
 
+        var promises = [];
+
+        // Last.fm suggestions
+        var lastfmUser = localStorage.getItem('willcall_lastfm_username') || '';
         var locs = WillcallLocations.getAll();
-        if (locs.length === 0) {
+        var cities = locs.map(function(l) { return l.city; }).filter(Boolean);
+        if (cities.length === 0) cities = ['New York'];
+
+        if (lastfmUser) {
+          var yearStart = null, yearEnd = null;
+          locs.forEach(function(l) {
+            if (l.yearFrom && (!yearStart || parseInt(l.yearFrom) < parseInt(yearStart))) yearStart = l.yearFrom;
+            if (l.yearTo && (!yearEnd || parseInt(l.yearTo) > parseInt(yearEnd))) yearEnd = l.yearTo;
+          });
+          promises.push(
+            fetch('/api/lastfm/concerts-suggestions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ username: lastfmUser, cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 30 })
+            })
+              .then(function(r) { return r.json(); })
+              .then(function(data) { return (data.concerts || []); })
+              .catch(function() { return []; })
+          );
+        }
+
+        // Google Calendar scan
+        if (_calendarConnected) {
+          promises.push(
+            fetch('/api/calendar/scan?months=60')
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                return (data.concerts || []).filter(function(c) { return c.setlist; }).map(function(c) {
+                  return c.setlist;
+                });
+              })
+              .catch(function() { return []; })
+          );
+        }
+
+        if (promises.length === 0) {
           loadingEl.style.display = 'none';
-          emptyEl.textContent = 'No locations added. You can search for shows from your profile.';
+          emptyEl.textContent = 'No services connected. You can search for shows from your profile.';
           emptyEl.style.display = 'block';
           doneBtn.style.display = 'block';
           return;
         }
 
-        var cities = locs.map(function(l) { return l.city; });
-        var yearStart = null, yearEnd = null;
-        locs.forEach(function(l) {
-          if (l.yearFrom && (!yearStart || parseInt(l.yearFrom) < parseInt(yearStart))) yearStart = l.yearFrom;
-          if (l.yearTo && (!yearEnd || parseInt(l.yearTo) > parseInt(yearEnd))) yearEnd = l.yearTo;
-        });
+        Promise.all(promises)
+          .then(function(resultArrays) {
+            var merged = [];
+            var seen = {};
+            resultArrays.forEach(function(arr) {
+              arr.forEach(function(c) {
+                var key = showId(c);
+                if (!seen[key]) { seen[key] = true; merged.push(c); }
+              });
+            });
 
-        var lastfmUser = localStorage.getItem('willcall_lastfm_username') || '';
-        fetch('/api/lastfm/concerts-suggestions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: lastfmUser, cities: cities, yearStart: yearStart || undefined, yearEnd: yearEnd || undefined, artistLimit: 30 })
-        })
-          .then(function(r) { return r.json(); })
-          .then(function(data) {
             loadingEl.style.display = 'none';
             doneBtn.style.display = 'block';
-            if (data.concerts && data.concerts.length > 0) {
-              _onbConcerts = data.concerts;
+
+            if (merged.length > 0) {
+              _onbConcerts = merged;
               var html = '<div class="onb-results-scroll">';
-              data.concerts.forEach(function(c, i) {
+              merged.forEach(function(c, i) {
                 var artist = c.artist && c.artist.name ? c.artist.name : (c._sourceArtist || 'Unknown');
                 var d = formatDate(c.eventDate);
                 var v = c.venue && c.venue.name ? c.venue.name : '';
@@ -4085,6 +4223,30 @@
         if (saveBtn) saveBtn.style.display = 'inline-block';
         if (disconnectBtn) disconnectBtn.style.display = 'none';
       }
+      refreshGcalStatus();
+    }
+
+    function refreshGcalStatus() {
+      var statusEl = document.getElementById('settingsGcalStatus');
+      var connectBtn = document.getElementById('settingsGcalConnectBtn');
+      var disconnectBtn = document.getElementById('settingsGcalDisconnectBtn');
+      if (!statusEl) return;
+      fetch('/api/calendar/status')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.connected) {
+            statusEl.textContent = 'Connected';
+            statusEl.classList.add('connected');
+            if (connectBtn) connectBtn.style.display = 'none';
+            if (disconnectBtn) disconnectBtn.style.display = 'inline-block';
+          } else {
+            statusEl.textContent = 'Not connected';
+            statusEl.classList.remove('connected');
+            if (connectBtn) connectBtn.style.display = 'inline-block';
+            if (disconnectBtn) disconnectBtn.style.display = 'none';
+          }
+        })
+        .catch(function() {});
     }
 
     function refreshLastfmSheetState() {
@@ -4175,6 +4337,49 @@
       if (disconnectBtn) disconnectBtn.addEventListener('click', function(e) {
         e.preventDefault();
         disconnectLastfm();
+      });
+    })();
+
+    (function wireSettingsGcal() {
+      var connectBtn = document.getElementById('settingsGcalConnectBtn');
+      var disconnectBtn = document.getElementById('settingsGcalDisconnectBtn');
+      if (connectBtn) connectBtn.addEventListener('click', function() {
+        connectBtn.disabled = true;
+        connectBtn.textContent = 'Connecting…';
+        var w = 500, h = 600;
+        var left = (screen.width - w) / 2, top = (screen.height - h) / 2;
+        var popup = window.open('/oauth/google-calendar', 'gcal_settings', 'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top);
+
+        function onMsg(ev) {
+          if (ev.data === 'calendar-connected') {
+            window.removeEventListener('message', onMsg);
+            connectBtn.disabled = false;
+            connectBtn.textContent = 'Connect';
+            refreshGcalStatus();
+          }
+        }
+        window.addEventListener('message', onMsg);
+
+        var poll = setInterval(function() {
+          if (!popup || popup.closed) {
+            clearInterval(poll);
+            connectBtn.disabled = false;
+            connectBtn.textContent = 'Connect';
+            window.removeEventListener('message', onMsg);
+            refreshGcalStatus();
+          }
+        }, 1000);
+      });
+      if (disconnectBtn) disconnectBtn.addEventListener('click', function() {
+        disconnectBtn.disabled = true;
+        disconnectBtn.textContent = 'Disconnecting…';
+        fetch('/api/calendar/disconnect', { method: 'POST' })
+          .then(function() { refreshGcalStatus(); })
+          .catch(function() { refreshGcalStatus(); })
+          .finally(function() {
+            disconnectBtn.disabled = false;
+            disconnectBtn.textContent = 'Disconnect';
+          });
       });
     })();
 

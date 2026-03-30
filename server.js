@@ -582,12 +582,178 @@ app.get('/oauth/callback', async (req, res) => {
     // Store tokens in session
     req.session.tokens = tokens;
     
-    // Redirect back to gmail-parser page with success flag
-    res.redirect('/gmail-parser?authenticated=true');
+    const returnTo = req.session.oauthReturnTo || '/gmail-parser?authenticated=true';
+    delete req.session.oauthReturnTo;
+    res.redirect(returnTo);
     
   } catch (error) {
     console.error('OAuth error:', error);
     res.redirect('/gmail-parser?error=auth_failed');
+  }
+});
+
+// Google Calendar OAuth — requests calendar.readonly scope
+app.get('/oauth/google-calendar', (req, res) => {
+  req.session.oauthReturnTo = '/oauth/calendar-success';
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    scope: ['https://www.googleapis.com/auth/calendar.readonly']
+  });
+  res.redirect(authUrl);
+});
+
+app.get('/api/calendar/status', (req, res) => {
+  res.json({ connected: !!req.session.tokens });
+});
+
+app.post('/api/calendar/disconnect', (req, res) => {
+  delete req.session.tokens;
+  res.json({ disconnected: true });
+});
+
+app.get('/oauth/calendar-success', (req, res) => {
+  res.send(`<!DOCTYPE html><html><body><p>Connected! This window will close.</p><script>
+if(window.opener){window.opener.postMessage("calendar-connected","*");window.close();}
+else{window.location.href="/calendar-scan?authenticated=true";}
+</script></body></html>`);
+});
+
+// Calendar scan page
+app.get('/calendar-scan', (req, res) => {
+  res.sendFile(path.join(__dirname, 'calendar-scan.html'));
+});
+
+// Calendar scan API — fetch events, detect concerts via Claude, cross-ref Setlist.fm
+app.get('/api/calendar/scan', async (req, res) => {
+  if (!req.session.tokens) {
+    return res.status(401).json({ error: 'Not authenticated. Connect Google Calendar first.' });
+  }
+  oauth2Client.setCredentials(req.session.tokens);
+
+  const lookbackMonths = parseInt(req.query.months) || 24;
+  const minDate = new Date();
+  minDate.setMonth(minDate.getMonth() - lookbackMonths);
+
+  try {
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+    const eventsRes = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: minDate.toISOString(),
+      timeMax: new Date().toISOString(),
+      maxResults: 500,
+      singleEvents: true,
+      orderBy: 'startTime'
+    });
+
+    const events = (eventsRes.data.items || []).map(e => ({
+      summary: e.summary || '',
+      location: e.location || '',
+      description: (e.description || '').substring(0, 200),
+      date: (e.start?.dateTime || e.start?.date || '').substring(0, 10)
+    })).filter(e => e.summary);
+
+    console.log(`[calendar-scan] Found ${events.length} calendar events in last ${lookbackMonths} months`);
+
+    if (events.length === 0) {
+      return res.json({ concerts: [], eventsScanned: 0 });
+    }
+
+    // Step 1: Use Claude to identify which events are likely concerts
+    const eventsList = events.map((e, i) =>
+      `${i}. "${e.summary}" | loc: ${e.location || 'none'} | date: ${e.date}`
+    ).join('\n');
+
+    const claudeRes = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2048,
+      messages: [{
+        role: 'user',
+        content: `Analyze these calendar events and identify which ones are likely concerts, live music shows, or music festivals. For each concert you find, extract the artist/band name, venue, and city.
+
+Events:
+${eventsList}
+
+Return ONLY a JSON array (no markdown, no explanation). Each object:
+{
+  "index": number,
+  "artist": string,
+  "venue": string|null,
+  "city": string|null,
+  "date": "YYYY-MM-DD"
+}
+
+Rules:
+- Only include events that are clearly concerts, live music, or music festivals
+- Skip things like "practice", "rehearsal", "lesson", generic parties, sports, etc.
+- For festivals, use the festival name as the artist
+- If the summary contains "Artist at Venue", split them properly
+- Be generous — if it looks like it could be a show, include it
+- Return [] if none are concerts`
+      }]
+    });
+
+    let concertEvents = [];
+    try {
+      let text = claudeRes.content[0].text.trim();
+      if (text.startsWith('```')) text = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
+      concertEvents = JSON.parse(text);
+    } catch (e) {
+      console.warn('[calendar-scan] Claude parse error:', e.message);
+      return res.json({ concerts: [], eventsScanned: events.length, parseError: true });
+    }
+
+    console.log(`[calendar-scan] Claude identified ${concertEvents.length} concerts out of ${events.length} events`);
+
+    // Step 2: Cross-reference each detected concert with Setlist.fm
+    const results = [];
+    for (const concert of concertEvents) {
+      if (!concert.artist) continue;
+      try {
+        const params = new URLSearchParams({ artistName: concert.artist });
+        if (concert.date) {
+          const [y, m, d] = concert.date.split('-');
+          if (d && m && y) params.set('date', `${d}-${m}-${y}`);
+        }
+        if (concert.city) {
+          const { city } = parseCityInput(concert.city);
+          if (city) params.set('cityName', city);
+        }
+
+        const url = `https://api.setlist.fm/rest/1.0/search/setlists?${params}`;
+        let setlistMatch = null;
+        try {
+          const sfRes = await setlistFmRequest(url, {
+            headers: { Accept: 'application/json', 'x-api-key': process.env.SETLISTFM_API_KEY }
+          });
+          const setlists = sfRes.data?.setlist || [];
+          if (setlists.length > 0) setlistMatch = setlists[0];
+        } catch (sfErr) {
+          if (sfErr.response?.status !== 404) console.warn('[calendar-scan] Setlist.fm error for', concert.artist, sfErr.message);
+        }
+
+        results.push({
+          calendarEvent: events[concert.index] || { summary: concert.artist, date: concert.date },
+          detected: concert,
+          setlist: setlistMatch
+        });
+      } catch (e) {
+        console.warn('[calendar-scan] Error processing', concert.artist, e.message);
+        results.push({
+          calendarEvent: events[concert.index] || { summary: concert.artist, date: concert.date },
+          detected: concert,
+          setlist: null
+        });
+      }
+    }
+
+    res.json({ concerts: results, eventsScanned: events.length });
+  } catch (err) {
+    console.error('[calendar-scan] Error:', err.message);
+    if (err.code === 401 || err.message?.includes('invalid_grant')) {
+      return res.status(401).json({ error: 'Calendar access expired. Please reconnect.' });
+    }
+    res.status(500).json({ error: err.message });
   }
 });
 
