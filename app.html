@@ -1502,6 +1502,13 @@
     }
     .landing-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
+    .anim-bg {
+      position: absolute; inset: 0; z-index: 0;
+      pointer-events: none;
+      background: url('/assets/WelcomeBG.png') center/cover no-repeat;
+    }
+    .landing-overlay .onb-step { position: relative; z-index: 2; }
+
     .onb-step { display: none; flex-direction: column; width: 100%; height: 100%; }
     .onb-step.active { display: flex; }
 
@@ -1537,7 +1544,7 @@
     /* Welcome screen */
     .onb-welcome-body {
       flex: 1; display: flex; flex-direction: column; align-items: center;
-      padding: 0 52px; padding-top: 100px;
+      padding: 0 40px; padding-top: 180px;
     }
     .onb-welcome-logo-wrap {
       display: flex; flex-direction: column; align-items: center; gap: 24px;
@@ -1554,19 +1561,28 @@
       display: flex; flex-direction: column; gap: 17px; width: 100%;
     }
     .onb-join-btn {
-      width: 100%; height: 45px; border-radius: 4px; border: none;
+      width: 100%; height: 45px; border-radius: var(--wc-radius); border: none;
       background: var(--wc-black); color: #fff;
-      font-family: var(--wc-font-body); font-size: 18px; font-weight: 600;
+      font-family: var(--wc-font-body); font-size: 18px; font-weight: 700;
       cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
     }
-    .onb-join-btn:active { transform: scale(0.97); }
+    .onb-join-btn:hover { background: #333; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+    .onb-join-btn:active { transform: scale(0.96); box-shadow: none; }
+    .onb-join-btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
     .onb-login-btn {
-      width: 100%; height: 45px; border-radius: 4px; border: none;
-      background: rgba(44, 41, 40, 0.2); color: #1F1E1D;
+      width: 100%; height: 45px; border-radius: var(--wc-radius);
+      border: 1px solid var(--wc-black);
+      background: var(--wc-gray-200); color: #1a1a1a;
       font-family: var(--wc-font-body); font-size: 18px; font-weight: 600;
       cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
     }
-    .onb-login-btn:active { transform: scale(0.97); }
+    .onb-login-btn:hover { background: #d9d6cf; }
+    .onb-login-btn:active { transform: scale(0.96); }
+    .onb-login-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
     .onb-progress-bar {
       width: 200px; height: 10px; border-radius: 4px;
       background: #E5E2DB; overflow: hidden; position: relative;
@@ -1577,9 +1593,9 @@
       background: var(--wc-black);
     }
     .onb-welcome-terms {
-      margin-top: auto; padding-bottom: 20px; font-size: 12px; color: #595959; text-align: center;
+      margin-top: auto; padding-bottom: 32px; font-size: 12px; font-weight: 500; color: var(--wc-black); text-align: center;
     }
-    .onb-welcome-terms a { color: #595959; text-decoration: underline; }
+    .onb-welcome-terms a { color: var(--wc-black); text-decoration: underline; }
 
     /* Shared step content styles */
     .onb-title {
@@ -1992,6 +2008,7 @@
 </head>
 <body>
   <div id="landingOverlay" class="landing-overlay">
+    <div class="anim-bg" aria-hidden="true"></div>
     <!-- Step 0: Welcome -->
     <div id="onbStep0" class="onb-step active">
       <div class="onb-welcome-body">
@@ -2000,13 +2017,13 @@
           <p class="onb-welcome-tagline">Track your shows. Share your story.</p>
         </div>
         <div class="onb-welcome-btns">
-          <button type="button" class="onb-join-btn" id="onbContinueBtn">Join</button>
-          <button type="button" class="onb-login-btn" id="onbSignInLink">Log In</button>
+          <button type="button" class="onb-join-btn" id="onbContinueBtn">Let's go</button>
+          <button type="button" class="onb-login-btn" id="onbSignInLink">I'm already in</button>
         </div>
         <div class="onb-progress-bar">
           <div class="onb-progress-fill" id="onbProgressFill" style="width:17%"></div>
         </div>
-        <p class="onb-welcome-terms">By continuing you are accepting our <a href="https://www.willcall.app/privacy">privacy policy</a>.</p>
+        <p class="onb-welcome-terms">By tapping continuing you are accepting <a href="https://www.willcall.app/privacy">our policy</a>.</p>
       </div>
     </div>
 
@@ -2736,6 +2753,7 @@
       return { getAll: getAll, saveAll: saveAll, add: add, remove: remove, renderList: renderList, loadFromServer: loadFromServer };
     })();
 
+    // Animated background for welcome/login screen
     (function() {
       // Set to false to require Supabase email OTP login again
       var AUTH_DISABLED = false;
@@ -2935,10 +2953,11 @@
       var _sendingOtp = false;
       async function sendOtp() {
         if (_sendingOtp) return;
-        var email = emailInput.value.trim();
+        var email = emailInput.value.trim().toLowerCase();
         if (!email || !email.includes('@')) { showFieldError('onbEmailError', 'Please enter a valid email'); return; }
         showFieldError('onbEmailError', '');
         onbData.email = email;
+        emailInput.value = email;
 
         var nextBtn = document.getElementById('onbEmailNextBtn');
         _sendingOtp = true;
@@ -2947,6 +2966,18 @@
         try {
           var sb = window._getSupabase();
           if (!sb) { showFieldError('onbEmailError', _supabaseInitError || 'Auth not ready. Try refreshing.'); _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; } return; }
+
+          var allowedRes = await sb.rpc('is_email_allowed', { input_email: email });
+          if (allowedRes.error) {
+            showFieldError('onbEmailError', 'Could not verify access. Please try again.');
+            _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; }
+            return;
+          }
+          if (allowedRes.data !== true) {
+            showFieldError('onbEmailError', "This email isn\u2019t on the list yet. Sign up at willcall.app to request access.");
+            _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; }
+            return;
+          }
 
           // Check if an account already exists via server-side lookup
           var checkRes = await fetch(window.location.origin + '/api/auth/check-email', {
