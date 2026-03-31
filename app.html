@@ -1833,23 +1833,11 @@
     }
 
     /* Onboarding results */
-    .onb-results-scroll { max-height: 380px; overflow-y: auto; width: 100%; }
-    .onb-result-card {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 0; border-bottom: 1px solid #E5E2DB;
+    .onb-results-scroll {
+      width: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 17px;
+      -webkit-overflow-scrolling: touch; padding-bottom: 80px;
     }
-    .onb-result-card:last-child { border-bottom: none; }
-    .onb-result-info { flex: 1; min-width: 0; }
-    .onb-result-artist { font-weight: 700; font-size: 14px; color: var(--wc-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .onb-result-detail { font-size: 12px; color: #595959; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .onb-result-add {
-      flex-shrink: 0; margin-left: 12px; padding: 6px 14px;
-      font-family: var(--wc-font-body); font-size: 12px; font-weight: 600;
-      color: #fff; border: none; border-radius: var(--wc-radius); cursor: pointer;
-      background: var(--wc-black);
-    }
-    .onb-result-add.added { background: #c8c6c0; color: #fff; cursor: default; }
-    .onb-result-add:active:not(.added) { transform: scale(0.95); }
+    .onb-results-scroll .show-card { margin-bottom: 0; }
 
     /* Photo prompt overlay */
     .photo-prompt-overlay {
@@ -2150,14 +2138,14 @@
         <div class="onb-header-logo"><img src="/assets/willcall-logo.svg" alt="willcall"></div>
         <button class="onb-header-btn right" id="onbSkipResults">Skip</button>
       </div>
-      <div class="onb-body">
-        <div class="onb-step-content" style="padding-top:20px;justify-content:flex-start">
+      <div class="onb-body" style="overflow-y:auto">
+        <div class="onb-step-content" style="padding-top:20px;justify-content:flex-start;overflow:visible">
           <p class="onb-title" style="font-size:20px;text-align:left;width:100%">Were you at these shows?</p>
           <div id="onbResultsLoading" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:40px;color:#595959;font-size:14px">
             <div class="spinner" style="width:28px;height:28px;border:3px solid #E5E2DB;border-top-color:#1F1E1D;border-radius:50%;animation:spin 0.8s linear infinite"></div>
             <span>Scanning for concerts...</span>
           </div>
-          <div id="onbResultsList" style="width:100%;margin-top:20px;display:none"></div>
+          <div id="onbResultsList" style="width:100%;margin-top:17px;display:none"></div>
           <p id="onbResultsEmpty" style="display:none;text-align:center;color:#595959;font-size:14px;margin-top:40px">No results found. You can add shows later from your profile.</p>
           <button type="button" class="onb-search-btn" id="onbResultsDoneBtn" style="margin-top:24px;display:none">Continue to profile</button>
         </div>
@@ -3256,6 +3244,75 @@
 
       var _onbConcerts = [];
 
+      function buildOnbShowCard(c, idx) {
+        var artist = (c.artist && c.artist.name) ? c.artist.name : (c._sourceArtist || 'Unknown');
+        var date = formatDate(c.eventDate);
+        var venue = (c.venue && c.venue.name) ? c.venue.name : '';
+        var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
+        var imgUrl = c._sourceArtistImage || c.imageUrl || '';
+        var imgHtml = imgUrl
+          ? '<div class="show-card-img-wrap"><img src="' + imgUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
+          : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
+        var attended = isAttended(c);
+
+        var html = '<div class="show-card" data-onb-idx="' + idx + '" data-card-type="onb-past">';
+        html += '<div class="show-card-inner">';
+        html += '<div class="show-card-default">';
+        html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
+        html += '<div class="concert-artist">' + artist + '</div>';
+        html += '<div class="concert-date">' + date + '</div>';
+        if (venue) html += '<div class="concert-venue">' + PIN_SVG + ' ' + venue + '</div>';
+        html += '</div></div>';
+        html += DOTS_HTML;
+        html += '</div>';
+        html += '<div class="show-card-actions">';
+        html += DOTS_HTML;
+        html += '<div class="card-actions-body">';
+        html += '<button type="button" class="card-action-btn" data-action="setlist">' + SETLIST_SVG + 'View Setlist</button>';
+        html += '<div class="card-action-divider"></div>';
+        if (attended) {
+          html += '<button type="button" class="card-action-btn" data-action="add-past" style="opacity:0.6;pointer-events:none">' + GOING_SVG + '✓ Added</button>';
+        } else {
+          html += '<button type="button" class="card-action-btn" data-action="add-past">' + GOING_SVG + 'I Was There</button>';
+        }
+        html += '</div></div>';
+        html += '</div></div>';
+        return html;
+      }
+
+      function backfillOnbImages(concerts, container) {
+        var missing = [];
+        concerts.forEach(function(c) {
+          var artist = (c.artist && c.artist.name) ? c.artist.name : (c._sourceArtist || '');
+          var hasImg = c._sourceArtistImage || c.imageUrl;
+          if (artist && !hasImg && missing.indexOf(artist) === -1) missing.push(artist);
+        });
+        if (missing.length === 0) return;
+        fetch('/api/ticketmaster/artist-images', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ artists: missing })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var imageMap = data.images || {};
+            concerts.forEach(function(c, i) {
+              var artist = (c.artist && c.artist.name) ? c.artist.name : (c._sourceArtist || '');
+              if (artist && imageMap[artist] && !c._sourceArtistImage && !c.imageUrl) {
+                c._sourceArtistImage = imageMap[artist];
+                var card = container.querySelector('[data-onb-idx="' + i + '"]');
+                if (card) {
+                  var wrap = card.querySelector('.show-card-img-wrap');
+                  if (wrap) {
+                    wrap.innerHTML = '<img src="' + imageMap[artist] + '" alt="' + artist + '" crossorigin="anonymous">';
+                  }
+                }
+              }
+            });
+          })
+          .catch(function() {});
+      }
+
       function runConcertSearch() {
         var loadingEl = document.getElementById('onbResultsLoading');
         var listEl = document.getElementById('onbResultsList');
@@ -3329,24 +3386,22 @@
             doneBtn.style.display = 'block';
 
             if (merged.length > 0) {
+              merged.sort(function(a, b) {
+                var da = a.eventDate || '', db = b.eventDate || '';
+                if (da > db) return -1;
+                if (da < db) return 1;
+                return 0;
+              });
               _onbConcerts = merged;
               var html = '<div class="onb-results-scroll">';
               merged.forEach(function(c, i) {
-                var artist = c.artist && c.artist.name ? c.artist.name : (c._sourceArtist || 'Unknown');
-                var d = formatDate(c.eventDate);
-                var v = c.venue && c.venue.name ? c.venue.name : '';
-                var city = c.venue && c.venue.city ? c.venue.city.name : '';
-                var detail = [d, v, city].filter(Boolean).join(' · ');
-                var attended = isAttended(c);
-                html += '<div class="onb-result-card">'
-                  + '<div class="onb-result-info"><div class="onb-result-artist">' + artist + '</div>'
-                  + '<div class="onb-result-detail">' + detail + '</div></div>'
-                  + '<button type="button" class="onb-result-add' + (attended ? ' added' : '') + '" data-onb-idx="' + i + '">'
-                  + (attended ? '✓ Added' : 'I was there') + '</button></div>';
+                html += buildOnbShowCard(c, i);
               });
               html += '</div>';
               listEl.innerHTML = html;
               listEl.style.display = 'block';
+              initCardSwipe(listEl);
+              backfillOnbImages(merged, listEl);
             } else {
               emptyEl.style.display = 'block';
             }
@@ -3360,14 +3415,31 @@
       }
 
       document.getElementById('onbResultsList').addEventListener('click', function(ev) {
-        var btn = ev.target.closest('.onb-result-add');
-        if (!btn || btn.classList.contains('added')) return;
-        var idx = parseInt(btn.getAttribute('data-onb-idx'), 10);
-        if (_onbConcerts[idx]) {
-          addAttendedShow(_onbConcerts[idx]);
-          btn.textContent = '✓ Added';
-          btn.classList.add('added');
+        var dots = ev.target.closest('.card-dots');
+        if (dots) {
+          var card = dots.closest('.show-card');
+          if (card) toggleCardOpen(card);
+          return;
         }
+        var actionBtn = ev.target.closest('.card-action-btn');
+        if (!actionBtn) return;
+        var card = actionBtn.closest('.show-card');
+        var action = actionBtn.dataset.action;
+        var idx = card ? parseInt(card.dataset.onbIdx, 10) : -1;
+        if (action === 'add-past' && _onbConcerts[idx] && !isAttended(_onbConcerts[idx])) {
+          addAttendedShow(_onbConcerts[idx]);
+          actionBtn.innerHTML = GOING_SVG + '✓ Added';
+          actionBtn.style.opacity = '0.6';
+          actionBtn.style.pointerEvents = 'none';
+        } else if (action === 'setlist') {
+          var c = _onbConcerts[idx];
+          if (c) {
+            var songs = extractSets(c);
+            if (songs && songs.length) alert('Setlist:\n' + songs.join('\n'));
+            else alert('No setlist available.');
+          }
+        }
+        if (card) card.classList.remove('open');
       });
 
       function finishOnboarding() {
