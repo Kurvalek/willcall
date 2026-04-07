@@ -820,13 +820,12 @@
       position: fixed; top: 0; bottom: 0;
       width: 0;
       background: var(--wc-near-black);
-      border-radius: 0 16px 16px 0;
-      z-index: 201; pointer-events: none;
+      z-index: 1001; pointer-events: none;
       overflow: hidden;
-      will-change: width, border-radius;
+      will-change: width;
     }
     #globalDrawer.settling {
-      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.35s ease;
+      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .card-drawer-label {
       position: absolute;
@@ -1549,6 +1548,10 @@
       padding-top: var(--safe-top);
       transition: opacity 0.35s, visibility 0.35s;
       overflow: hidden;
+      padding-left: var(--drawer-push, 0px);
+    }
+    .landing-overlay.settling-push {
+      transition: opacity 0.35s, visibility 0.35s, padding-left 0.35s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .landing-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
@@ -4237,8 +4240,6 @@
       positionDrawer();
       d.classList.remove('settling');
       d.style.width = width + 'px';
-      var radius = Math.max(4, 24 - width * 0.3);
-      d.style.borderRadius = '0 ' + radius + 'px ' + radius + 'px 0';
       if (width > 0) d.classList.add('active');
       if (width >= 20) d.classList.add('show-label');
       else d.classList.remove('show-label');
@@ -4246,15 +4247,22 @@
       pushContent(width);
     }
 
+    function getPushTargets() {
+      var targets = Array.from(document.querySelectorAll('.tab-content'));
+      var overlay = document.getElementById('landingOverlay');
+      if (overlay && !overlay.classList.contains('hidden')) targets.push(overlay);
+      return targets;
+    }
+
     function pushContent(px) {
-      document.querySelectorAll('.tab-content').forEach(function(el) {
+      getPushTargets().forEach(function(el) {
         el.classList.remove('settling-push');
         el.style.setProperty('--drawer-push', px + 'px');
       });
     }
 
     function settlePushContent() {
-      document.querySelectorAll('.tab-content').forEach(function(el) {
+      getPushTargets().forEach(function(el) {
         el.classList.add('settling-push');
         el.style.setProperty('--drawer-push', '0px');
         setTimeout(function() { el.classList.remove('settling-push'); }, 320);
@@ -4267,14 +4275,12 @@
       if (animate) {
         d.classList.add('settling');
         d.style.width = '0';
-        d.style.borderRadius = '';
         d.classList.remove('active');
         settlePushContent();
         setTimeout(function() { d.classList.remove('settling'); }, 360);
       } else {
         d.classList.remove('settling');
         d.style.width = '0';
-        d.style.borderRadius = '';
         d.classList.remove('active');
         pushContent(0);
       }
