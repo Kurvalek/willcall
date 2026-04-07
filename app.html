@@ -3289,7 +3289,7 @@
       document.getElementById('onbSkipResults').addEventListener('click', function() { finishOnboarding(); });
       document.getElementById('onbResultsDoneBtn').addEventListener('click', function() { finishOnboarding(); });
 
-      var _onbConcerts = [];
+      _onbConcerts = [];
 
       function buildOnbShowCard(c, idx) {
         var artist = (c.artist && c.artist.name) ? c.artist.name : (c._sourceArtist || 'Unknown');
@@ -4198,6 +4198,7 @@
       }
     }
 
+    var _onbConcerts = [];
     var _globalDrawer = null;
     function ensureGlobalDrawer() {
       if (_globalDrawer) return _globalDrawer;
