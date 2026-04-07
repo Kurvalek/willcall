@@ -52,7 +52,7 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --tab-height: 56px;
     }
-    html { background: var(--wc-near-black); min-height: 100vh; min-height: 100dvh; }
+    html { background: var(--wc-near-black); min-height: 100vh; min-height: 100dvh; overflow-x: clip; }
     body {
       font-family: var(--wc-font-body);
       background: var(--wc-bg);
@@ -64,10 +64,12 @@
       position: relative;
       padding-top: var(--safe-top);
       padding-bottom: calc(var(--tab-height) + 24px + var(--safe-bottom));
+      overflow-x: clip;
     }
 
 
-    .tab-content { display: none; padding: 16px 20px 24px; min-height: calc(100vh - 100px); position: relative; z-index: 1; }
+    .tab-content { display: none; padding: 16px 20px 24px; min-height: calc(100vh - 100px); position: relative; z-index: 1; margin-left: var(--drawer-push, 0px); }
+    .tab-content.settling-push { transition: margin-left 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
     .tab-content.active { display: block; }
     .profile-color-wash {
       display: none;
@@ -799,54 +801,71 @@
     }
     .show-card .setlist-link:hover { text-decoration: underline; }
 
-    .show-card-underlay {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: flex-start;
-      padding-left: 20px;
-      font-family: var(--wc-font-body); font-size: 14px; font-weight: 500;
-      color: var(--wc-gray-600);
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.15s ease;
-      z-index: 0;
-    }
     .show-card-inner { z-index: 1; }
-    .show-card.swiping-right .show-card-underlay { opacity: 1; }
-    .show-card.swiping-right .show-card-inner { transition: none; }
-    .show-card.swiped-away .show-card-inner {
-      animation: ticketToss 0.4s cubic-bezier(0.32, 0, 0.67, 0) forwards;
-    }
-    .show-card.swiped-away .show-card-underlay { opacity: 1; }
+    .show-card.dragging { overflow: visible; }
+    .show-card.dragging .show-card-inner { transition: none; will-change: transform, box-shadow; }
     .show-card.collapsing {
-      animation: collapseRow 0.35s ease forwards;
+      animation: collapseRow 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       overflow: hidden;
-    }
-    @keyframes ticketToss {
-      0% { opacity: 1; }
-      100% { transform: translateX(110%) rotate(8deg); opacity: 0; }
     }
     @keyframes collapseRow {
       0% { max-height: 120px; margin-bottom: 12px; opacity: 1; }
       100% { max-height: 0; margin-bottom: 0; opacity: 0; padding: 0; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .show-card.swiped-away .show-card-inner { animation: none; opacity: 0; }
       .show-card.collapsing { animation-duration: 0.01s; }
     }
 
-    .swipe-hint {
-      position: absolute; top: 50%; right: 16px;
-      transform: translateY(-50%);
-      background: var(--wc-black); color: #fff;
-      font-family: var(--wc-font-body); font-size: 12px; font-weight: 500;
-      padding: 6px 12px; border-radius: 20px;
-      display: flex; align-items: center; gap: 6px;
-      z-index: 10; pointer-events: auto; cursor: pointer;
-      opacity: 0; animation: hintFadeIn 0.4s ease 1s forwards;
+    #globalDrawer {
+      position: fixed; top: 0; bottom: 0;
+      width: 0;
+      background: var(--wc-near-black);
+      border-radius: 0 16px 16px 0;
+      z-index: 201; pointer-events: none;
+      overflow: hidden;
+      will-change: width, border-radius;
     }
-    .swipe-hint.dismissed { animation: hintFadeOut 0.25s ease forwards; }
-    @keyframes hintFadeIn { to { opacity: 1; } }
-    @keyframes hintFadeOut { to { opacity: 0; } }
+    #globalDrawer.settling {
+      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.35s ease;
+    }
+    .card-drawer-label {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--wc-font-body);
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #fff;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+    #globalDrawer.show-label .card-drawer-label { opacity: 1; }
+    #globalDrawer.pulse {
+      animation: drawerPulse 0.4s ease;
+    }
+    @keyframes drawerPulse {
+      0% { background: var(--wc-near-black); }
+      40% { background: rgba(255,255,255,0.18); }
+      100% { background: var(--wc-near-black); }
+    }
 
+    .show-card-confirm {
+      display: flex; align-items: center; justify-content: center;
+      height: 48px; overflow: hidden;
+      font-family: var(--wc-font-body);
+      font-size: 13px; font-weight: 500;
+      color: var(--wc-black);
+      letter-spacing: 0.02em;
+      opacity: 1;
+      transition: opacity 1.2s ease 0.8s, height 0.3s ease 2s;
+    }
+    .show-card-confirm.fading {
+      opacity: 0; height: 0;
+    }
     .add-past-shows-btn {
       display: flex;
       align-items: center;
@@ -3283,8 +3302,7 @@
           : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
         var attended = isAttended(c);
 
-        var html = '<div class="show-card" data-onb-idx="' + idx + '" data-card-type="onb-past" data-swipe-action="add-past"' + (attended ? ' data-already-added="1"' : '') + '>';
-        html += '<div class="show-card-underlay"><span class="underlay-text">I Was There</span></div>';
+        var html = '<div class="show-card" data-onb-idx="' + idx + '" data-card-type="onb-past" data-add-action="add-past"' + (attended ? ' data-already-added="1"' : '') + '>';
         html += '<div class="show-card-inner">';
         html += '<div class="show-card-default">';
         html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
@@ -3298,12 +3316,6 @@
         html += DOTS_HTML;
         html += '<div class="card-actions-body">';
         html += '<button type="button" class="card-action-btn" data-action="setlist">' + SETLIST_SVG + 'View Setlist</button>';
-        html += '<div class="card-action-divider"></div>';
-        if (attended) {
-          html += '<button type="button" class="card-action-btn" data-action="add-past" style="opacity:0.6;pointer-events:none">' + GOING_SVG + '✓ Added</button>';
-        } else {
-          html += '<button type="button" class="card-action-btn" data-action="add-past">' + GOING_SVG + 'I Was There</button>';
-        }
         html += '</div></div>';
         html += '</div></div>';
         return html;
@@ -3430,7 +3442,6 @@
               listEl.innerHTML = html;
               listEl.style.display = 'block';
               initCardSwipe(listEl);
-              setTimeout(function() { showSwipeHint(listEl); }, 200);
               backfillOnbImages(merged, listEl);
             } else {
               emptyEl.style.display = 'block';
@@ -4139,16 +4150,16 @@
       if (!wasOpen) card.classList.add('open');
     }
 
-    function canSwipeRightToAdd(card) {
-      if (!card.dataset.swipeAction) return false;
+    function canDrawerAdd(card) {
+      if (!card.dataset.addAction) return false;
       if (card.dataset.alreadyAdded === '1') return false;
       var ct = card.dataset.cardType || '';
       if (ct === 'profile-past' || ct === 'profile-upcoming') return false;
       return true;
     }
 
-    function commitSwipeRight(card) {
-      var action = card.dataset.swipeAction;
+    function commitDrawerAdd(card) {
+      var action = card.dataset.addAction;
       var ct = card.dataset.cardType || '';
 
       if (ct === 'onb-past') {
@@ -4185,23 +4196,132 @@
           }
         }
       }
-
-      localStorage.setItem('willcall_swipe_hint_seen', '1');
-      dismissSwipeHint();
     }
 
-    function animateSwipeAway(card) {
+    var _globalDrawer = null;
+    function ensureGlobalDrawer() {
+      if (_globalDrawer) return _globalDrawer;
+      _globalDrawer = document.getElementById('globalDrawer');
+      if (!_globalDrawer) {
+        _globalDrawer = document.createElement('div');
+        _globalDrawer.id = 'globalDrawer';
+        _globalDrawer.innerHTML = '<span class="card-drawer-label">add to shows</span>';
+        document.body.appendChild(_globalDrawer);
+      }
+      positionDrawer();
+      updateDrawerCount();
+      return _globalDrawer;
+    }
+
+    function updateDrawerCount() {
+      // Static label, no-op — kept for call-site compatibility
+    }
+
+    function positionDrawer() {
+      var d = ensureGlobalDrawer();
+      var bodyRect = document.body.getBoundingClientRect();
+      d.style.left = bodyRect.left + 'px';
+    }
+
+    function setDrawerLabel(card) {
+      var d = ensureGlobalDrawer();
+      var label = d.querySelector('.card-drawer-label');
+      if (!label) return;
+      var action = card ? card.dataset.addAction : '';
+      label.textContent = action === 'going' ? "I'm going" : "I was there";
+    }
+
+    function showDrawer(width, card) {
+      var d = ensureGlobalDrawer();
+      positionDrawer();
+      d.classList.remove('settling');
+      d.style.width = width + 'px';
+      var radius = Math.max(4, 24 - width * 0.3);
+      d.style.borderRadius = '0 ' + radius + 'px ' + radius + 'px 0';
+      if (width > 0) d.classList.add('active');
+      if (width >= 20) d.classList.add('show-label');
+      else d.classList.remove('show-label');
+      if (card) setDrawerLabel(card);
+      pushContent(width);
+    }
+
+    function pushContent(px) {
+      document.querySelectorAll('.tab-content').forEach(function(el) {
+        el.classList.remove('settling-push');
+        el.style.setProperty('--drawer-push', px + 'px');
+      });
+    }
+
+    function settlePushContent() {
+      document.querySelectorAll('.tab-content').forEach(function(el) {
+        el.classList.add('settling-push');
+        el.style.setProperty('--drawer-push', '0px');
+        setTimeout(function() { el.classList.remove('settling-push'); }, 320);
+      });
+    }
+
+    function hideDrawer(animate) {
+      var d = ensureGlobalDrawer();
+      d.classList.remove('show-label');
+      if (animate) {
+        d.classList.add('settling');
+        d.style.width = '0';
+        d.style.borderRadius = '';
+        d.classList.remove('active');
+        settlePushContent();
+        setTimeout(function() { d.classList.remove('settling'); }, 360);
+      } else {
+        d.classList.remove('settling');
+        d.style.width = '0';
+        d.style.borderRadius = '';
+        d.classList.remove('active');
+        pushContent(0);
+      }
+    }
+
+    function pulseDrawer() {
+      var d = ensureGlobalDrawer();
+      d.classList.remove('pulse');
+      void d.offsetWidth;
+      d.classList.add('pulse');
+      updateDrawerCount();
+      setTimeout(function() { d.classList.remove('pulse'); }, 400);
+    }
+
+    function snapCardBack(card) {
       var inner = card.querySelector('.show-card-inner');
-      var underlay = card.querySelector('.underlay-text');
+      card.classList.remove('dragging');
+      if (inner) {
+        inner.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease, box-shadow 0.3s ease';
+        inner.style.transform = '';
+        inner.style.transformOrigin = '';
+        inner.style.opacity = '';
+        inner.style.boxShadow = '';
+        setTimeout(function() { inner.style.transition = ''; }, 360);
+      }
+      hideDrawer(true);
+    }
 
-      if (inner) inner.style.transform = '';
-      card.classList.remove('swiping-right');
-      card.classList.add('swiped-away');
+    function animateDrawerAdd(card) {
+      var inner = card.querySelector('.show-card-inner');
       card.dataset.alreadyAdded = '1';
+      card.classList.remove('dragging');
 
-      setTimeout(function() {
-        if (underlay) underlay.textContent = 'Added to your shows';
-      }, 300);
+      if (inner) {
+        inner.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, box-shadow 0.3s ease';
+        inner.style.transform = 'translateX(-110%) scaleX(0.3) skewX(8deg)';
+        inner.style.transformOrigin = 'left center';
+        inner.style.opacity = '0';
+        inner.style.boxShadow = '';
+      }
+
+      hideDrawer(true);
+
+      var confirmEl = document.createElement('div');
+      confirmEl.className = 'show-card-confirm';
+      var isUpcoming = card.dataset.addAction === 'going';
+      confirmEl.textContent = isUpcoming ? 'Added to upcoming shows.' : 'Added to your shows.';
+      card.parentNode.insertBefore(confirmEl, card);
 
       setTimeout(function() {
         card.classList.add('collapsing');
@@ -4209,93 +4329,129 @@
           card.removeEventListener('animationend', handler);
           card.remove();
         });
-      }, 800);
+        requestAnimationFrame(function() {
+          confirmEl.classList.add('fading');
+          confirmEl.addEventListener('transitionend', function fadeHandler() {
+            confirmEl.removeEventListener('transitionend', fadeHandler);
+            confirmEl.remove();
+          });
+        });
+      }, 350);
     }
 
-    function snapBack(card) {
-      var inner = card.querySelector('.show-card-inner');
-      card.classList.remove('swiping-right');
-      if (inner) {
-        inner.style.transition = 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        inner.style.transform = '';
-        setTimeout(function() { inner.style.transition = ''; }, 360);
-      }
-    }
-
-    var _swipeHintTimer = null;
-    function dismissSwipeHint() {
-      var hint = document.querySelector('.swipe-hint');
-      if (hint && !hint.classList.contains('dismissed')) {
-        hint.classList.add('dismissed');
-        setTimeout(function() { hint.remove(); }, 300);
-      }
-      if (_swipeHintTimer) { clearTimeout(_swipeHintTimer); _swipeHintTimer = null; }
-    }
-    function showSwipeHint(container) {
-      if (localStorage.getItem('willcall_swipe_hint_seen') === '1') return;
-      var firstCard = container.querySelector('.show-card[data-swipe-action]');
-      if (!firstCard || firstCard.dataset.alreadyAdded === '1') return;
-      if (firstCard.querySelector('.swipe-hint')) return;
-      firstCard.style.position = 'relative';
-      var hint = document.createElement('div');
-      hint.className = 'swipe-hint';
-      hint.innerHTML = 'Swipe right to add <span style="font-size:14px">→</span>';
-      hint.addEventListener('click', function() {
-        localStorage.setItem('willcall_swipe_hint_seen', '1');
-        dismissSwipeHint();
-      });
-      firstCard.appendChild(hint);
-      _swipeHintTimer = setTimeout(function() { dismissSwipeHint(); }, 5000);
-    }
+    var ZONE_MENU = 60;
+    var ZONE_ADD = 180;
+    var FLING_VEL = 0.5;
+    var FLING_MIN_DIST = 60;
 
     function initCardSwipe(container) {
-      var startX = 0, startY = 0, currentCard = null, swiping = false, direction = 0, mouseDown = false;
+      ensureGlobalDrawer();
+      var startX = 0, startY = 0, startTime = 0;
+      var currentCard = null, swiping = false, mouseDown = false;
+      var lastX = 0, lastTime = 0;
+      var velX = 0, prevX = 0, prevTime = 0;
 
       function onDragStart(card, x, y) {
         currentCard = card;
-        startX = x;
-        startY = y;
+        startX = x; startY = y; startTime = Date.now();
+        lastX = x; lastTime = startTime;
+        velX = 0;
         swiping = false;
-        direction = 0;
       }
+
       function onDragMove(x, y) {
         if (!currentCard) return;
         var dx = x - startX;
         var dy = y - startY;
-        if (!swiping && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
-          swiping = true;
-          direction = dx > 0 ? 1 : -1;
-        }
-        if (!swiping) return;
-        if (direction === 1 && canSwipeRightToAdd(currentCard)) {
-          var clampedDx = Math.max(0, dx);
-          var angle = clampedDx * 0.04;
-          var inner = currentCard.querySelector('.show-card-inner');
-          if (inner) inner.style.transform = 'translateX(' + clampedDx + 'px) rotate(' + angle + 'deg)';
-          currentCard.classList.add('swiping-right');
+        if (!swiping && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) swiping = true;
+        if (!swiping || dx > 0) return;
+
+        var absDx = Math.abs(dx);
+        var inner = currentCard.querySelector('.show-card-inner');
+        currentCard.classList.add('dragging');
+        var now = Date.now();
+        var dt = Math.max(1, now - lastTime);
+        if (dt > 0) velX = (x - lastX) / dt;
+        lastX = x; lastTime = now;
+
+        var canAdd = canDrawerAdd(currentCard);
+
+        if (canAdd && absDx > ZONE_MENU) {
+          var drawerProgress = Math.min(1, (absDx - ZONE_MENU) / (ZONE_ADD - ZONE_MENU));
+          var eased = 1 - Math.pow(1 - drawerProgress, 2);
+          var scaleX = 1 - drawerProgress * 0.5;
+          var skew = drawerProgress * 8;
+          var opacity = 1 - drawerProgress * 0.3;
+          var drawerWidth = 16 + eased * 44;
+
+          var lift = Math.sin(drawerProgress * Math.PI);
+          var shadowBlur = (6 + lift * 48).toFixed(0);
+          var shadowSpread = (lift * 12).toFixed(0);
+          var shadowY = (3 + lift * 16).toFixed(0);
+          var shadowAlpha = (0.1 + lift * 0.25).toFixed(2);
+
+          if (inner) {
+            inner.style.transformOrigin = 'left center';
+            inner.style.transform = 'translateX(' + dx + 'px) scaleX(' + scaleX.toFixed(3) + ') skewX(' + skew.toFixed(1) + 'deg)';
+            inner.style.opacity = opacity.toFixed(2);
+            inner.style.boxShadow = '0 ' + shadowY + 'px ' + shadowBlur + 'px ' + shadowSpread + 'px rgba(0,0,0,' + shadowAlpha + ')';
+          }
+          showDrawer(drawerWidth, currentCard);
+        } else {
+          var clampX = canAdd ? dx : Math.max(dx, -ZONE_MENU);
+          var z1progress = Math.min(1, absDx / ZONE_MENU);
+          var z1blur = (z1progress * 12).toFixed(0);
+          var z1y = (1 + z1progress * 4).toFixed(0);
+          var z1alpha = (z1progress * 0.15).toFixed(2);
+          if (inner) {
+            inner.style.transformOrigin = 'left center';
+            inner.style.transform = 'translateX(' + clampX + 'px) scaleX(1) skewX(0deg)';
+            inner.style.opacity = '';
+            inner.style.boxShadow = absDx > 5 ? '0 ' + z1y + 'px ' + z1blur + 'px 0px rgba(0,0,0,' + z1alpha + ')' : '';
+          }
+          if (_globalDrawer && _globalDrawer.classList.contains('active')) hideDrawer();
+          else pushContent(0);
         }
       }
+
       function onDragEnd(x) {
         if (!currentCard || !swiping) { currentCard = null; return; }
         var dx = x - startX;
-        if (direction === 1 && canSwipeRightToAdd(currentCard)) {
-          if (dx > 100) {
-            commitSwipeRight(currentCard);
-            animateSwipeAway(currentCard);
-          } else {
-            snapBack(currentCard);
-          }
-        } else if (direction === -1) {
-          if (dx < -40) {
-            document.querySelectorAll('.show-card.open').forEach(function(c) { c.classList.remove('open'); });
-            currentCard.classList.add('open');
-          } else if (dx > 40) {
+        if (dx > 0) {
+          if (dx > 40 && currentCard.classList.contains('open')) {
             currentCard.classList.remove('open');
           }
+          currentCard = null; swiping = false; return;
         }
+
+        var absDx = Math.abs(dx);
+        var flung = Math.abs(velX) > FLING_VEL && absDx > FLING_MIN_DIST;
+
+        if (canDrawerAdd(currentCard) && (absDx >= ZONE_ADD || flung)) {
+          commitDrawerAdd(currentCard);
+          animateDrawerAdd(currentCard);
+        } else if (absDx > ZONE_MENU && canDrawerAdd(currentCard)) {
+          snapCardBack(currentCard);
+        } else if (absDx >= ZONE_MENU / 2) {
+          document.querySelectorAll('.show-card.open').forEach(function(c) { c.classList.remove('open'); });
+          currentCard.classList.remove('dragging');
+          currentCard.classList.add('open');
+          var inner = currentCard.querySelector('.show-card-inner');
+          if (inner) {
+            inner.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+            inner.style.transform = '';
+            inner.style.transformOrigin = '';
+            inner.style.opacity = '';
+            inner.style.boxShadow = '';
+            setTimeout(function() { inner.style.transition = ''; }, 310);
+          }
+          hideDrawer();
+        } else {
+          snapCardBack(currentCard);
+        }
+
         currentCard = null;
         swiping = false;
-        direction = 0;
       }
 
       container.addEventListener('touchstart', function(e) {
@@ -4303,11 +4459,24 @@
         if (card) onDragStart(card, e.touches[0].clientX, e.touches[0].clientY);
       }, { passive: true });
       container.addEventListener('touchmove', function(e) {
-        onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+        if (currentCard) onDragMove(e.touches[0].clientX, e.touches[0].clientY);
       }, { passive: true });
       container.addEventListener('touchend', function(e) {
         onDragEnd(e.changedTouches[0].clientX);
       }, { passive: true });
+
+      function onWindowMouseMove(e) {
+        if (!mouseDown) return;
+        e.preventDefault();
+        onDragMove(e.clientX, e.clientY);
+      }
+      function onWindowMouseUp(e) {
+        if (!mouseDown) return;
+        mouseDown = false;
+        window.removeEventListener('mousemove', onWindowMouseMove);
+        window.removeEventListener('mouseup', onWindowMouseUp);
+        onDragEnd(e.clientX);
+      }
 
       container.addEventListener('mousedown', function(e) {
         var card = e.target.closest('.show-card');
@@ -4315,25 +4484,8 @@
         e.preventDefault();
         mouseDown = true;
         onDragStart(card, e.clientX, e.clientY);
-      });
-      container.addEventListener('mousemove', function(e) {
-        if (!mouseDown) return;
-        onDragMove(e.clientX, e.clientY);
-      });
-      container.addEventListener('mouseup', function(e) {
-        if (!mouseDown) return;
-        mouseDown = false;
-        onDragEnd(e.clientX);
-      });
-      container.addEventListener('mouseleave', function() {
-        if (!mouseDown) return;
-        mouseDown = false;
-        if (currentCard && swiping && direction === 1 && canSwipeRightToAdd(currentCard)) {
-          snapBack(currentCard);
-        }
-        currentCard = null;
-        swiping = false;
-        direction = 0;
+        window.addEventListener('mousemove', onWindowMouseMove);
+        window.addEventListener('mouseup', onWindowMouseUp);
       });
     }
 
@@ -5107,9 +5259,7 @@
       var ticketUrl = ev.url || '';
       var isUpcoming = cardType.indexOf('upcoming') !== -1 || cardType === 'search-nearby';
 
-      var swipeLabel = isUpcoming ? "I'm Going" : 'I Was There';
-      var html = '<div class="show-card" data-search-idx="' + idx + '" data-card-type="' + cardType + '" data-ticket-url="' + ticketUrl + '" data-swipe-action="' + (isUpcoming ? 'going' : 'add-past') + '">';
-      html += '<div class="show-card-underlay"><span class="underlay-text">' + swipeLabel + '</span></div>';
+      var html = '<div class="show-card" data-search-idx="' + idx + '" data-card-type="' + cardType + '" data-ticket-url="' + ticketUrl + '" data-add-action="' + (isUpcoming ? 'going' : 'add-past') + '">';
       html += '<div class="show-card-inner">';
       html += '<div class="show-card-default">';
       html += '<div class="show-card-layout">' + imgHtml + '<div class="show-card-content">';
@@ -5124,12 +5274,8 @@
       html += '<div class="card-actions-body">';
       if (isUpcoming) {
         html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
-        html += '<div class="card-action-divider"></div>';
-        html += '<button type="button" class="card-action-btn" data-action="going">' + GOING_SVG + "I'm Going</button>";
       } else {
         html += '<button type="button" class="card-action-btn" data-action="setlist">' + SETLIST_SVG + 'View Setlist</button>';
-        html += '<div class="card-action-divider"></div>';
-        html += '<button type="button" class="card-action-btn" data-action="add-past">' + GOING_SVG + 'I Was There</button>';
       }
       html += '</div></div>';
       html += '</div></div>';
@@ -5142,9 +5288,6 @@
         html += buildShowCardHtml(ev, idx, cardType);
       });
       container.innerHTML = html;
-      if (cardType.indexOf('past') !== -1) {
-        setTimeout(function() { showSwipeHint(container); }, 200);
-      }
     }
 
     function handleDiscoverActions(ev) {
@@ -5269,7 +5412,6 @@
           html += buildShowCardHtml(ev, idx, 'past-default');
         });
         el.innerHTML = html;
-        setTimeout(function() { showSwipeHint(el); }, 200);
       } catch (err) {
         el.innerHTML = '<div class="empty-state">Could not load suggestions.</div>';
       }
