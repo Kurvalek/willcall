@@ -2090,6 +2090,7 @@
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://tally.so/widgets/embed.js"></script>
 </head>
 <body>
   <div id="landingOverlay" class="landing-overlay">
@@ -6426,6 +6427,43 @@
     function openCheckIn() {
       openCheckInSheet();
     }
+
+    // Tally survey popup
+    (function() {
+      var SURVEY_KEY = 'willcall_survey_shown';
+      var SURVEY_DELAY = 3 * 60 * 1000;
+      var FORM_ID = 'dWDEro';
+
+      function wasSurveyShown() {
+        return localStorage.getItem(SURVEY_KEY) === '1';
+      }
+
+      function showSurvey() {
+        if (wasSurveyShown()) return;
+        localStorage.setItem(SURVEY_KEY, '1');
+        if (typeof Tally !== 'undefined' && Tally.openPopup) {
+          Tally.openPopup(FORM_ID, {
+            width: 376,
+            emoji: { text: '🎤', animation: 'wave' },
+            autoClose: 3000,
+            showOnce: true
+          });
+        }
+      }
+
+      var timer = setTimeout(showSurvey, SURVEY_DELAY);
+
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden' && !wasSurveyShown()) {
+          clearTimeout(timer);
+          showSurvey();
+        }
+      });
+
+      window.addEventListener('beforeunload', function() {
+        if (!wasSurveyShown()) showSurvey();
+      });
+    })();
   </script>
 </body>
 </html>
