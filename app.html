@@ -827,6 +827,9 @@
       z-index: 1002;
       pointer-events: none;
       will-change: transform;
+      transform: scale(0.5);
+      opacity: 0;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
     }
     .swipe-thumb img,
     .swipe-thumb .show-card-fallback {
@@ -4356,13 +4359,13 @@
       if (_swipeThumb) {
         var drawerRect = _globalDrawer ? _globalDrawer.getBoundingClientRect() : null;
         var targetLeft = drawerRect ? drawerRect.left : 0;
-        _swipeThumb.style.transition = 'left 0.45s cubic-bezier(0.16, 1, 0.3, 1), top 0.35s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease';
+        _swipeThumb.style.transition = 'left 0.65s cubic-bezier(0.16, 1, 0.3, 1), top 0.5s ease, transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.55s ease';
         _swipeThumb.style.left = (targetLeft - 28) + 'px';
         _swipeThumb.style.transform = 'scale(0.3)';
         _swipeThumb.style.opacity = '0';
         var thumb = _swipeThumb;
         _swipeThumb = null;
-        setTimeout(function() { thumb.remove(); }, 500);
+        setTimeout(function() { thumb.remove(); }, 700);
         if (inner) {
           inner.style.transition = '';
           inner.style.transform = '';
@@ -4464,14 +4467,26 @@
               _swipeThumb = document.createElement('div');
               _swipeThumb.className = 'swipe-thumb';
               if (imgWrap) _swipeThumb.innerHTML = imgWrap.innerHTML;
+              _swipeThumb.style.left = (x - 28) + 'px';
+              _swipeThumb.style.top = (y - 28) + 'px';
               document.body.appendChild(_swipeThumb);
+              requestAnimationFrame(function() {
+                if (_swipeThumb) {
+                  _swipeThumb.style.transform = 'scale(1)';
+                  _swipeThumb.style.opacity = '1';
+                }
+              });
+              if (inner) {
+                inner.style.transition = 'opacity 0.25s ease';
+                inner.style.opacity = '0';
+              }
+            } else {
+              _swipeThumb.style.left = (x - 28) + 'px';
+              _swipeThumb.style.top = (y - 28) + 'px';
             }
-            _swipeThumb.style.left = (x - 28) + 'px';
-            _swipeThumb.style.top = (y - 28) + 'px';
             var thumbLift = Math.sin(drawerProgress * Math.PI);
             _swipeThumb.style.boxShadow = '0 ' + (4 + thumbLift * 14).toFixed(0) + 'px '
               + (8 + thumbLift * 28).toFixed(0) + 'px rgba(0,0,0,' + (0.15 + thumbLift * 0.2).toFixed(2) + ')';
-            if (inner) inner.style.opacity = '0';
             var thumbZone = (drawerProgress - 0.75) / 0.25;
             drawerWidth = drawerWidth + thumbZone * 24;
           } else {
@@ -4485,6 +4500,7 @@
             var shadowY = (3 + lift * 16).toFixed(0);
             var shadowAlpha = (0.1 + lift * 0.25).toFixed(2);
             if (inner) {
+              inner.style.transition = '';
               inner.style.transformOrigin = 'left center';
               inner.style.transform = 'translateX(' + dx + 'px) scaleX(' + scaleX.toFixed(3) + ') skewX(' + skew.toFixed(1) + 'deg)';
               inner.style.opacity = opacity.toFixed(2);
