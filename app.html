@@ -112,6 +112,15 @@
       text-decoration: none;
     }
     .empty-state a:hover { text-decoration: underline; }
+    .empty-state-btn {
+      display: inline-block; margin-top: 12px;
+      padding: 8px 20px; border-radius: 8px;
+      background: var(--wc-gray-200, #e5e2db);
+      color: var(--wc-text-primary); font-family: var(--wc-font-body);
+      font-size: 13px; font-weight: 600;
+      border: none; cursor: pointer;
+    }
+    .empty-state-btn:hover { background: var(--wc-gray-300, #d5d2cb); }
 
     .concert-card {
       background: rgba(255, 255, 255, 0.15);
@@ -604,6 +613,7 @@
       scrollbar-width: none;
     }
     #top-artists-list::-webkit-scrollbar, .top-artists-scroll::-webkit-scrollbar { display: none; }
+    #top-artists-list > .empty-state { width: 100%; flex-shrink: 0; }
     .top-artist-item {
       flex: 0 0 104px;
       width: 104px;
@@ -897,6 +907,40 @@
     .show-card-confirm.fading {
       opacity: 0; height: 0;
     }
+
+    .swipe-hint {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      background: var(--wc-gray-200, #e5e2db);
+      border-radius: 8px;
+      font-family: var(--wc-font-body);
+      font-size: 12px; color: var(--wc-gray-600, #888);
+      animation: hintAppear 0.25s ease both, hintBounce 0.7s ease 1s both;
+    }
+    .swipe-hint-text { flex: 1; text-align: center; }
+    .swipe-hint-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--wc-gray-600, #888); font-size: 16px; line-height: 1;
+      padding: 0 0 0 8px; opacity: 0.6;
+    }
+    .swipe-hint-close:hover { opacity: 1; }
+    .swipe-hint.hiding {
+      transition: opacity 0.2s ease, height 0.2s ease, margin 0.2s ease, padding 0.2s ease;
+      opacity: 0; height: 0; margin: 0; padding: 0; overflow: hidden;
+    }
+    @keyframes hintAppear {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes hintBounce {
+      0% { transform: translateX(0); }
+      30% { transform: translateX(-10px); }
+      50% { transform: translateX(3px); }
+      70% { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
+
     .add-past-shows-btn {
       display: flex;
       align-items: center;
@@ -1895,6 +1939,15 @@
       border: 1px solid #E5E2DB;
     }
     .settings-connection-btn.secondary:hover { background: #f5f5f5; }
+    .settings-form-input {
+      padding: 10px 14px; width: 160px;
+      background: #fff; border: 1px solid var(--wc-gray-100, #f0ede7); border-radius: 2px;
+      font-family: var(--wc-font-body); font-size: 14px; color: var(--wc-text-primary);
+      outline: none; text-align: center;
+      caret-color: var(--wc-black); transition: border-color 0.15s ease;
+    }
+    .settings-form-input:focus { border-color: var(--wc-black); }
+    .settings-form-input::placeholder { color: var(--wc-gray-600, #5c5955); }
     .settings-connections-soon {
       font-size: 12px;
       color: #999;
@@ -2244,6 +2297,10 @@
       <div class="onb-body" style="overflow-y:auto">
         <div class="onb-step-content" style="padding-top:20px;justify-content:flex-start;overflow:visible">
           <p class="onb-title" style="font-size:20px;text-align:left;width:100%">Were you at these shows?</p>
+          <div class="swipe-hint" id="onbSwipeHint" style="display:none">
+            <span class="swipe-hint-text">Swipe left to add to your shows</span>
+            <button class="swipe-hint-close" aria-label="Dismiss">&times;</button>
+          </div>
           <div id="onbResultsLoading" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:40px;color:#595959;font-size:14px">
             <div class="spinner" style="width:28px;height:28px;border:3px solid #E5E2DB;border-top-color:#1F1E1D;border-radius:50%;animation:spin 0.8s linear infinite"></div>
             <span>Scanning for concerts...</span>
@@ -2320,7 +2377,8 @@
       </div>
       <div id="profile-shows">
         <div class="empty-state">
-          <a href="#" onclick="openLastfmSheet(); return false;">Find concerts from Last.fm</a> or add a show with the + button.
+          <p>Connect services in settings so we can find your past shows.</p>
+          <button type="button" class="empty-state-btn" onclick="document.getElementById('settingsSheet').classList.add('open');">Go to Settings</button>
         </div>
       </div>
       <button type="button" class="add-past-shows-btn" onclick="goToDiscoverPast()">
@@ -2366,6 +2424,10 @@
     <div id="discover-upcoming-content" class="discover-tab-content active">
       <div id="discover-upcoming-defaults">
         <h2 class="section-title" style="margin-bottom:16px">Going to any of these shows?</h2>
+        <div class="swipe-hint" data-swipe-hint="discover-upcoming">
+          <span class="swipe-hint-text">Swipe left to add to your shows</span>
+          <button class="swipe-hint-close" aria-label="Dismiss">&times;</button>
+        </div>
         <div id="discover-upcoming-list" class="discover-show-list"></div>
       </div>
       <div id="discover-upcoming-results" class="discover-show-results hidden"></div>
@@ -2374,6 +2436,10 @@
     <div id="discover-past-content" class="discover-tab-content">
       <div id="discover-past-defaults">
         <h2 class="section-title" style="margin-bottom:16px">Were you at these shows?</h2>
+        <div class="swipe-hint" data-swipe-hint="discover-past">
+          <span class="swipe-hint-text">Swipe left to add to your shows</span>
+          <button class="swipe-hint-close" aria-label="Dismiss">&times;</button>
+        </div>
         <div id="discover-past-list" class="discover-show-list"></div>
       </div>
       <div id="discover-past-results" class="discover-show-results hidden"></div>
@@ -2618,7 +2684,7 @@
             <div class="settings-connection-status" id="settingsLastfmStatus">Not connected</div>
           </div>
           <div class="settings-connection-actions" id="settingsLastfmActions">
-            <input type="text" id="settingsLastfmInput" placeholder="Last.fm username" style="padding:8px 12px;border:2px solid var(--wc-gray-200);border-radius:var(--wc-radius);font-family:inherit;font-size:14px;width:160px">
+            <input type="text" id="settingsLastfmInput" placeholder="Last.fm username" class="settings-form-input">
             <button type="button" class="settings-connection-btn primary" id="settingsLastfmSaveBtn">Save</button>
             <button type="button" class="settings-connection-btn secondary" id="settingsLastfmDisconnectBtn" style="display:none">Disconnect</button>
           </div>
@@ -3477,6 +3543,8 @@
               html += '</div>';
               listEl.innerHTML = html;
               listEl.style.display = 'block';
+              var onbHint = document.getElementById('onbSwipeHint');
+              if (onbHint) onbHint.style.display = '';
               initCardSwipe(listEl);
               backfillOnbImages(merged, listEl);
             } else {
@@ -5533,7 +5601,7 @@
       if (!el) return;
       var lastfmUser = localStorage.getItem('willcall_lastfm_username');
       if (!lastfmUser) {
-        el.innerHTML = '<div class="empty-state" style="padding:24px 16px"><p>Connect your Last.fm in Settings to discover shows matched to your listening history.</p></div>';
+        el.innerHTML = '<div class="empty-state" style="padding:24px 16px"><p>Connect services in settings so we can find your past shows.</p><button type="button" class="empty-state-btn" onclick="document.getElementById(\'settingsSheet\').classList.add(\'open\');">Go to Settings</button></div>';
         return;
       }
       var locs = WillcallLocations.getAll();
@@ -6427,6 +6495,14 @@
     function openCheckIn() {
       openCheckInSheet();
     }
+
+    // Swipe hint dismiss handlers
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.swipe-hint-close');
+      if (!btn) return;
+      var hint = btn.closest('.swipe-hint');
+      if (hint) hint.classList.add('hiding');
+    });
 
     // Tally survey popup
     (function() {
