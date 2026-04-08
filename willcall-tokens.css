@@ -9,6 +9,7 @@
   --wc-black: #1F1E1D;
   --wc-near-black: #2C2928;
   --wc-gray-600: #5C5955;
+  --wc-gray-500: #706B65;
   --wc-gray-400: #A8A49C;
   --wc-gray-300: #D1CEC7;
   --wc-gray-200: #E5E2DB;
@@ -32,7 +33,7 @@
   --wc-bg-input: rgba(255, 255, 255, 0.6);
   --wc-text-primary: var(--wc-black);
   --wc-text-secondary: var(--wc-gray-600);
-  --wc-text-muted: var(--wc-gray-400);
+  --wc-text-muted: var(--wc-gray-500);
   --wc-border: rgba(0, 0, 0, 0.08);
   --wc-border-card: rgba(0, 0, 0, 0.06);
 
