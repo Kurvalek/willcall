@@ -807,7 +807,7 @@
     .show-card.dragging { overflow: visible; cursor: grabbing; }
     .show-card.dragging .show-card-inner { transition: none; will-change: transform, box-shadow; }
     .show-card.collapsing {
-      animation: collapseRow 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: collapseRow 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       overflow: hidden;
     }
     @keyframes collapseRow {
@@ -839,7 +839,8 @@
     }
 
     #globalDrawer {
-      position: fixed; top: 0; bottom: 0;
+      position: fixed; top: 0;
+      bottom: calc(var(--tab-height) + var(--safe-bottom));
       width: 0;
       background: var(--wc-near-black);
       z-index: 1001; pointer-events: none;
@@ -854,7 +855,7 @@
       top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       font-family: var(--wc-font-body);
-      font-size: 11px; font-weight: 600;
+      font-size: 13px; font-weight: 600;
       letter-spacing: 0.05em;
       text-transform: uppercase;
       color: #fff;
@@ -4355,13 +4356,13 @@
       if (_swipeThumb) {
         var drawerRect = _globalDrawer ? _globalDrawer.getBoundingClientRect() : null;
         var targetLeft = drawerRect ? drawerRect.left : 0;
-        _swipeThumb.style.transition = 'left 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease';
+        _swipeThumb.style.transition = 'left 0.45s cubic-bezier(0.16, 1, 0.3, 1), top 0.35s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease';
         _swipeThumb.style.left = (targetLeft - 28) + 'px';
         _swipeThumb.style.transform = 'scale(0.3)';
         _swipeThumb.style.opacity = '0';
         var thumb = _swipeThumb;
         _swipeThumb = null;
-        setTimeout(function() { thumb.remove(); }, 350);
+        setTimeout(function() { thumb.remove(); }, 500);
         if (inner) {
           inner.style.transition = '';
           inner.style.transform = '';
@@ -4371,7 +4372,7 @@
         }
       } else {
         if (inner) {
-          inner.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, box-shadow 0.3s ease';
+          inner.style.transition = 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, box-shadow 0.4s ease';
           inner.style.transform = 'translateX(-110%) scaleX(0.3) skewX(8deg)';
           inner.style.transformOrigin = 'left center';
           inner.style.opacity = '0';
@@ -4381,15 +4382,15 @@
 
       var d = ensureGlobalDrawer();
       d.classList.remove('settling');
-      d.style.transition = 'width 0.15s ease-out';
+      d.style.transition = 'width 0.25s ease-out';
       d.style.width = '90px';
       setTimeout(function() {
-        d.style.transition = 'width 0.35s cubic-bezier(0.22, 1, 0.36, 1)';
+        d.style.transition = 'width 0.45s cubic-bezier(0.22, 1, 0.36, 1)';
         d.style.width = '0';
         d.classList.remove('active', 'show-label');
         settlePushContent();
-        setTimeout(function() { d.style.transition = ''; }, 400);
-      }, 200);
+        setTimeout(function() { d.style.transition = ''; }, 500);
+      }, 350);
       popHomeIcon();
 
       var confirmEl = document.createElement('div');
@@ -4411,7 +4412,7 @@
             confirmEl.remove();
           });
         });
-      }, 350);
+      }, 600);
     }
 
     var ZONE_MENU = 60;
