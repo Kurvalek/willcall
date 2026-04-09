@@ -6509,6 +6509,7 @@
       var SURVEY_KEY = 'willcall_survey_shown';
       var SURVEY_DELAY = 3 * 60 * 1000;
       var FORM_ID = 'dWDEro';
+      var _wentAway = false;
 
       function wasSurveyShown() {
         return localStorage.getItem(SURVEY_KEY) === '1';
@@ -6516,28 +6517,26 @@
 
       function showSurvey() {
         if (wasSurveyShown()) return;
+        if (typeof Tally === 'undefined' || !Tally.openPopup) return;
         localStorage.setItem(SURVEY_KEY, '1');
-        if (typeof Tally !== 'undefined' && Tally.openPopup) {
-          Tally.openPopup(FORM_ID, {
-            width: 376,
-            emoji: { text: '🎤', animation: 'wave' },
-            autoClose: 3000,
-            showOnce: true
-          });
-        }
+        Tally.openPopup(FORM_ID, {
+          layout: 'modal',
+          width: 376,
+          overlay: true,
+          emoji: { text: '🎤', animation: 'wave' },
+          autoClose: 3000
+        });
       }
 
-      var timer = setTimeout(showSurvey, SURVEY_DELAY);
+      setTimeout(showSurvey, SURVEY_DELAY);
 
       document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'hidden' && !wasSurveyShown()) {
-          clearTimeout(timer);
-          showSurvey();
+        if (document.visibilityState === 'hidden') {
+          _wentAway = true;
+        } else if (document.visibilityState === 'visible' && _wentAway) {
+          _wentAway = false;
+          setTimeout(showSurvey, 500);
         }
-      });
-
-      window.addEventListener('beforeunload', function() {
-        if (!wasSurveyShown()) showSurvey();
       });
     })();
   </script>

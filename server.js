@@ -592,13 +592,13 @@ app.get('/oauth/callback', async (req, res) => {
   }
 });
 
-// Google Calendar OAuth — requests calendar.readonly scope
+// Google Calendar OAuth — requests calendar.events.readonly scope
 app.get('/oauth/google-calendar', (req, res) => {
   req.session.oauthReturnTo = '/oauth/calendar-success';
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',
-    scope: ['https://www.googleapis.com/auth/calendar.readonly']
+    scope: ['https://www.googleapis.com/auth/calendar.events.readonly']
   });
   res.redirect(authUrl);
 });
