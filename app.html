@@ -3071,10 +3071,19 @@
       });
 
       var _sendingOtp = false;
+      var _lastOtpSentAt = 0;
+      var OTP_COOLDOWN = 60000;
       async function sendOtp() {
         if (_sendingOtp) return;
         var email = emailInput.value.trim().toLowerCase();
         if (!email || !email.includes('@')) { showFieldError('onbEmailError', 'Please enter a valid email'); return; }
+        var now = Date.now();
+        var elapsed = now - _lastOtpSentAt;
+        if (_lastOtpSentAt && elapsed < OTP_COOLDOWN) {
+          var remaining = Math.ceil((OTP_COOLDOWN - elapsed) / 1000);
+          showFieldError('onbEmailError', 'Please wait ' + remaining + 's before requesting another code.');
+          return;
+        }
         showFieldError('onbEmailError', '');
         onbData.email = email;
         emailInput.value = email;
@@ -3123,7 +3132,8 @@
             var rateMatch = error.message.match(/after (\d+) second/);
             if (rateMatch) {
               var waitSec = parseInt(rateMatch[1], 10);
-              showFieldError('onbEmailError', 'Too many attempts. Please wait ' + waitSec + 's before trying again.');
+              _lastOtpSentAt = Date.now() - (OTP_COOLDOWN - waitSec * 1000);
+              showFieldError('onbEmailError', 'Please wait ' + waitSec + 's before requesting another code.');
               var emailEl = document.getElementById('onbEmailInput');
               if (emailEl) { emailEl.disabled = true; }
               _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; }
@@ -3137,6 +3147,7 @@
             _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; }
             return;
           }
+          _lastOtpSentAt = Date.now();
         } catch (e) { showFieldError('onbEmailError', e.message || 'Failed to send code'); _sendingOtp = false; if (nextBtn) { nextBtn.disabled = false; nextBtn.textContent = 'Next'; } return; }
 
         _sendingOtp = false;
