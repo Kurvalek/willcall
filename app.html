@@ -2176,8 +2176,9 @@
       <div class="onb-body">
         <div class="onb-step-content">
           <p class="onb-subtitle" style="margin-top:80px">Welcome! What is your name?</p>
-          <input type="text" id="onbNameInput" class="onb-text-input" placeholder="First Name" autocomplete="given-name" autofocus>
+          <input type="text" id="onbNameInput" class="onb-text-input" placeholder="First Name" autocomplete="given-name" enterkeyhint="next" autofocus>
           <p id="onbNameError" class="onb-error"></p>
+          <button type="button" class="onb-next-btn" id="onbNameNextBtn">Next</button>
         </div>
       </div>
     </div>
@@ -2193,7 +2194,7 @@
         <div class="onb-step-content">
           <p class="onb-title" id="onbEmailGreeting">Hi!</p>
           <p class="onb-subtitle">What's your email address?</p>
-          <input type="email" id="onbEmailInput" class="onb-text-input" placeholder="you@email.com" autocomplete="email">
+          <input type="email" id="onbEmailInput" class="onb-text-input" placeholder="you@email.com" autocomplete="email" enterkeyhint="next">
           <p id="onbEmailError" class="onb-error"></p>
           <p class="onb-helper">We'll use your email to create your account.</p>
           <button type="button" class="onb-next-btn" id="onbEmailNextBtn">Next</button>
@@ -2211,7 +2212,7 @@
       <div class="onb-body">
         <div class="onb-step-content" id="onbOtpArea">
           <p class="onb-subtitle" style="margin-top:60px;max-width:291px" id="onbOtpMessage">Enter the code we sent to your email.</p>
-          <input type="tel" id="onbOtpInput" class="onb-otp-input" maxlength="8" inputmode="numeric" autocomplete="one-time-code">
+          <input type="tel" id="onbOtpInput" class="onb-otp-input" maxlength="8" inputmode="numeric" autocomplete="one-time-code" enterkeyhint="next">
           <p id="onbOtpError" class="onb-error"></p>
           <p class="onb-countdown" id="onbCountdown">You can request a new code in <span id="onbCountdownSec">60</span> seconds<br>or <a id="onbChangeEmail">change your email.</a></p>
           <button type="button" class="onb-next-btn" id="onbOtpNextBtn">Next</button>
@@ -2230,9 +2231,10 @@
         <div class="onb-step-content">
           <p class="onb-title">Great!</p>
           <p class="onb-subtitle">Now choose a username.</p>
-          <input type="text" id="onbUsernameInput" class="onb-text-input" placeholder="username" autocomplete="username">
+          <input type="text" id="onbUsernameInput" class="onb-text-input" placeholder="username" autocomplete="username" enterkeyhint="next">
           <p id="onbUsernameError" class="onb-error"></p>
           <p class="onb-helper">This will be on your profile and is a way for people to find you.</p>
+          <button type="button" class="onb-next-btn" id="onbUsernameNextBtn">Next</button>
         </div>
       </div>
     </div>
@@ -2276,7 +2278,7 @@
 
           <div class="onb-connect-row" style="margin-top:32px">
             <span class="onb-connect-label">Last.fm</span>
-            <input type="text" class="onb-connect-input" id="onbLastfmInput" placeholder="Enter your username">
+            <input type="text" class="onb-connect-input" id="onbLastfmInput" placeholder="Enter your username" enterkeyhint="next">
           </div>
           <div id="onbLastfmError" style="color:var(--wc-error);font-size:13px;margin-top:8px;display:none"></div>
 
@@ -3049,15 +3051,15 @@
       // Step 1: Name
       document.getElementById('onbBackToWelcome').addEventListener('click', function() { goToStep(0); });
       var nameInput = document.getElementById('onbNameInput');
-      nameInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          var val = nameInput.value.trim();
-          if (!val) { showFieldError('onbNameError', 'Please enter your name'); return; }
-          showFieldError('onbNameError', '');
-          onbData.name = val;
-          goToStep(2);
-        }
-      });
+      function submitName() {
+        var val = nameInput.value.trim();
+        if (!val) { showFieldError('onbNameError', 'Please enter your name'); return; }
+        showFieldError('onbNameError', '');
+        onbData.name = val;
+        goToStep(2);
+      }
+      nameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') submitName(); });
+      document.getElementById('onbNameNextBtn').addEventListener('click', submitName);
 
       // Step 2: Email (back button handler is set dynamically in goToStep)
       var emailInput = document.getElementById('onbEmailInput');
@@ -3274,17 +3276,42 @@
       // Step 4: Username
       document.getElementById('onbBackToOtp').addEventListener('click', function() { goToStep(3); });
       var usernameInput = document.getElementById('onbUsernameInput');
+      var usernameNextBtn = document.getElementById('onbUsernameNextBtn');
       usernameInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') submitUsername();
       });
+      usernameNextBtn.addEventListener('click', function() { submitUsername(); });
 
       async function submitUsername() {
         var val = usernameInput.value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
         if (!val || val.length < 3) { showFieldError('onbUsernameError', 'Username must be at least 3 characters'); return; }
         showFieldError('onbUsernameError', '');
-        onbData.username = val;
-        await saveProfile();
-        goToStep(5); // Location step
+        usernameNextBtn.disabled = true;
+        usernameNextBtn.textContent = 'Checking…';
+        try {
+          if (supabaseClient) {
+            var { data: { user } } = await supabaseClient.auth.getUser();
+            var uid = user ? user.id : null;
+            var { data: existing } = await supabaseClient
+              .from('profiles')
+              .select('id')
+              .eq('username', val)
+              .maybeSingle();
+            if (existing && existing.id !== uid) {
+              showFieldError('onbUsernameError', 'That username is already taken');
+              usernameNextBtn.disabled = false;
+              usernameNextBtn.textContent = 'Next';
+              return;
+            }
+          }
+          onbData.username = val;
+          await saveProfile();
+          goToStep(5);
+        } catch (e) {
+          showFieldError('onbUsernameError', e.message || 'Something went wrong');
+        }
+        usernameNextBtn.disabled = false;
+        usernameNextBtn.textContent = 'Next';
       }
 
       async function saveProfile() {
