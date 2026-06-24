@@ -1862,10 +1862,10 @@
     .profile-color-picker { margin-bottom: 28px; }
     .profile-color-picker .settings-section-title { margin-bottom: 12px; }
     .color-swatches {
-      display: flex; gap: 10px; flex-wrap: wrap;
+      display: flex; gap: 8px; flex-wrap: nowrap;
     }
     .color-swatch {
-      width: 40px; height: 40px; border-radius: 4px; border: 2px solid rgba(0,0,0,0.1);
+      flex: 1 1 0; min-width: 0; max-width: 40px; aspect-ratio: 1; border-radius: 4px; border: 2px solid rgba(0,0,0,0.1);
       cursor: pointer; position: relative; transition: border-color 0.15s;
     }
     .color-swatch:hover { border-color: rgba(0,0,0,0.4); }
@@ -5503,8 +5503,9 @@
       var date = formatDate(ev.eventDate);
       var venue = (ev.venue && ev.venue.name) ? ev.venue.name : '';
       var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-      var imgHtml = ev.imageUrl
-        ? '<div class="show-card-img-wrap"><img src="' + ev.imageUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
+      var imgUrl = ev.imageUrl || ev._sourceArtistImage || '';
+      var imgHtml = imgUrl
+        ? '<div class="show-card-img-wrap"><img src="' + imgUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
         : '<div class="show-card-img-wrap"><div class="show-card-fallback">' + initials + '</div></div>';
       var ticketUrl = ev.url || '';
       var isUpcoming = cardType.indexOf('upcoming') !== -1 || cardType === 'search-nearby';
@@ -5530,6 +5531,38 @@
       html += '</div></div>';
       html += '</div></div>';
       return html;
+    }
+
+    function backfillDiscoverImages(events, el) {
+      if (!el || !events || !events.length) return;
+      var missing = [];
+      events.forEach(function(ev) {
+        var artist = (ev.artist && ev.artist.name) ? ev.artist.name : (ev._sourceArtist || ev.name || '');
+        var hasImg = ev.imageUrl || ev._sourceArtistImage;
+        if (artist && !hasImg && missing.indexOf(artist) === -1) missing.push(artist);
+      });
+      if (missing.length === 0) return;
+      fetch('/api/ticketmaster/artist-images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ artists: missing })
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var imageMap = data.images || {};
+          events.forEach(function(ev, i) {
+            var artist = (ev.artist && ev.artist.name) ? ev.artist.name : (ev._sourceArtist || ev.name || '');
+            if (artist && imageMap[artist] && !ev.imageUrl && !ev._sourceArtistImage) {
+              ev._sourceArtistImage = imageMap[artist];
+              var card = el.querySelector('[data-search-idx="' + i + '"]');
+              if (card) {
+                var wrap = card.querySelector('.show-card-img-wrap');
+                if (wrap) wrap.innerHTML = '<img src="' + imageMap[artist] + '" alt="' + artist + '" crossorigin="anonymous">';
+              }
+            }
+          });
+        })
+        .catch(function() {});
     }
 
     function renderDiscoverCards(container, events, cardType) {
@@ -5662,6 +5695,7 @@
           html += buildShowCardHtml(ev, idx, 'past-default');
         });
         el.innerHTML = html;
+        backfillDiscoverImages(_discoverSearchEvents.slice(0, 15), el);
       } catch (err) {
         el.innerHTML = '<div class="empty-state">Could not load suggestions.</div>';
       }

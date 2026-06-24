@@ -765,11 +765,17 @@ async function getLastfmTopArtists(username, limit = 50) {
   const url = `https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user=${encodeURIComponent(username)}&api_key=${LASTFM_API_KEY}&format=json&limit=${limit}`;
   const res = await axios.get(url);
   const artists = res.data?.topartists?.artist || [];
-  return artists.map(a => ({
-    name: a.name,
-    playcount: parseInt(a.playcount, 10) || 0,
-    image: (a.image && a.image.find(i => i.size === 'large'))?.['#text'] || null
-  }));
+  return artists.map(a => {
+    let image = (a.image && a.image.find(i => i.size === 'large'))?.['#text'] || null;
+    // Last.fm deprecated artist images; it returns a placeholder "star" for everyone.
+    // Treat that as no image so callers can backfill real images from another source.
+    if (image && image.indexOf('2a96cbd8b46e442fc41c2b86b821562f') !== -1) image = null;
+    return {
+      name: a.name,
+      playcount: parseInt(a.playcount, 10) || 0,
+      image
+    };
+  });
 }
 
 app.get('/api/lastfm/top-artists', async (req, res) => {
