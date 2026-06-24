@@ -387,7 +387,7 @@ app.post('/parse-concert-query', async (req, res) => {
     
     // Step 1: Parse with Claude
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 1024,
       messages: [{
         role: 'user',
@@ -665,7 +665,7 @@ app.get('/api/calendar/scan', async (req, res) => {
     ).join('\n');
 
     const claudeRes = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 2048,
       messages: [{
         role: 'user',
@@ -1120,7 +1120,7 @@ ${emailContent}`;
         
         // Parse email with Claude
         const claudeResponse = await anthropic.messages.create({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-5',
           max_tokens: 1024,
           messages: [{
             role: 'user',
@@ -1333,7 +1333,7 @@ app.post('/api/ticketmaster/nlp-search', async (req, res) => {
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens: 512,
       messages: [{
         role: 'user',
@@ -1868,7 +1868,7 @@ app.use((req, res) => {
   `);
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT} and http://127.0.0.1:${PORT}`);
   console.log(`  App:     http://127.0.0.1:${PORT}/app`);
