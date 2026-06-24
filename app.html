@@ -3936,6 +3936,26 @@
         return raw ? JSON.parse(raw) : [];
       } catch (e) { return []; }
     }
+    // Last.fm serves a deprecated "star" placeholder for every artist; treat it as no image.
+    var LASTFM_PLACEHOLDER_HASH = '2a96cbd8b46e442fc41c2b86b821562f';
+    function isUsableImage(url) { return !!url && url.indexOf(LASTFM_PLACEHOLDER_HASH) === -1; }
+    // One-time cleanup: drop placeholder image URLs saved before placeholder filtering existed,
+    // so backfill can replace them with real artist photos.
+    function migratePlaceholderImages() {
+      [ATTENDED_KEY, GOING_KEY].forEach(function(key) {
+        try {
+          var raw = localStorage.getItem(key);
+          if (!raw) return;
+          var list = JSON.parse(raw);
+          var changed = false;
+          list.forEach(function(s) {
+            if (s.artistImage && !isUsableImage(s.artistImage)) { s.artistImage = null; changed = true; }
+            if (s.imageUrl && !isUsableImage(s.imageUrl)) { s.imageUrl = null; changed = true; }
+          });
+          if (changed) localStorage.setItem(key, JSON.stringify(list));
+        } catch (e) {}
+      });
+    }
     function isGoing(eventId) {
       return getGoingShows().some(function(e) { return e.id === eventId; });
     }
@@ -4068,7 +4088,7 @@
         venue: c.venue && c.venue.name ? c.venue.name : '—',
         city: c.venue && c.venue.city ? c.venue.city.name : '',
         country: c.venue && c.venue.city && c.venue.city.country ? c.venue.city.country.name : '',
-        artistImage: c._sourceArtistImage || c.imageUrl || null
+        artistImage: (isUsableImage(c._sourceArtistImage) ? c._sourceArtistImage : (isUsableImage(c.imageUrl) ? c.imageUrl : null))
       };
       var songs = extractSets(c);
       if (songs) entry.setlist = songs;
@@ -4200,7 +4220,7 @@
       list.forEach(function(s) {
         if (s.artist) {
           artistCounts[s.artist] = (artistCounts[s.artist] || 0) + 1;
-          if (s.artistImage && !artistImages[s.artist]) artistImages[s.artist] = s.artistImage;
+          if (isUsableImage(s.artistImage) && !artistImages[s.artist]) artistImages[s.artist] = s.artistImage;
         }
       });
       var sortedArtists = Object.keys(artistCounts).sort(function(a, b) {
@@ -4218,7 +4238,7 @@
         displayArtists.forEach(function(name) {
           var count = artistCounts[name];
           var initials = name.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
-          var imgWrapHtml = artistImages[name]
+          var imgWrapHtml = isUsableImage(artistImages[name])
             ? '<div class="top-artist-img-wrap"><img src="' + artistImages[name] + '" alt="' + name + '" crossorigin="anonymous"></div>'
             : '<div class="top-artist-img-wrap"><div class="top-artist-img-fallback">' + initials + '</div></div>';
           aHtml += '<div class="top-artist-item">';
@@ -4253,7 +4273,7 @@
           var realIdx = item.idx;
           var initials = (s.artist || '?').split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
           var imgWrapHtml;
-          if (s.artistImage) {
+          if (isUsableImage(s.artistImage)) {
             imgWrapHtml = '<div class="show-card-img-wrap">'
               + '<img src="' + s.artistImage + '" alt="' + (s.artist || '') + '" crossorigin="anonymous">'
               + '</div>';
@@ -4824,7 +4844,7 @@
       var list = getAttendedShows();
       var missing = [];
       list.forEach(function(s) {
-        if (s.artist && !s.artistImage && missing.indexOf(s.artist) === -1) missing.push(s.artist);
+        if (s.artist && !isUsableImage(s.artistImage) && missing.indexOf(s.artist) === -1) missing.push(s.artist);
       });
       if (missing.length === 0) return;
       console.log('[backfill] Fetching images for', missing.length, 'artists via Ticketmaster');
@@ -4845,7 +4865,7 @@
           var list = getAttendedShows();
           var changed = false;
           list.forEach(function(s) {
-            if (s.artist && !s.artistImage && imageMap[s.artist]) {
+            if (s.artist && !isUsableImage(s.artistImage) && imageMap[s.artist]) {
               s.artistImage = imageMap[s.artist];
               changed = true;
             }
@@ -5056,6 +5076,7 @@
     })();
 
     (function initLastfm() {
+      migratePlaceholderImages();
       renderProfileShows();
       renderProfileUpcomingShows();
       backfillArtistImages();
@@ -5986,7 +6007,7 @@
       var artist = (show.artist && typeof show.artist === 'object') ? show.artist.name : (show.artist || show.name || 'Unknown');
       var date = typeof formatDate === 'function' ? formatDate(show.eventDate) : (show.eventDate || '');
       var venue = (show.venue && typeof show.venue === 'object') ? show.venue.name : (show.venue || '');
-      var imgUrl = show.imageUrl || show.artistImage || '';
+      var imgUrl = isUsableImage(show.imageUrl) ? show.imageUrl : (isUsableImage(show.artistImage) ? show.artistImage : '');
       var initials = artist.split(' ').map(function(w) { return w[0]; }).join('').substring(0, 2).toUpperCase();
       var imgHtml = imgUrl
         ? '<div class="show-card-img-wrap"><img src="' + imgUrl + '" alt="' + artist + '" crossorigin="anonymous"></div>'
@@ -6075,7 +6096,7 @@
           var artistImgs = {};
           attended.forEach(function(s) {
             var a = (s.artist && typeof s.artist === 'object') ? s.artist.name : (s.artist || s.name || '');
-            var img = s.imageUrl || s.artistImage || '';
+            var img = isUsableImage(s.imageUrl) ? s.imageUrl : (isUsableImage(s.artistImage) ? s.artistImage : '');
             if (a && img && !artistImgs[a]) artistImgs[a] = img;
           });
           var taHtml = '';
