@@ -1473,15 +1473,18 @@ app.post('/api/ticketmaster/artist-images', async (req, res) => {
         const params = new URLSearchParams({
           apikey: apiKey,
           keyword: name,
-          size: 1,
+          size: 10,
           locale: '*'
         });
         const url = `https://app.ticketmaster.com/discovery/v2/attractions.json?${params}`;
         const r = await axios.get(url, { timeout: 8000 });
-        const attraction = r.data?._embedded?.attractions?.[0];
+        const attractions = r.data?._embedded?.attractions || [];
+        if (attractions.length === 0) return;
+        // Find an exact (case-insensitive) name match among the candidates rather than
+        // only checking the first result, so well-known artists aren't missed.
+        const norm = (s) => String(s || '').toLowerCase().trim();
+        const attraction = attractions.find(a => norm(a.name) === norm(name));
         if (!attraction) return;
-        const nameMatch = attraction.name?.toLowerCase() === name.toLowerCase();
-        if (!nameMatch) return;
         const images = attraction.images || [];
         const img = images.find(i => i.ratio === '16_9' && i.width >= 640)
           || images.find(i => i.ratio === '16_9')

@@ -5587,11 +5587,13 @@
     }
 
     function renderDiscoverCards(container, events, cardType) {
+      var shown = events.slice(0, 20);
       var html = '';
-      events.slice(0, 20).forEach(function(ev, idx) {
+      shown.forEach(function(ev, idx) {
         html += buildShowCardHtml(ev, idx, cardType);
       });
       container.innerHTML = html;
+      backfillDiscoverImages(shown, container);
     }
 
     function handleDiscoverActions(ev) {
