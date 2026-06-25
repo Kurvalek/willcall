@@ -5546,6 +5546,8 @@
       html += DOTS_HTML;
       html += '<div class="card-actions-body">';
       if (isUpcoming) {
+        html += '<button type="button" class="card-action-btn" data-action="going">' + GOING_SVG + 'I\'m going</button>';
+        html += '<div class="card-action-divider"></div>';
         html += '<button type="button" class="card-action-btn" data-action="tickets">' + TICKET_SVG + 'Get Tickets</button>';
       } else {
         html += '<button type="button" class="card-action-btn" data-action="add-past">' + CHECKIN_SVG + 'I was there</button>';
