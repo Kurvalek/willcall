@@ -2097,8 +2097,8 @@
       flex: 1; overflow-y: auto; padding: 16px 20px 24px;
     }
     .up-follow-btn {
-      position: absolute; top: 16px; right: 16px; z-index: 5;
-      padding: 10px 24px;
+      margin-left: auto;
+      padding: 8px 18px;
       border-radius: var(--wc-radius); font-family: var(--wc-font-body);
       font-size: 13px; font-weight: 600; cursor: pointer;
       border: 1.5px solid var(--wc-black); transition: all 0.15s;
@@ -2606,12 +2606,11 @@
   <div id="userProfileSheet" class="user-profile-sheet">
     <div class="user-profile-sheet-header">
       <button class="back-btn" id="closeUserProfileBtn">Back</button>
-      <span class="title" id="upSheetTitle">Profile</span>
+      <button type="button" class="up-follow-btn follow" id="upFollowBtn">Join their crowd</button>
     </div>
     <div class="user-profile-sheet-body">
       <div class="home-border-frame up-frame">
         <div style="display:flex;flex-direction:column;gap:16px">
-          <button type="button" class="up-follow-btn follow" id="upFollowBtn">Join their crowd</button>
           <div class="profile-header">
             <div class="profile-avatar up-no-edit" id="upAvatar"><svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="80" height="80" rx="4" fill="#D1CEC7"/><circle cx="40" cy="30" r="14" fill="#fff"/><ellipse cx="40" cy="66" rx="24" ry="18" fill="#fff"/></svg></div>
             <div class="profile-info">
@@ -6057,7 +6056,6 @@
 
         document.getElementById('upName').textContent = name;
         document.getElementById('upHandle').textContent = p.username ? '@' + p.username : '';
-        document.getElementById('upSheetTitle').textContent = p.username ? '@' + p.username : 'Profile';
         if (p.avatar_url) {
           avatarEl.innerHTML = '<img src="' + p.avatar_url + '" alt="' + name + '">';
         }
